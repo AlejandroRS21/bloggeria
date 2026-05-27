@@ -180,15 +180,15 @@ python daggr_blogger_workflow.py
 
 ---
 
-## 🤖 Para Agentes IA
+## 🤖 Para Agentes de IA
 
-Si sos un agente IA usando este repo:
+Si usted es un agente de IA utilizando este repositorio:
 
-1. **Configurá tu API key** antes de generar contenido
-2. **Usá el orquestador** (`python -m src.orchestrator.runner`) como punto de entrada principal
-3. **El estilo está predefinido** en `javipas_style_profile.json`
-4. **No necesitás modificar el scraper** — el corpus ya está extraído
-5. **Para temas diferentes**, simplemente cambiá el argumento `--topic`
+1. **Configure la clave de API (API key)** antes de generar contenido.
+2. **Utilice el orquestador** (`python -m src.orchestrator.runner`) como punto de entrada principal.
+3. **El estilo está predefinido** en el archivo `javipas_style_profile.json`.
+4. **No requiere modificar el scraper** — el corpus de datos ya ha sido extraído.
+5. **Para temas diferentes**, simplemente modifique el argumento `--topic`.
 
 ### Ejemplo de uso programático:
 

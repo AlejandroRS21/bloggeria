@@ -150,17 +150,17 @@ class ContentGenerator:
 
         vocab = profile.get("vocabulary", [])
         if vocab:
-            blocks.append(f"\nVocabulario característico (usá estas palabras):")
+            blocks.append(f"\nVocabulario característico (usa estas palabras):")
             blocks.append(f"  {', '.join(vocab[:15])}")
 
         expressions = profile.get("expressions", [])
         if expressions:
-            blocks.append(f"\nExpresiones típicas (incorporalas naturalmente):")
+            blocks.append(f"\nExpresiones típicas (incorpóralas naturalmente):")
             blocks.append(f"  {', '.join(expressions[:8])}")
 
         transitions = profile.get("transition_phrases", [])
         if transitions:
-            blocks.append(f"\nFrases de transición (usalas para conectar ideas):")
+            blocks.append(f"\nFrases de transición (úsalas para conectar ideas):")
             blocks.append(f"  {', '.join(transitions[:6])}")
 
         tech = profile.get("technical_level", "")
@@ -247,7 +247,7 @@ class ContentGenerator:
         if research_context and len(research_context.strip()) > 100:
             research_block = f"""
 ━━━━━━ INFORMACIÓN REAL SOBRE EL TEMA ━━━━━━━━
-Usá esta información como base factual para el post. No inventes datos, basate en esto.
+Usa esta información como base factual para el post. No inventes datos, básate en esto.
 {research_context}
 ━━━━━━ FIN DE INFORMACIÓN ━━━━━━━━━━━━━━━━━━━━━
 """
@@ -257,63 +257,66 @@ Usá esta información como base factual para el post. No inventes datos, basate
 
         if sample_text and len(sample_text.strip()) > 200:
             # ---- PROMPT CON EJEMPLOS REALES (modo principal) ----
-            prompt = f"""Abajo tenés posts REALES escritos por {blogger_name}, cuyo estilo de escritura tenés que imitar fielmente, e información factual sobre el tema del post.
+            prompt = f"""Abajo tienes posts REALES escritos por {blogger_name}, cuyo estilo de escritura tienes que imitar fielmente, e información factual sobre el tema del post.
 
 ━━━━━━ EJEMPLOS DEL BLOGGER ORIGINAL ────────
 {sample_text[:20000]}
 ━━━━━━ FIN DE LOS EJEMPLOS ──────────────────
 {research_block}
-Ahora escribí un NUEVO post sobre: {topic}
+Ahora escribe un NUEVO post sobre: {topic}
 
 {style_context}
 
 REGLAS:
 
 - ### IDIOMA — español REAL, nada de Spanglish
-  - Escribí TODO el post en ESPAÑOL. Título, cuerpo, secciones, TODO.
-  - Traducí cualquier término técnico: "Machine Learning" → "Aprendizaje Automático", "Deep Learning" → "Aprendizaje Profundo", "Neural Networks" → "Redes Neuronales", "Data Science" → "Ciencia de Datos", "Data Preprocessing" → "Preprocesamiento de Datos", "Model Training" → "Entrenamiento de Modelos".
+  - Escribe TODO el post en ESPAÑOL. Título, cuerpo, secciones, TODO.
+  - Traduce cualquier término técnico: "Machine Learning" → "Aprendizaje Automático", "Deep Learning" → "Aprendizaje Profundo", "Neural Networks" → "Redes Neuronales", "Data Science" → "Ciencia de Datos", "Data Preprocessing" → "Preprocesamiento de Datos", "Model Training" → "Entrenamiento de Modelos".
   - NO dejes NINGUNA palabra en inglés suelta. Nada de "on-line", "performance", "disappointing resultado". TODO traducido.
-  - Usá vocabulario español real, no inventes palabras ("alcanceado" → "alcanzado", "percaté" → "me di cuenta").
+  - Usa vocabulario español real, no inventes palabras ("alcanceado" → "alcanzado", "percaté" → "me di cuenta").
 
 - ### GRAMÁTICA y ortografía
-  - Usá tildes correctamente (empecé, percaté, está, cómo, así).
-  - Respetá la concordancia de género y número ("estos temas", no "estas temas").
-  - No inventes palabras. Si no estás segura de una palabra, usá un sinónimo conocido.
+  - Usa tildes correctamente (empecé, percaté, está, cómo, así).
+  - Respeta la concordancia de género y número ("estos temas", no "estas temas").
+  - No inventes palabras. Si no estás seguro de una palabra, usa un sinónimo conocido.
 
-- ### REGISTRO — voz consistente
-  - Elegí UN registro y mantenelo todo el post. Recomendado: voseo informal ("vos", "tenés", "pensá") o "tuteo" informal ("tú", "tienes", "piensa").
-  - NO mezcles "usted" (Recuerde, se dedique) con "vos" en el mismo post.
-  - Evitá el registro formal. Esto es un blog personal, no un paper académico.
+- ### REGISTRO — voz y dialecto consistentes con el blogger original
+  - Identifica el dialecto del blogger a partir de su perfil de estilo y los ejemplos reales.
+  - Si el blogger es de España (tuteo, expresiones como "mazo", "brutal", "o sea"), escribe TODO el post en español peninsular (tú, tienes, fíjate, etc.).
+  - Si el blogger es de Argentina/Uruguay (voseo), usa voseo (vos, tenés, pensá, etc.).
+  - NUNCA mezcles dialectos o pronombres (por ejemplo, no mezcles "tú tienes" con "pensá" o "¿entendés?"). El post debe sonar 100% coherente al origen del blogger.
+  - Elige UN registro (formal o informal) congruente con el blogger y mantenlo todo el post.
+  - Evita el registro formal a menos que el blogger lo use de forma explícita.
 
 - ### TÍTULO PRINCIPAL — formato correcto
   - La PRIMERA LÍNEA del post debe ser EXACTAMENTE: `# <título gancho>`
-  - Usá el formato markdown `# ` al inicio. NO uses `━━━ title: ... ━━━` ni `Title: ...` ni mayúsculas decorativas.
+  - Usa el formato markdown `# ` al inicio. NO uses `━━━ title: ... ━━━` ni `Title: ...` ni mayúsculas decorativas.
   - El título debe ser UN GANCHO: datos concretos, afirmaciones audaces, o contrastes impactantes.
   - Ejemplos BUENOS: `# Los 634 segundos que casi vacían la cartera de un programador`, `# El truco sucio de las academias que prometen programadores en 3 meses`.
   - Ejemplos MALOS (NUNCA uses estos): títulos en inglés, preguntas tipo "¿Es X realmente Y?", títulos genéricos como "Análisis de X".
 
 - ### CONTENIDO y estructura
-  - BASATE EN LA INFORMACIÓN REAL proporcionada arriba. No inventes datos.
-  - Incluí AL MENOS 2 datos concretos o citas específicas de la investigación. No te quedes en generalidades.
-  - NO uses estructuras de plantilla como "Contexto", "Introducción", "Lo que he aprendido", "Reflexión final" o "Conclusión" como títulos de sección. Dejá que la estructura fluya naturalmente.
+  - BÁSATE EN LA INFORMACIÓN REAL proporcionada arriba. No inventes datos.
+  - Incluye AL MENOS 2 datos concretos o citas específicas de la investigación. No te quedes en generalidades.
+  - NO uses estructuras de plantilla como "Contexto", "Introducción", "Lo que he aprendido", "Reflexión final" o "Conclusión" como títulos de sección. Deja que la estructura fluya naturalmente.
   - Cada título de sección debe ser ESPECÍFICO al contenido concreto, no genérico. Si ese título pudiera aparecer en cualquier otro post, está mal.
-  - Pensá: "¿Qué es lo más interesante de esta información?" y empezá por ahí.
-  - Variá la longitud de las secciones. Algunas ideas merecen un párrafo, otras merecen varios.
-  - Si el blogger usa primera persona, anécdotas personales, humor, etc., hace lo mismo.
-  - Mencioná estos temas si aplican naturalmente: {keywords_str}
+  - Piensa: "¿Qué es lo más interesante de esta información?" y empieza por ahí.
+  - Varía la longitud de las secciones. Algunas ideas merecen un párrafo, otras merecen varios.
+  - Si el blogger usa primera persona, anécdotas personales, humor, etc., haz lo mismo.
+  - Menciona estos temas si aplican naturalmente: {keywords_str}
 
 - ### ESTILO — emulación del blogger + que no parezca IA
-  - Emulá el estilo de {blogger_name} en TODO el post: su vocabulario, expresiones, tono, forma de empezar y terminar. El perfil de estilo está arriba.
+  - Emula el estilo de {blogger_name} en TODO el post: su vocabulario, expresiones, tono, forma de empezar y terminar. El perfil de estilo está arriba.
   - NO aclares que esto es contenido generado por IA.
   - NO generes URLs de imágenes falsas (src="https://..." inventadas).
-  - Variá los conectores. No uses "Sin embargo" más de una vez. Alterná con "Pero", "No obstante", "Ahora bien", "Eso sí", "El problema", "Lo cierto es que", etc.
-  - Escribí como un ser humano, no como un asistente. Sin estructuras repetitivas.
+  - Varía los conectores. No uses "Sin embargo" más de una vez. Alterna con "Pero", "No obstante", "Ahora bien", "Eso sí", "El problema", "Lo cierto es que", etc.
+  - Escribe como un ser humano, no como un asistente. Sin estructuras repetitivas.
 
-Escribí el post completo ahora:{attribution}"""
+Escribe el post completo ahora:{attribution}"""
         else:
             # ---- PROMPT SIMPLIFICADO (sin ejemplos del blogger) ----
             prompt = f"""{research_block}
-Escribí un post de blog imitando el estilo de {blogger_name}. Abajo está su perfil de estilo.
+Escribe un post de blog imitando el estilo de {blogger_name}. Abajo está su perfil de estilo.
 
 Tema: {topic}
 
@@ -322,48 +325,51 @@ Tema: {topic}
 REGLAS:
 
 - ### IDIOMA — español REAL, nada de Spanglish
-  - Escribí TODO el post en ESPAÑOL. Título, cuerpo, secciones, TODO.
-  - Traducí cualquier término técnico: "Machine Learning" → "Aprendizaje Automático", "Deep Learning" → "Aprendizaje Profundo", "Neural Networks" → "Redes Neuronales", "Data Science" → "Ciencia de Datos", etc.
+  - Escribe TODO el post en ESPAÑOL. Título, cuerpo, secciones, TODO.
+  - Traduce cualquier término técnico: "Machine Learning" → "Aprendizaje Automático", "Deep Learning" → "Aprendizaje Profundo", "Neural Networks" → "Redes Neuronales", "Data Science" → "Ciencia de Datos", etc.
   - NO dejes NINGUNA palabra en inglés suelta. TODO traducido.
-  - Usá vocabulario español real, no inventes palabras.
+  - Usa vocabulario español real, no inventes palabras.
 
 - ### GRAMÁTICA y ortografía
-  - Usá tildes correctamente (empecé, percaté, está, cómo, así).
-  - Respetá la concordancia de género y número.
-  - No inventes palabras. Usá sinónimos conocidos.
+  - Usa tildes correctamente (empecé, percaté, está, cómo, así).
+  - Respeta la concordancia de género y número.
+  - No inventes palabras. Usa sinónimos conocidos.
 
-- ### REGISTRO — voz consistente
-  - Elegí UN registro y mantenelo: voseo informal ("vos", "tenés") o tuteo ("tú", "tienes").
-  - NO mezcles "usted" con "vos" en el mismo post.
-  - Evitá el registro formal. Es un blog personal.
+- ### REGISTRO — voz y dialecto consistentes con el blogger original
+  - Identifica el dialecto del blogger a partir de su perfil de estilo.
+  - Si el blogger es de España (tuteo, expresiones como "mazo", "brutal", "o sea"), escribe TODO el post en español peninsular (tú, tienes, fíjate, etc.).
+  - Si el blogger es de Argentina/Uruguay (voseo), usa voseo (vos, tenés, pensá, etc.).
+  - NUNCA mezcles dialectos o pronombres (por ejemplo, no mezcles "tú tienes" con "pensá" o "¿entendés?"). El post debe sonar 100% coherente al origen del blogger.
+  - Elige UN registro (formal o informal) congruente con el blogger y mantenlo todo el post.
+  - Evita el registro formal a menos que el blogger lo use de forma explícita.
 
 - ### TÍTULO PRINCIPAL — formato correcto
   - La PRIMERA LÍNEA debe ser EXACTAMENTE: `# <título gancho>`
-  - Usá formato markdown `# `. NO uses `━━━ title:` ni `Title:` ni mayúsculas decorativas.
+  - Usa formato markdown `# `. NO uses `━━━ title:` ni `Title:` ni mayúsculas decorativas.
   - El título debe ser UN GANCHO: datos concretos, afirmaciones audaces.
   - NUNCA uses títulos en inglés ni preguntas tipo "¿Es X realmente Y?".
 
 - ### CONTENIDO y calidad
-  - BASATE EN LA INFORMACIÓN REAL. No inventes datos.
-  - Incluí AL MENOS 2 datos concretos de la investigación.
+  - BÁSATE EN LA INFORMACIÓN REAL. No inventes datos.
+  - Incluye AL MENOS 2 datos concretos de la investigación.
   - NO uses títulos genéricos como "Introducción" o "Conclusión".
   - Cada título de sección debe ser ESPECÍFICO al contenido concreto.
-  - Variá la longitud de las secciones.
-  - Mencioná estos temas si aplican: {keywords_str}
+  - Varía la longitud de las secciones.
+  - Menciona estos temas si aplican: {keywords_str}
   - Longitud: entre {min_words} y {max_words} palabras.
 
 - ### ESTILO — emulación del blogger + que no parezca IA
-  - Emulá el estilo de {blogger_name}: su vocabulario, expresiones, tono y forma de escribir. El perfil está arriba.
+  - Emula el estilo de {blogger_name}: su vocabulario, expresiones, tono y forma de escribir. El perfil está arriba.
   - NO aclares que es contenido generado por IA.
   - NO generes URLs de imágenes falsas.
-  - Variá los conectores. No uses "Sin embargo" más de una vez. Alterná con "Pero", "Eso sí", "El problema", "Lo cierto es que", etc.
-  - Escribí como un ser humano, no como un asistente.
+  - Varía los conectores. No uses "Sin embargo" más de una vez. Alterna con "Pero", "Eso sí", "El problema", "Lo cierto es que", etc.
+  - Escribe como un ser humano, no como un asistente.
 
-Escribí el post ahora:{attribution}"""
+Escribe el post ahora:{attribution}"""
 
         try:
             messages = self.llm.create_messages(
-                system_prompt="Eres un escritor de blogs. Escribís posts como lo haría un blogger real: con voz propia, estructura orgánica, y sin clichés de IA. Tu estilo es natural, conversacional, y evitás cualquier estructura que parezca plantilla.",
+                system_prompt="Eres un escritor de blogs profesional. Escribes posts como lo haría el blogger real: con voz propia, estructura orgánica, y respetando fielmente su estilo lingüístico y dialecto original sin caer en modismos que no correspondan.",
                 user_prompt=prompt,
             )
 

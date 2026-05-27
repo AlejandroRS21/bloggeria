@@ -1,27 +1,29 @@
 # Blogger Agent TFG
 
-> Sistema multi-agente de IA para mimetizar estilos de escritura, con generación visual (Daggr) y despliegue estático en GitHub Pages.
+> Sistema multiagente de inteligencia artificial diseñado para la emulación estilística de blogs, incorporando generación de diagramas de flujo de trabajo (Daggr) y despliegue automatizado en GitHub Pages.
 
 ## 🌐 Despliegue Automatizado (GitHub Pages)
 
-El blog se actualiza en `https://AlejandroRS21.github.io/blogger-agent-tfg/` mediante un botón **🌐 DESPLEGAR BLOG** o ejecutando el script de deploy.
+El blog se actualiza y despliega en `https://AlejandroRS21.github.io/blogger-agent-tfg/` mediante el botón **🌐 DESPLEGAR BLOG** o mediante la ejecución manual del script de despliegue.
 
-### ¿Cómo funciona el despliegue?
+### Proceso de despliegue
 
-1.  **Generación Local/Modal**: El sistema genera los posts y los guarda en `docs/posts/`.
-2.  **Sincronización Automática**: Al desplegar, se ejecuta `deploy.ps1`.
-3.  **Git Subtree**: El script usa `git subtree push --prefix docs origin gh-pages` para enviar **únicamente** `docs/` a la rama de producción sin interferir con `main`.
+1. **Generación local o mediante Modal**: El sistema realiza la inferencia de los nuevos artículos y los almacena en el directorio `docs/posts/`.
+2. **Sincronización automática**: Durante el proceso de publicación, se ejecuta el script `deploy.ps1`.
+3. **Git Subtree**: El script utiliza el comando `git subtree push --prefix docs origin gh-pages` para enviar de manera exclusiva el directorio `docs/` a la rama de producción (`gh-pages`), evitando interferencias con la rama principal (`main`).
 
 > [!NOTE]
-> Necesitás permisos de escritura en el repositorio y Git configurado localmente.
+> Se requieren permisos de escritura en el repositorio remoto y contar con Git configurado en el entorno de desarrollo local.
 
 ---
 
 ## 📋 Descripción del Proyecto
 
-Sistema multi-agente que analiza el estilo de un blogger y genera artículos que mimetizan su tono. El backend usa **HuggingFace** como LLM primario (gratis), **Modal** para deployment serverless con GPU y **Daggr** para visualización interactiva del workflow. Frontend en **Next.js 16** con React 19, TypeScript y Tailwind CSS 4. Web estática complementaria en GitHub Pages.
+Este sistema multiagente ha sido diseñado para analizar en detalle el estilo de redacción de un autor (blogger) y generar nuevos artículos de divulgación que mimetizan fielmente su tono de voz. La arquitectura y el flujo de agentes de este desarrollo están inspirados en el proyecto [Aphra](https://github.com/DavidLMS/aphra).
 
-## 🏗️ Arquitectura
+El backend emplea **HuggingFace** como proveedor de modelos de lenguaje principal (de acceso gratuito), **Modal** para la infraestructura sin servidor (serverless) con soporte para GPU, y **Daggr** para la visualización interactiva del flujo de trabajo de los agentes. El frontend está desarrollado con **Next.js 16**, React 19, TypeScript y Tailwind CSS 4. Adicionalmente, se incluye una interfaz web estática complementaria desplegada en GitHub Pages.
+
+## 🏗️ Arquitectura del Sistema
 
 ```
 blogger-agent-tfg/
@@ -102,37 +104,40 @@ blogger-agent-tfg/
 │   ├── FRONTEND_IMPLEMENTATION.md   # Histórico: frontend eliminado
 │   └── ...
 ├── deploy.ps1                       # Script de despliegue a GH Pages
-└── LICENSE                          # MIT
+│── LICENSE                          # MIT
+└── ...
 ```
 
-## 🚀 Quick Start
+---
+
+## 🚀 Inicio Rápido
 
 ### Backend — Orquestador Completo
 
 ```bash
-# 1. Clonar repositorio
+# 1. Clonar el repositorio
 git clone https://github.com/AlejandroRS21/blogger-agent-tfg.git
 cd blogger-agent-tfg/backend
 
-# 2. Setup automatizado con UV ⚡
+# 2. Configuración automatizada con el gestor UV ⚡
 ./setup.sh   # Linux/macOS
-# o
+# o bien
 .\setup.ps1  # Windows
 
-# 3. Configurar API token (gratis) 🆓
-export HF_TOKEN="hf_..."           # HuggingFace (primario, gratis)
-# Alternativas:
-export GEMINI_API_KEY="..."        # Gemini (gratis con límites)
-export OPENAI_API_KEY="sk-..."     # OpenAI (pago, fallback)
+# 3. Configurar las claves de API (gratuitas) 🆓
+export HF_TOKEN="hf_..."           # HuggingFace (modelo primario, gratuito)
+# Proveedores alternativos:
+export GEMINI_API_KEY="..."        # Gemini (gratuito con límites de cuota)
+export OPENAI_API_KEY="sk-..."     # OpenAI (de pago, contingencia/fallback)
 
-# 4. Ejecutar orquestador (7 fases)
+# 4. Ejecutar el orquestador (proceso de 7 fases)
 python -m src.orchestrator.runner \
   --topic "Las mejores prácticas para desarrollar APIs REST con Python" \
   --blog-url "https://javipas.com" \
   --output "post.json"
 ```
 
-### Interfaz Visual con Daggr (Recomendado) 🎨
+### Interfaz Visual Interactiva con Daggr (Recomendado) 🎨
 
 ```bash
 cd backend
@@ -140,12 +145,12 @@ python daggr_blogger_workflow.py
 # Abrir http://localhost:7860
 ```
 
-**Features Daggr:**
-- 📊 **Visualización de Workflow**: Canvas interactivo con agentes conectados
-- 🔍 **Inspección por Nodo**: Ver input/output de cada agente
-- 🔄 **Re-ejecución Selectiva**: Ejecutar solo el nodo necesario
-- ⏱️ **Debugging Visual**: Identificar problemas en cada paso
-- 💾 **Persistencia**: Estado guardado entre sesiones
+**Funcionalidades de Daggr:**
+- 📊 **Visualización del flujo de trabajo**: Lienzo interactivo que muestra las conexiones entre agentes.
+- 🔍 **Inspección por nodo**: Permite examinar en detalle la entrada y salida de cada agente.
+- 🔄 **Reejecución selectiva**: Capacidad para ejecutar únicamente los nodos requeridos.
+- ⏱️ **Depuración visual**: Facilita la identificación de errores en cada fase del proceso.
+- 💾 **Persistencia**: Conserva el estado del flujo de trabajo entre diferentes sesiones.
 
 ### Pipeline Simplificado
 
@@ -163,22 +168,22 @@ npm run dev
 # Abrir http://localhost:3000
 ```
 
-**Modo Mock** (default): Funciona sin backend, genera datos de ejemplo.
-**Modo Real**: Configurar `USE_MOCK=false` y `BACKEND_URL` en `frontend/.env.local`.
+**Modo simulado (Mock)** (por defecto): Funciona de manera autónoma sin necesidad de backend, proporcionando datos de ejemplo.
+**Modo real**: Requiere configurar las variables `USE_MOCK=false` y la dirección `BACKEND_URL` en el archivo `frontend/.env.local`.
 
-#### Deploy a Vercel 🚀
+#### Despliegue en Vercel 🚀
 
-1. Importar el repo en [vercel.com](https://vercel.com)
-2. **Root Directory**: `frontend`
-3. **Environment Variables**: `USE_MOCK=true` (o `false` con `BACKEND_URL` si tenés Modal)
-4. Deploy — Vercel autodetecta Next.js
+1. Importar el repositorio en [vercel.com](https://vercel.com)
+2. **Directorio raíz (Root Directory)**: `frontend`
+3. **Variables de entorno**: `USE_MOCK=true` (o `false` con `BACKEND_URL` si se dispone de infraestructura en Modal)
+4. Desplegar: Vercel autodetectará la estructura de Next.js.
 
 ```bash
-# O por CLI
+# O bien mediante la interfaz de línea de comandos (CLI)
 cd frontend && npx vercel --prod
 ```
 
-### Previsualizar Web Estática
+### Previsualización de la Web Estática
 
 ```bash
 cd docs
@@ -186,91 +191,134 @@ python -m http.server 8000
 # Abrir http://localhost:8000
 ```
 
-### Tests
+### Batería de Pruebas
 
 ```bash
 cd backend
-# Ejecutar todos los tests (~80 tests)
+# Ejecutar el conjunto completo de pruebas (aproximadamente 80 tests)
 pytest tests/ -v
 
-# Tests específicos
+# Pruebas específicas de componentes
 pytest tests/test_orchestrator.py -v
 pytest tests/test_html_builder.py -v
 pytest tests/test_agents.py -v
 
-# Test end-to-end
+# Prueba de integración de extremo a extremo (E2E)
 python test_full_pipeline.py
 ```
 
+---
+
 ## 📊 Flujo de Trabajo (7 Fases)
 
-1. **Análisis de Estilo** (`style_analyzer`) → Analiza posts del blogger
-2. **Extracción de Keywords** (`keyword_extractor`) → Palabras clave recurrentes
-3. **Generación de Contenido** (`content_generator`) → Borrador con estilo del blogger
-4. **Crítica** (`critic`) → Feedback sobre coherencia y estilo (score 0-10)
-5. **Refinamiento** (`content_generator`) → Mejora basada en crítica (si score < 7)
-6. **Construcción HTML** (`html_builder`) → Convierte Markdown a HTML/JSX optimizado
-   - HTML semántico con meta tags SEO
-   - JSX para React/Next.js
-   - Tabla de contenidos (TOC)
-   - Tiempo de lectura y conteo de palabras
-7. **Selección de Imágenes** (`image_selector`) → Prompts y ubicaciones para imágenes
+### Diagrama del Proceso (Pipeline de Agentes)
 
-## 🚀 Integración con Modal
+```mermaid
+graph LR
+    %% Entrada de datos
+    Tema[Tema del Artículo] --> Gen
+    URL[URL del Blog] --> Scraper[Scraper WordPress] --> Corpus[(Corpus de Artículos)]
+    
+    %% Flujo de agentes
+    subgraph Orquestación de Agentes (BloggerOrchestrator)
+        direction LR
+        Corpus --> Style[1. StyleAnalyzer]
+        Style --> Key[2. KeywordExtractor]
+        Key --> Gen[3. ContentGenerator <br> Borrador]
+        Gen --> Critic[4. CriticAgent <br> Evaluación]
+        Critic -- "Puntaje < 7" --> Ref[5. ContentGenerator <br> Refinamiento]
+        Ref --> Critic
+        Critic -- "Puntaje >= 7" --> HTML[6. HTMLBuilder]
+        HTML --> Img[7. ImageSelectorAgent]
+    end
 
-**Modal** se usa para deployment serverless con GPU:
+    %% Salida y almacenamiento
+    Img --> Output[Artículos HTML / JSX + Metadatos]
+    
+    %% Estilos visuales formales
+    classDef default fill:#ffffff,stroke:#333333,stroke-width:1px;
+    classDef agent fill:#f8fafc,stroke:#475569,stroke-width:2px;
+    classDef io fill:#f1f5f9,stroke:#64748b,stroke-width:1px;
+    
+    class Style,Key,Gen,Critic,Ref,HTML,Img agent;
+    class Tema,URL,Scraper,Corpus,Output io;
+```
 
-- **`modal_app.py`**: Despliega el orquestador como webhook serverless
-- **`llm_modal_host.py`**: Hostea Qwen 2.5 7B en GPU A10G para inferencia propia
+1. **Análisis de estilo** (`style_analyzer`): Examina las publicaciones previas del autor para extraer métricas formales.
+2. **Extracción de palabras clave** (`keyword_extractor`): Identifica los términos y conceptos semánticos recurrentes.
+3. **Generación de contenido** (`content_generator`): Redacta un borrador inicial alineado con el estilo analizado.
+4. **Evaluación crítica** (`critic`): Evalúa la coherencia y fidelidad estilística, asignando una puntuación de 0 a 10.
+5. **Refinamiento** (`content_generator`): Aplica mejoras en base al informe crítico si la puntuación es inferior a 7.
+6. **Construcción HTML** (`html_builder`): Convierte el borrador en Markdown a estructuras HTML y JSX optimizadas.
+   - Genera HTML semántico con etiquetas de metadatos optimizadas para SEO.
+   - Genera componentes JSX compatibles con React y Next.js.
+   - Incluye un índice o tabla de contenidos dinámica (TOC).
+   - Calcula el tiempo estimado de lectura y el número de palabras.
+7. **Selección de recursos visuales** (`image_selector`): Genera descripciones de imágenes (*prompts*) e indica su ubicación óptima en el artículo.
+
+---
+
+## 🚀 Integración con la Plataforma Modal
+
+La plataforma **Modal** se emplea para habilitar despliegues sin servidor (serverless) con soporte para GPU:
+
+- **`modal_app.py`**: Despliega el módulo del orquestador en forma de *webhook* sin servidor.
+- **`llm_modal_host.py`**: Hospeda el modelo Qwen 2.5 7B en una GPU A10G para la ejecución local de inferencias.
 
 ```bash
-# Desplegar orquestador serverless
+# Desplegar el orquestador en la infraestructura serverless
 modal deploy backend/modal_app.py
 
-# Desplegar LLM propio con GPU
+# Desplegar el modelo de lenguaje (LLM) propio configurado con GPU
 modal deploy backend/llm_modal_host.py
 ```
 
+---
+
 ## 📊 Estado del Proyecto
 
-### ✅ Completado
-- **LLM Abstraction**: Multi-provider (HuggingFace, OpenAI, Gemini, Modal GPU)
-- **7 Agentes**: StyleAnalyzer, KeywordExtractor, ContentGenerator, Critic, ImageSelector, HTMLBuilder, AnonymousBloggerEmulator
-- **Orquestador**: 7 fases completas con retry, logging y state management
-- **Scraper**: WordPress-optimizado (javipas.com compatible)
-- **Tests**: ~80 tests
-- **Daggr**: Workflow visual interactivo con Gradio
-- **Frontend Next.js**: App Router, React 19, TypeScript, Tailwind 4
-- **Web Estática**: HTML5 + Tailwind CDN, GitHub Pages
-- **Modal**: Deployment serverless preparado (`modal_app.py` + `llm_modal_host.py`)
+### ✅ Hitos Completados
+- **Abstracción de LLM**: Soporte multiproveedor (HuggingFace, OpenAI, Gemini, Modal GPU).
+- **Arquitectura de agentes**: Implementación completa de StyleAnalyzer, KeywordExtractor, ContentGenerator, Critic, ImageSelector, HTMLBuilder y AnonymousBloggerEmulator.
+- **Orquestador**: Flujo de 7 fases con gestión de reintentos, registro de logs y control de estado.
+- **Scraper**: Optimizado para sitios WordPress (totalmente compatible con javipas.com).
+- **Batería de pruebas**: Aproximadamente 80 tests unitarios y de integración.
+- **Daggr**: Interfaz de flujo de trabajo visual e interactiva construida sobre Gradio.
+- **Frontend Next.js**: Uso de App Router, React 19, TypeScript y Tailwind CSS 4.
+- **Web estática**: HTML5 semántico complementado con Tailwind CSS mediante CDN, desplegado en GitHub Pages.
+- **Modal**: Preparado para el despliegue sin servidor (serverless) de los componentes de backend.
 
-### ⏳ Pendiente
-- **CI/CD**: GitHub Actions para testing y deployment automático
-- **Tests E2E**: Cypress/Playwright para validación de la web estática
-- **Testing en Modal**: Probar el deployment real en producción
+### ⏳ Tareas Pendientes
+- **CI/CD**: Configuración de GitHub Actions para la ejecución de pruebas y despliegue automático.
+- **Pruebas de extremo a extremo (E2E)**: Implementación de Cypress o Playwright para validar el sitio web estático.
+- **Pruebas en entorno Modal**: Validación del despliegue real en producción.
 
-## 📚 Documentación
+---
 
-- [Plan de Orquestación](project_docs/ORCHESTRATION_PLAN.md) — Plan completo de desarrollo ⭐
-- [Próximos Pasos](project_docs/NEXT_STEPS.md) — Roadmap y tareas pendientes 📋
-- [Modal Deployment](project_docs/MODAL_DEPLOYMENT.md) — Guía de deployment backend
-- [HuggingFace Migration](project_docs/HUGGINGFACE_MIGRATION.md) — Migración a HF ✅
-- [HTMLBuilder Integration](project_docs/HTMLBUILDER_INTEGRATION.md) — HTMLBuilder
-- [Frontend Implementation](project_docs/FRONTEND_IMPLEMENTATION.md) — Histórico Next.js (eliminado)
-- [Frontend README](frontend/README.md) — Documentación del frontend Next.js ⚛️
-- [Daggr Workflow](backend/DAGGR_WORKFLOW.md) — Guía completa de Daggr ✅
-- [Agents Guide](backend/AGENTS_GUIDE.md) — Guía para agentes IA
-- [Coherence Report](docs/COHERENCE_REPORT.md) — Informe de coherencia documental
-- [Resumen de Trabajo](project_docs/RESUMEN_TRABAJO_COMPLETADO.md) — Historial de issues
+## 📚 Documentación Técnica
 
-## 📦 Tech Stack
+- [Plan de Orquestación](project_docs/ORCHESTRATION_PLAN.md): Plan conceptual y de desarrollo del orquestador.
+- [Próximos Pasos](project_docs/NEXT_STEPS.md): Hoja de ruta y planificación de futuras tareas.
+- [Despliegue en Modal](project_docs/MODAL_DEPLOYMENT.md): Guía de despliegue para los servicios del backend.
+- [Migración a HuggingFace](project_docs/HUGGINGFACE_MIGRATION.md): Documentación sobre la integración con la API de HuggingFace.
+- [Integración de HTMLBuilder](project_docs/HTMLBUILDER_INTEGRATION.md): Guía del módulo conversor HTMLBuilder.
+- [Implementación de Frontend](project_docs/FRONTEND_IMPLEMENTATION.md): Registro histórico sobre la versión previa del frontend.
+- [README del Frontend](frontend/README.md): Documentación del frontend desarrollado en Next.js.
+- [Flujo de Trabajo en Daggr](backend/DAGGR_WORKFLOW.md): Guía de uso de la interfaz gráfica integrada.
+- [Guía de Agentes](backend/AGENTS_GUIDE.md): Guía de desarrollo y comportamiento para agentes de IA.
+- [Informe de Coherencia](docs/COHERENCE_REPORT.md): Informe sobre la consistencia y coherencia documental del proyecto.
+- [Resumen de Trabajo](project_docs/RESUMEN_TRABAJO_COMPLETADO.md): Historial consolidado del trabajo realizado.
+
+---
+
+## 📦 Tecnologías Empleadas
 
 ### Backend
 - Python 3.11+
-- **HuggingFace Inference API** — LLM primario (gratis) ✅
+- **HuggingFace Inference API** — LLM primario (gratuito) ✅
 - OpenAI API — Fallback opcional
 - Google Gemini — Alternativa gratuita
-- **Modal** — Deployment serverless con GPU (A10G)
+- **Modal** — Despliegue sin servidor con GPU (A10G)
 - **Daggr + Gradio** — Workflow visual interactivo ✅
 - **python-markdown + Pygments** — Conversión Markdown → HTML
 - **beautifulsoup4 + lxml** — Web scraping
@@ -281,7 +329,7 @@ modal deploy backend/llm_modal_host.py
 - **React 19** ✅
 - **TypeScript 5** ✅
 - **Tailwind CSS 4** ✅
-- Modo mock para desarrollo sin backend
+- Soporte de modo de simulación (mock) para el desarrollo desacoplado de la API.
 
 ### Web Estática (complementaria)
 - HTML5 semántico
@@ -294,17 +342,23 @@ modal deploy backend/llm_modal_host.py
 - GitHub Pages (web estática)
 - Vercel (frontend Next.js)
 
-## 🧭 Coherencia Documental
+---
 
-Este README refleja el estado real del proyecto a mayo 2026. Para verificar la consistencia entre ramas, consultá [COHERENCE_REPORT.md](docs/COHERENCE_REPORT.md).
+## 🧭 Consistencia Documental
 
-> **Nota**: El frontend Next.js original fue eliminado en febrero 2026. En mayo 2026 se reconstruyó con Next.js 16, React 19 y Tailwind 4. La documentación del frontend anterior se conserva en `project_docs/FRONTEND_IMPLEMENTATION.md`.
+Este documento refleja el estado actual del proyecto a fecha de mayo de 2026. Para verificar la consistencia documental entre las ramas de trabajo, consulte [COHERENCE_REPORT.md](docs/COHERENCE_REPORT.md).
+
+> **Nota**: El frontend original desarrollado en Next.js fue desestimado en febrero de 2026. En mayo de 2026 se procedió con una reconstrucción completa utilizando Next.js 16, React 19 y Tailwind CSS 4. Las especificaciones del desarrollo primario se conservan en `project_docs/FRONTEND_IMPLEMENTATION.md` para su consulta histórica.
+
+---
 
 ## 📝 Licencia
 
-MIT License — Ver [LICENSE](LICENSE) para detalles.
+MIT License — Consulte [LICENSE](LICENSE) para obtener más detalles.
 
-## 👨‍🎓 Proyecto Académico
+---
 
-Trabajo Final de Grado (TFG) — Especialización en IA y Big Data  
-IES Rafael Alberti — 2026
+## 👨‍🎓 Contexto Académico
+
+Trabajo Final de Grado (TFG) — Especialización en Inteligencia Artificial y Big Data  
+Instituto de Educación Secundaria (IES) Rafael Alberti — Convocatoria de 2026.
