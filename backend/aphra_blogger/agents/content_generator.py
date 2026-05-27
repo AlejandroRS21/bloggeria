@@ -284,7 +284,7 @@ REGLAS:
   - Identifica el dialecto del blogger a partir de su perfil de estilo y los ejemplos reales.
   - Si el blogger es de España (tuteo, expresiones como "mazo", "brutal", "o sea"), escribe TODO el post en español peninsular (tú, tienes, fíjate, etc.).
   - Si el blogger es de Argentina/Uruguay (voseo), usa voseo (vos, tenés, pensá, etc.).
-  - NUNCA mezcles dialectos o pronombres (por ejemplo, no mezcles "tú tienes" con "pensá" o "¿entendés?"). El post debe sonar 100% coherente al origen del blogger.
+  - NUNCA mezcles dialectos o pronombres (por ejemplo, no mezcles "tú tienes" con "pensá" o "¿entendés?"). El post (incluyendo el título) debe sonar 100% coherente al origen del blogger.
   - Elige UN registro (formal o informal) congruente con el blogger y mantenlo todo el post.
   - Evita el registro formal a menos que el blogger lo use de forma explícita.
 
@@ -292,11 +292,14 @@ REGLAS:
   - La PRIMERA LÍNEA del post debe ser EXACTAMENTE: `# <título gancho>`
   - Usa el formato markdown `# ` al inicio. NO uses `━━━ title: ... ━━━` ni `Title: ...` ni mayúsculas decorativas.
   - El título debe ser UN GANCHO: datos concretos, afirmaciones audaces, o contrastes impactantes.
+  - El título debe seguir estrictamente el dialecto del blogger. Si el blogger es de España, el título NO debe llevar acentuación de voseo (ej: usa "esperas" en lugar de "esperás").
   - Ejemplos BUENOS: `# Los 634 segundos que casi vacían la cartera de un programador`, `# El truco sucio de las academias que prometen programadores en 3 meses`.
   - Ejemplos MALOS (NUNCA uses estos): títulos en inglés, preguntas tipo "¿Es X realmente Y?", títulos genéricos como "Análisis de X".
 
 - ### CONTENIDO y estructura
   - BÁSATE EN LA INFORMACIÓN REAL proporcionada arriba. No inventes datos.
+  - NUNCA uses citas académicas en formato numérico entre corchetes (ej: [1], [2], [1, 2], [3]). Escribe de forma fluida y narrativa (ej: "según explica X...", "como se comenta en Y...").
+  - Filtra y omite detalles trágicos sobre guerras, víctimas civiles o crímenes de guerra del contexto de investigación, a menos que el tema sea militar o geopolítico. Enfócate estrictamente en los aspectos tecnológicos o de opinión general acordes al blogger.
   - Incluye AL MENOS 2 datos concretos o citas específicas de la investigación. No te quedes en generalidades.
   - NO uses estructuras de plantilla como "Contexto", "Introducción", "Lo que he aprendido", "Reflexión final" o "Conclusión" como títulos de sección. Deja que la estructura fluya naturalmente.
   - Cada título de sección debe ser ESPECÍFICO al contenido concreto, no genérico. Si ese título pudiera aparecer en cualquier otro post, está mal.
@@ -339,7 +342,7 @@ REGLAS:
   - Identifica el dialecto del blogger a partir de su perfil de estilo.
   - Si el blogger es de España (tuteo, expresiones como "mazo", "brutal", "o sea"), escribe TODO el post en español peninsular (tú, tienes, fíjate, etc.).
   - Si el blogger es de Argentina/Uruguay (voseo), usa voseo (vos, tenés, pensá, etc.).
-  - NUNCA mezcles dialectos o pronombres (por ejemplo, no mezcles "tú tienes" con "pensá" o "¿entendés?"). El post debe sonar 100% coherente al origen del blogger.
+  - NUNCA mezcles dialectos o pronombres (por ejemplo, no mezcles "tú tienes" con "pensá" o "¿entendés?"). El post (incluyendo el título) debe sonar 100% coherente al origen del blogger.
   - Elige UN registro (formal o informal) congruente con el blogger y mantenlo todo el post.
   - Evita el registro formal a menos que el blogger lo use de forma explícita.
 
@@ -347,10 +350,13 @@ REGLAS:
   - La PRIMERA LÍNEA debe ser EXACTAMENTE: `# <título gancho>`
   - Usa formato markdown `# `. NO uses `━━━ title:` ni `Title:` ni mayúsculas decorativas.
   - El título debe ser UN GANCHO: datos concretos, afirmaciones audaces.
+  - El título debe seguir estrictamente el dialecto del blogger. Si el blogger es de España, el título NO debe llevar acentuación de voseo (ej: usa "esperas" en lugar de "esperás").
   - NUNCA uses títulos en inglés ni preguntas tipo "¿Es X realmente Y?".
 
 - ### CONTENIDO y calidad
   - BÁSATE EN LA INFORMACIÓN REAL. No inventes datos.
+  - NUNCA uses citas en formato numérico entre corchetes (ej: [1], [2], [1, 2], [3]). Escribe de forma fluida y narrativa (ej: "según explica X...", "como se comenta en Y...").
+  - Filtra y omite detalles trágicos sobre guerras, víctimas civiles o crímenes de guerra del contexto de investigación, a menos que el tema sea militar o geopolítico. Enfócate estrictamente en los aspectos tecnológicos o de opinión general acordes al blogger.
   - Incluye AL MENOS 2 datos concretos de la investigación.
   - NO uses títulos genéricos como "Introducción" o "Conclusión".
   - Cada título de sección debe ser ESPECÍFICO al contenido concreto.
