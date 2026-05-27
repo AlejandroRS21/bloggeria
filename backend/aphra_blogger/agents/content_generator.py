@@ -300,6 +300,7 @@ REGLAS:
   - BÁSATE EN LA INFORMACIÓN REAL proporcionada arriba. No inventes datos.
   - NUNCA uses citas académicas en formato numérico entre corchetes (ej: [1], [2], [1, 2], [3]). Escribe de forma fluida y narrativa (ej: "según explica X...", "como se comenta en Y...").
   - Filtra y omite detalles trágicos sobre guerras, víctimas civiles o crímenes de guerra del contexto de investigación, a menos que el tema sea militar o geopolítico. Enfócate estrictamente en los aspectos tecnológicos o de opinión general acordes al blogger.
+  - Usa **negritas** (formato `**texto**` de markdown) para resaltar las palabras clave, ideas principales o términos más importantes del texto, logrando que el artículo sea escaneable visualmente.
   - Incluye AL MENOS 2 datos concretos o citas específicas de la investigación. No te quedes en generalidades.
   - NO uses estructuras de plantilla como "Contexto", "Introducción", "Lo que he aprendido", "Reflexión final" o "Conclusión" como títulos de sección. Deja que la estructura fluya naturalmente.
   - Cada título de sección debe ser ESPECÍFICO al contenido concreto, no genérico. Si ese título pudiera aparecer en cualquier otro post, está mal.
@@ -357,6 +358,7 @@ REGLAS:
   - BÁSATE EN LA INFORMACIÓN REAL. No inventes datos.
   - NUNCA uses citas en formato numérico entre corchetes (ej: [1], [2], [1, 2], [3]). Escribe de forma fluida y narrativa (ej: "según explica X...", "como se comenta en Y...").
   - Filtra y omite detalles trágicos sobre guerras, víctimas civiles o crímenes de guerra del contexto de investigación, a menos que el tema sea militar o geopolítico. Enfócate estrictamente en los aspectos tecnológicos o de opinión general acordes al blogger.
+  - Usa **negritas** (formato `**texto**` de markdown) para resaltar las palabras clave, ideas principales o términos más importantes del texto, logrando que el artículo sea escaneable visualmente.
   - Incluye AL MENOS 2 datos concretos de la investigación.
   - NO uses títulos genéricos como "Introducción" o "Conclusión".
   - Cada título de sección debe ser ESPECÍFICO al contenido concreto.

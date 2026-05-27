@@ -12,8 +12,8 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: "Blogger Agent TFG | Sistema multi-agente de IA",
-    template: "%s | Blogger Agent TFG",
+    default: "Blogger Agent | Sistema multi-agente de IA",
+    template: "%s | Blogger Agent",
   },
   description:
     "Sistema multi-agente de IA para mimetizar estilos de escritura. Genera contenido de blog con el estilo de tu escritor favorito.",

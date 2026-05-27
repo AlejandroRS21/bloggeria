@@ -5,10 +5,10 @@ export default function Footer() {
         <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
           <div className="text-center sm:text-left">
             <p className="text-sm font-semibold text-gray-900">
-              Blogger Agent TFG
+              Blogger Agent
             </p>
             <p className="mt-1 text-xs text-gray-500">
-              Sistema multi-agente de IA para mimetizar estilos de escritura
+              Desarrollado por <strong>Alejandro Ramírez Salado</strong> como Proyecto Académico
             </p>
           </div>
 
@@ -26,7 +26,7 @@ export default function Footer() {
 
         <div className="mt-6 border-t border-gray-200 pt-4 text-center">
           <p className="text-xs text-gray-400">
-            &copy; {new Date().getFullYear()} Blogger Agent TFG. Proyecto de fin de grado.
+            &copy; {new Date().getFullYear()} Blogger Agent. Creado por Alejandro Ramírez Salado (@AlejandroRS21).
           </p>
         </div>
       </div>

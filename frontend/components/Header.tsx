@@ -41,6 +41,14 @@ export default function Header() {
           >
             Sobre
           </Link>
+          <a
+            href="https://github.com/AlejandroRS21/blogger-agent-tfg"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hidden text-sm font-medium text-gray-600 transition-colors hover:text-blue-600 sm:inline"
+          >
+            GitHub
+          </a>
           <Link
             href="/posts/new"
             className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700"

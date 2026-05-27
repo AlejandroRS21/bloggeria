@@ -109,7 +109,7 @@ export default async function HomePage() {
           {/* Generate CTA */}
           <div className="mt-14 text-center">
             <p className="text-sm text-gray-500">
-              ¿Querés generar tu propio post con el estilo de tu escritor favorito?
+              ¿Quieres generar tu propio artículo con el estilo de tu escritor favorito?
             </p>
             <Link
               href="/posts/new"

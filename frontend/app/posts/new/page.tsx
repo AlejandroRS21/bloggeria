@@ -97,7 +97,7 @@ export default function NewPostPage() {
 
     for (const pattern of blockedPatterns) {
       if (pattern.test(trimmed)) {
-        return `⛔ El tema contiene lenguaje que podría ser inapropiado. Elegí un tema profesional para el blog.`;
+        return `⛔ El tema contiene lenguaje que podría ser inapropiado. Elige un tema profesional para el blog.`;
       }
     }
 
