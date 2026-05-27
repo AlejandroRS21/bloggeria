@@ -35,12 +35,7 @@ export default function Header() {
           >
             Proyecto
           </Link>
-          <Link
-            href="/about"
-            className="hidden text-sm font-medium text-gray-600 transition-colors hover:text-blue-600 sm:inline"
-          >
-            Sobre
-          </Link>
+
           <a
             href="https://github.com/AlejandroRS21/blogger-agent-tfg"
             target="_blank"
