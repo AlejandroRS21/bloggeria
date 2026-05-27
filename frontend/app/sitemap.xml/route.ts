@@ -12,7 +12,6 @@ export async function GET() {
   const staticPages: SitemapEntry[] = [
     { url: "/", priority: "1.0" },
     { url: "/project", priority: "0.8" },
-    { url: "/about", priority: "0.8" },
     { url: "/archive", priority: "0.9" },
     { url: "/tags", priority: "0.7" },
     { url: "/posts/new", priority: "0.7" },

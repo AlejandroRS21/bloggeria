@@ -79,7 +79,7 @@ export default function ProjectPage() {
     <>
       {/* Hero */}
       <section className="relative overflow-hidden border-b border-gray-200 bg-gradient-to-b from-white to-gray-50">
-        <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-28 lg:py-32">
+        <div className="mx-auto max-w-6xl px-4 pt-32 pb-20 sm:px-6 sm:pt-40 sm:pb-28 lg:pt-48 lg:pb-32">
           <div className="mx-auto max-w-3xl text-center">
             <span className="inline-block rounded-full bg-blue-100 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-blue-700">
               Arquitectura de Sistemas Multiagente
@@ -245,12 +245,6 @@ export default function ProjectPage() {
               className="rounded-lg bg-blue-600 px-8 py-3.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700"
             >
               Generar Post Ahora
-            </Link>
-            <Link
-              href="/about"
-              className="rounded-lg border border-gray-300 bg-white px-8 py-3.5 text-sm font-semibold text-gray-700 shadow-sm transition-colors hover:bg-gray-50"
-            >
-              Sobre el Proyecto
             </Link>
           </div>
         </div>
