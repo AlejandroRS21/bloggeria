@@ -1,19 +1,22 @@
 # Blogger Agent TFG
 
-> Sistema multiagente de inteligencia artificial diseñado para la emulación estilística de blogs, incorporando generación de diagramas de flujo de trabajo (Daggr) y despliegue automatizado en GitHub Pages.
+> Sistema multiagent de inteligencia artificial diseñado para la emulación estilística de blogs, incorporando visualización interactiva de flujos de trabajo (Daggr). Desarrollado bajo una arquitectura moderna basada en Next.js, Modal y Supabase.
 
-## 🌐 Despliegue Automatizado (GitHub Pages)
+## 🌐 Arquitectura y Despliegue del Sistema
 
-El blog se actualiza y despliega en `https://AlejandroRS21.github.io/blogger-agent-tfg/` mediante el botón **🌐 DESPLEGAR BLOG** o mediante la ejecución manual del script de despliegue.
+El ecosistema de la aplicación está compuesto por tres componentes principales, desplegados de la siguiente forma:
 
-### Proceso de despliegue
+1. **Frontend (Next.js 16)**: Desplegado en **Vercel**. Consume y expone los artículos recuperándolos en tiempo real desde la base de datos de manera dinámica.
+2. **Backend (Orquestador de Agentes)**: Hospedado en **Modal** como una infraestructura de funciones sin servidor (serverless). Procesa la generación de artículos bajo demanda a través de webhooks.
+3. **Base de Datos (Supabase)**: Base de datos Postgres que actúa como el almacenamiento central de persistencia para todos los artículos generados por los agentes.
 
-1. **Generación local o mediante Modal**: El sistema realiza la inferencia de los nuevos artículos y los almacena en el directorio `docs/posts/`.
-2. **Sincronización automática**: Durante el proceso de publicación, se ejecuta el script `deploy.ps1`.
-3. **Git Subtree**: El script utiliza el comando `git subtree push --prefix docs origin gh-pages` para enviar de manera exclusiva el directorio `docs/` a la rama de producción (`gh-pages`), evitando interferencias con la rama principal (`main`).
+### Flujo de Generación y Publicación
 
-> [!NOTE]
-> Se requieren permisos de escritura en el repositorio remoto y contar con Git configurado en el entorno de desarrollo local.
+1. **Petición del usuario**: Desde la interfaz web en Next.js (Vercel), el usuario solicita la generación de un nuevo artículo definiendo el tema y la URL del blogger de referencia.
+2. **Invocación del webhook**: La aplicación Next.js invoca el webhook serverless expuesto por el backend en Modal.
+3. **Ejecución del pipeline**: Modal ejecuta el orquestador multiagente (7 fases) para extraer el estilo, estructurar el borrador, aplicar la crítica/refinamiento y seleccionar recursos visuales.
+4. **Persistencia automática**: Una vez completada la generación, el backend de Modal guarda el artículo formateado directamente en la base de datos de Supabase.
+5. **Actualización dinámica**: El frontend de Next.js realiza consultas dinámicas (sin caché) a Supabase para mostrar de inmediato la nueva publicación en el feed.
 
 ---
 
@@ -21,7 +24,7 @@ El blog se actualiza y despliega en `https://AlejandroRS21.github.io/blogger-age
 
 Este sistema multiagente ha sido diseñado para analizar en detalle el estilo de redacción de un autor (blogger) y generar nuevos artículos de divulgación que mimetizan fielmente su tono de voz. La arquitectura y el flujo de agentes de este desarrollo están inspirados en el proyecto [Aphra](https://github.com/DavidLMS/aphra).
 
-El backend emplea **HuggingFace** como proveedor de modelos de lenguaje principal (de acceso gratuito), **Modal** para la infraestructura sin servidor (serverless) con soporte para GPU, y **Daggr** para la visualización interactiva del flujo de trabajo de los agentes. El frontend está desarrollado con **Next.js 16**, React 19, TypeScript y Tailwind CSS 4. Adicionalmente, se incluye una interfaz web estática complementaria desplegada en GitHub Pages.
+El backend emplea **HuggingFace** como proveedor de modelos de lenguaje principal (de acceso gratuito), **Modal** para la infraestructura sin servidor (serverless) con soporte para GPU, y **Daggr** para la visualización interactiva del flujo de trabajo de los agentes. El frontend está desarrollado con **Next.js 16**, React 19, TypeScript y Tailwind CSS 4, persistiendo todos los artículos de manera centralizada en **Supabase**.
 
 ## 🏗️ Arquitectura del Sistema
 
@@ -92,19 +95,14 @@ blogger-agent-tfg/
 │   ├── lib/api.ts
 │   ├── package.json
 │   └── README.md
-├── docs/                            # Web Estática (GitHub Pages)
-│   ├── posts/                       # Posts HTML generados
-│   ├── index.html                   # Homepage (Tailwind CDN)
-│   ├── posts.json                   # Metadatos del blog
-│   └── COHERENCE_REPORT.md          # Informe de coherencia
+├── docs/                            # (Legacy) Web Estática anterior
 ├── project_docs/                    # Documentación técnica
 │   ├── ORCHESTRATION_PLAN.md
 │   ├── MODAL_DEPLOYMENT.md
 │   ├── HUGGINGFACE_MIGRATION.md
 │   ├── FRONTEND_IMPLEMENTATION.md   # Histórico: frontend eliminado
 │   └── ...
-├── deploy.ps1                       # Script de despliegue a GH Pages
-│── LICENSE                          # MIT
+├── LICENSE                          # MIT
 └── ...
 ```
 
@@ -183,14 +181,6 @@ npm run dev
 cd frontend && npx vercel --prod
 ```
 
-### Previsualización de la Web Estática
-
-```bash
-cd docs
-python -m http.server 8000
-# Abrir http://localhost:8000
-```
-
 ### Batería de Pruebas
 
 ```bash
@@ -216,24 +206,24 @@ python test_full_pipeline.py
 ```mermaid
 graph LR
     %% Entrada de datos
-    Tema[Tema del Artículo] --> Gen
-    URL[URL del Blog] --> Scraper[Scraper WordPress] --> Corpus[(Corpus de Artículos)]
+    Tema["Tema del Artículo"] --> Gen
+    URL["URL del Blog"] --> Scraper["Scraper WordPress"] --> Corpus[("Corpus de Artículos")]
     
     %% Flujo de agentes
-    subgraph Orquestación de Agentes (BloggerOrchestrator)
+    subgraph "Orquestación de Agentes (BloggerOrchestrator)"
         direction LR
-        Corpus --> Style[1. StyleAnalyzer]
-        Style --> Key[2. KeywordExtractor]
-        Key --> Gen[3. ContentGenerator <br> Borrador]
-        Gen --> Critic[4. CriticAgent <br> Evaluación]
-        Critic -- "Puntaje < 7" --> Ref[5. ContentGenerator <br> Refinamiento]
+        Corpus --> Style["1. StyleAnalyzer"]
+        Style --> Key["2. KeywordExtractor"]
+        Key --> Gen["3. ContentGenerator (Borrador)"]
+        Gen --> Critic["4. CriticAgent (Evaluación)"]
+        Critic -- "Puntaje < 7" --> Ref["5. ContentGenerator (Refinamiento)"]
         Ref --> Critic
-        Critic -- "Puntaje >= 7" --> HTML[6. HTMLBuilder]
-        HTML --> Img[7. ImageSelectorAgent]
+        Critic -- "Puntaje >= 7" --> HTML["6. HTMLBuilder"]
+        HTML --> Img["7. ImageSelectorAgent"]
     end
 
     %% Salida y almacenamiento
-    Img --> Output[Artículos HTML / JSX + Metadatos]
+    Img --> Output["Artículos HTML / JSX + Metadatos"]
     
     %% Estilos visuales formales
     classDef default fill:#ffffff,stroke:#333333,stroke-width:1px;
@@ -285,12 +275,12 @@ modal deploy backend/llm_modal_host.py
 - **Batería de pruebas**: Aproximadamente 80 tests unitarios y de integración.
 - **Daggr**: Interfaz de flujo de trabajo visual e interactiva construida sobre Gradio.
 - **Frontend Next.js**: Uso de App Router, React 19, TypeScript y Tailwind CSS 4.
-- **Web estática**: HTML5 semántico complementado con Tailwind CSS mediante CDN, desplegado en GitHub Pages.
+- **Persistencia y BD**: Conexión e inserción directa de publicaciones en Supabase.
 - **Modal**: Preparado para el despliegue sin servidor (serverless) de los componentes de backend.
 
 ### ⏳ Tareas Pendientes
 - **CI/CD**: Configuración de GitHub Actions para la ejecución de pruebas y despliegue automático.
-- **Pruebas de extremo a extremo (E2E)**: Implementación de Cypress o Playwright para validar el sitio web estático.
+- **Pruebas de extremo a extremo (E2E)**: Implementación de Cypress o Playwright para validar la aplicación web Next.js.
 - **Pruebas en entorno Modal**: Validación del despliegue real en producción.
 
 ---
@@ -306,7 +296,6 @@ modal deploy backend/llm_modal_host.py
 - [README del Frontend](frontend/README.md): Documentación del frontend desarrollado en Next.js.
 - [Flujo de Trabajo en Daggr](backend/DAGGR_WORKFLOW.md): Guía de uso de la interfaz gráfica integrada.
 - [Guía de Agentes](backend/AGENTS_GUIDE.md): Guía de desarrollo y comportamiento para agentes de IA.
-- [Informe de Coherencia](docs/COHERENCE_REPORT.md): Informe sobre la consistencia y coherencia documental del proyecto.
 - [Resumen de Trabajo](project_docs/RESUMEN_TRABAJO_COMPLETADO.md): Historial consolidado del trabajo realizado.
 
 ---
@@ -317,36 +306,31 @@ modal deploy backend/llm_modal_host.py
 - Python 3.11+
 - **HuggingFace Inference API** — LLM primario (gratuito) ✅
 - OpenAI API — Fallback opcional
-- Google Gemini — Alternativa gratuita
+- Google Gemini — Alternativa de inferencia gratuita
 - **Modal** — Despliegue sin servidor con GPU (A10G)
-- **Daggr + Gradio** — Workflow visual interactivo ✅
+- **Daggr + Gradio** — Workflow visual interactivo con agentes
 - **python-markdown + Pygments** — Conversión Markdown → HTML
-- **beautifulsoup4 + lxml** — Web scraping
+- **beautifulsoup4 + lxml** — Web scraping de blogs WordPress
 - pytest — ~80 tests
 
 ### Frontend
-- **Next.js 16.1** (App Router) ✅
-- **React 19** ✅
-- **TypeScript 5** ✅
-- **Tailwind CSS 4** ✅
-- Soporte de modo de simulación (mock) para el desarrollo desacoplado de la API.
+- **Next.js 16.1** (App Router)
+- **React 19**
+- **TypeScript 5**
+- **Tailwind CSS 4**
+- Soporte de modo de simulación (mock) para el desarrollo desacoplado de la API
+- **Supabase Client SDK** — Consulta e interacción con la base de datos
 
-### Web Estática (complementaria)
-- HTML5 semántico
-- Tailwind CSS (via CDN)
-- GitHub Pages
-
-### DevOps
-- Docker + Docker Compose
-- Modal (backend serverless con GPU)
-- GitHub Pages (web estática)
-- Vercel (frontend Next.js)
+### DevOps & Cloud
+- **Vercel** — Despliegue del frontend de Next.js
+- **Modal** — Hosting serverless para backend de agentes
+- **Supabase** — Base de datos Postgres y motor relacional
 
 ---
 
 ## 🧭 Consistencia Documental
 
-Este documento refleja el estado actual del proyecto a fecha de mayo de 2026. Para verificar la consistencia documental entre las ramas de trabajo, consulte [COHERENCE_REPORT.md](docs/COHERENCE_REPORT.md).
+Este documento refleja el estado actual del proyecto a fecha de mayo de 2026.
 
 > **Nota**: El frontend original desarrollado en Next.js fue desestimado en febrero de 2026. En mayo de 2026 se procedió con una reconstrucción completa utilizando Next.js 16, React 19 y Tailwind CSS 4. Las especificaciones del desarrollo primario se conservan en `project_docs/FRONTEND_IMPLEMENTATION.md` para su consulta histórica.
 

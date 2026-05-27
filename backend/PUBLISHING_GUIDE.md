@@ -1,168 +1,101 @@
 # Guía de Publicación - Blogger Agent TFG
 
-## 📖 Flujo Completo de Publicación
+## 📖 Flujo General de Publicación
 
-Este documento explica cómo se publican los artículos generados en el blog.
-
----
-
-## 🔄 Flujo Automatizado (Recomendado)
-
-### Opción 1: generate_and_deploy.py
-
-```bash
-cd backend
-python3 generate_and_deploy.py "Tu tema aquí"
-```
-
-**Paso a paso:**
-1. El script investiga noticias sobre el tema
-2. Genera el artículo con estilo de Javi Pas
-3. Guarda en `docs/posts/[slug].json`
-4. Actualiza `docs/posts.json`
-5. **Te pregunta**: "¿Desplegar a GitHub Pages?"
-6. Responde **"s"** para hacer deploy automático
+Este documento detalla el procedimiento de generación y publicación de nuevos artículos en el blog. A diferencia del sistema estático original (legacy), la arquitectura actual publica y expone los contenidos dinámicamente utilizando una base de datos relacional y servicios serverless en la nube.
 
 ---
 
-## 🔄 Flujo Manual (Para entender cómo funciona)
+## 🔄 Proceso de Generación y Publicación en Producción
 
-### Paso 1: Generar el artículo
+El flujo de publicación está completamente automatizado a través de la API y el orquestador serverless en la plataforma **Modal**:
 
-```bash
-cd backend
-python3 -c "
-from generate_and_deploy import generate_article, save_post, update_posts_index
-post = generate_article('Tu tema aquí')
-save_post(post)
-update_posts_index(post)
-"
-```
+### Paso 1: Petición desde la Interfaz Web (Next.js)
+El usuario accede al formulario de generación en el frontend (desplegado en **Vercel**), usualmente en la ruta `/posts/new` (o `/generate` según configuración), introduce el tema deseado y las URLs del blogger de referencia.
 
-### Paso 2: Hacer commit
+### Paso 2: Invocación de la API de Modal
+El frontend realiza una petición HTTP `POST` al webhook de Modal con el siguiente formato:
 
 ```bash
-git add docs/
-git commit -m 'feat: nuevo artículo sobre [tema]'
+curl -X POST https://[nombre-de-usuario]--blogger-agent-tfg-webhook.modal.run \
+  -H "Content-Type: application/json" \
+  -d '{
+    "blogger_urls": ["https://javipas.com"],
+    "topic": "El papel de las GPU de NVIDIA en la era de la inteligencia artificial",
+    "provider": "gemini"
+  }'
 ```
 
-### Paso 3: Desplegar a GitHub Pages
+### Paso 3: Orquestación y Persistencia Automática
+Al recibir la petición:
+1. El webhook de Modal ejecuta las 7 fases del orquestador multiagente.
+2. Tras finalizar la fase de estructuración HTML y selección de imágenes, el backend mapea los resultados al esquema de base de datos de Supabase.
+3. El backend realiza un `upsert` directo sobre la tabla `posts` de Supabase utilizando la clave de servicio privada.
+4. El webhook devuelve al frontend un JSON indicando el éxito de la operación y el slug asignado al artículo:
 
-```bash
-git subtree push --prefix docs origin gh-pages
-```
-
----
-
-## 📁 Archivos Involucrados
-
-### 1. Artículos individuales
-```
-docs/posts/[slug].json
-```
-Ejemplo: `docs/posts/elon-musk-y-la-ia.json`
-
-Estructura:
 ```json
 {
-  "id": "elon-musk-y-la-ia",
-  "title": "Elon Musk y la IA",
-  "content": "...",
-  "date": "2026-03-23",
-  "author": "JaviPas",
-  "word_count": 1500,
-  "tags": ["IA", "Tesla"]
+  "success": true,
+  "data": {
+    "slug": "el-papel-de-las-gpu-de-nvidia-en-la-era-de-la-inteligencia-artificial-abc123"
+  },
+  "error": null
 }
 ```
 
-### 2. Índice de artículos
-```
-docs/posts.json
-```
-
-Estructura:
-```json
-[
-  {
-    "id": "elon-musk-y-la-ia",
-    "title": "Elon Musk y la IA",
-    "date": "2026-03-23"
-  },
-  ...
-]
-```
+### Paso 4: Visualización Dinámica
+El frontend de Next.js redirige al usuario a la página de inicio o a la vista individual del artículo. Dado que las consultas a Supabase se configuran sin caché (`export const revalidate = 0`), el nuevo artículo se muestra de forma inmediata.
 
 ---
 
-## 🌐 GitHub Pages
+## 🛠️ Ejecución Local y Depuración
 
-### Rama gh-pages
-El blog se sirve desde la rama `gh-pages` del repositorio.
+Si se desea generar artículos y cargarlos en Supabase de forma manual desde el entorno de desarrollo local:
 
-### URL del blog
-```
-https://alejandrors21.github.io/blogger-agent-tfg/
-```
+### 1. Inserción directa ejecutando el Runner de Python
 
-### Actualización automática
-Cada vez que se hace `git subtree push --prefix docs origin gh-pages`, el blog se actualiza automáticamente.
+Es posible ejecutar el runner y guardar el resultado localmente en JSON como método de verificación:
 
----
-
-## ⚡ Comandos Rápidos
-
-| Acción | Comando |
-|--------|---------|
-| Generar y deploy automático | `python3 generate_and_deploy.py "Tema"` |
-| Solo generar (sin deploy) | `echo "n" \| python3 generate_and_deploy.py "Tema"` |
-| Deploy manual | `git subtree push --prefix docs origin gh-pages` |
-| Ver posts publicados | `cat docs/posts.json` |
-
----
-
-## 🔧 Troubleshooting
-
-### "Necesitas ejecutar desde el nivel superior"
-```
-cd /ruta/al/proyecto
-git subtree push --prefix docs origin gh-pages
-```
-
-### El artículo no aparece
-1. Verifica que se generó: `ls docs/posts/`
-2. Verifica el índice: `cat docs/posts.json`
-3. Haz commit: `git add docs/ && git commit -m "..."`
-4. Despliega: `git subtree push --prefix docs origin gh-pages`
-
-### Error de autenticación
-Asegúrate de tener permisos de push al repo:
 ```bash
-git push origin main
+cd backend
+python -m src.orchestrator.runner \
+  --topic "Introducción a Next.js 16 y React 19" \
+  --blog-url "https://javipas.com" \
+  --output "outputs/nextjs_intro.json"
+```
+
+### 2. Sincronización Manual con Supabase
+Para subir el JSON generado a Supabase desde un script propio o el entorno de depuración, asegúrese de tener configuradas las variables de entorno en el archivo `.env` del backend:
+
+```env
+SUPABASE_URL="https://your-project.supabase.co"
+SUPABASE_SERVICE_KEY="your-service-role-key"
 ```
 
 ---
 
-## 📋 Checklist para Publicar
+## 📁 Estructura del Esquema de Publicación (Supabase)
 
-- [ ] Artículo generado correctamente
-- [ ] Guardado en `docs/posts/`
-- [ ] Índice actualizado en `docs/posts.json`
-- [ ] Commit hecho: `git add docs/ && git commit -m "..."`
-- [ ] Deploy exitoso: `git subtree push --prefix docs origin gh-pages`
-- [ ] Verificar en https://alejandrors21.github.io/blogger-agent-tfg/
+La tabla `posts` en la base de datos de Supabase sigue la siguiente estructura:
+
+*   `id` (text, primary key): Identificador único del flujo de trabajo de generación.
+*   `slug` (text, unique): Dirección URL amigable generada a partir del título y un identificador único para evitar colisiones.
+*   `title` (text): Título del artículo.
+*   `description` (text): Resumen o meta-descripción corta.
+*   `content` (text): Cuerpo del artículo en formato HTML semántico optimizado.
+*   `cover_image_url` (text, nullable): URL de la imagen principal del artículo.
+*   `author` (text): Alias del blogger emulado (por ejemplo, "JaviPas").
+*   `date` (text): Fecha de publicación formateada (`YYYY-MM-DD`).
+*   `word_count` (int): Cantidad total de palabras.
+*   `reading_time` (int): Tiempo estimado de lectura en minutos.
+*   `tags` (text[]): Etiquetas o palabras clave asociadas.
+*   `keywords` (text[]): Conceptos clave extraídos de las noticias de investigación.
 
 ---
 
-## 🤖 Para Agentes IA
+## ⚙️ Tareas de Mantenimiento y Limpieza Automatizada
 
-Si necesitas publicar un artículo:
+Para evitar la acumulación excesiva de posts y controlar los límites de uso de Supabase, existe una función programada en Modal (`daily_cleanup` en `modal_app.py`) ejecutada de forma diaria vía Cron que se encarga de:
 
-1. **Genera el contenido** usando `generate_and_deploy.py`
-2. **Responde "s"** cuando pregunte por deploy
-3. **El script hace todo**: commit + deploy automático
-
-Si prefieres hacerlo manualmente:
-1. Genera el artículo
-2. `git add docs/`
-3. `git commit -m "feat: nuevo artículo"`
-4. `git subtree push --prefix docs origin gh-pages`
+1. Conservar los 100 artículos más recientes.
+2. Eliminar de la base de datos las publicaciones antiguas o aquellas que no cumplan con los estándares de longitud establecidos en las revisiones de calidad.

@@ -4,15 +4,15 @@
 
 ## 📋 Resumen del Proyecto
 
-Sistema multi-agente que analiza el estilo de escritura de un blogger y genera artículos nuevos imitando su estilo, con despliegue automático a GitHub Pages.
+Sistema multi-agente que analiza el estilo de escritura de un blogger y genera artículos nuevos imitando su estilo, almacenándolos en la base de datos de Supabase y visualizándolos dinámicamente en Next.js.
 
 ### Características principales:
 - ✅ Extrae estilo de blogger (vocabulario, expresiones, tono)
 - ✅ Busca noticias actuales sobre cualquier tema
 - ✅ Genera artículos con el estilo del blogger
 - ✅ Workflow visual con Daggr para debugging
-- ✅ Despliega automáticamente a GitHub Pages
-- ✅ Deployment serverless en Modal con GPU
+- ✅ Almacena y persiste publicaciones directamente en Supabase
+- ✅ Deployment serverless en Modal con GPU y frontend en Vercel
 
 ---
 
@@ -36,7 +36,7 @@ Hay **dos pipelines** disponibles:
 └──────────────────────────────────────────────────────────────────┘
 ```
 
-### Pipeline Simplificado: generate_and_deploy.py (5 pasos)
+### Pipeline Simplificado: generate_and_deploy.py (5 pasos - Legacy)
 
 ```
 ┌──────────────────────────────────────────────────────────────────┐
@@ -46,7 +46,7 @@ Hay **dos pipelines** disponibles:
 │  2. STYLE EXTRACTOR  → Analiza estilo (vocabulario, etc.)        │
 │  3. NEWS RESEARCH    → Busca noticias actuales                   │
 │  4. CONTENT GEN      → Genera artículo con estilo                │
-│  5. DEPLOY           → Despliega a GitHub Pages                   │
+│  5. SAVE LOCAL       → Guarda localmente en formato HTML         │
 └──────────────────────────────────────────────────────────────────┘
 ```
 
@@ -163,7 +163,7 @@ python daggr_blogger_workflow.py
 
 1. **Sin token API**: El sistema usa fallback básico (~300 palabras)
 2. **Con HuggingFace**: Artículos completos de 1500-2500 palabras
-3. **GitHub Pages**: El blog se actualiza automáticamente tras el deploy
+3. **Persistencia**: Los artículos generados vía webhook se guardan de forma instantánea en la base de datos centralizada de Supabase
 4. **Estilo del blogger**: Configurado para imitar a Javi Pas (javipas.com)
 5. **Modal GPU**: Para producción, usar `modal_app.py` o `llm_modal_host.py`
 
@@ -212,6 +212,6 @@ result = orchestrator.run(
 ## 📞 Soporte
 
 - **Repo**: https://github.com/AlejandroRS21/blogger-agent-tfg
-- **Blog**: https://alejandrors21.github.io/blogger-agent-tfg/
+- **Frontend / Vercel**: (Despliegue dinámico en producción)
 - **Autor**: AlejandroRS21
 - **Proyecto**: TFG — IES Rafael Alberti

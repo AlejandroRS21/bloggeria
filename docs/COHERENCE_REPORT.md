@@ -1,12 +1,24 @@
+# ⚠️ OBSERVACIÓN IMPORTANTE: DOCUMENTO OBSOLETO (LEGACY)
+
+> [!WARNING]
+> **Este informe de coherencia documental corresponde a un estado técnico anterior del proyecto (donde se utilizaba una web estática en GitHub Pages).** Actualmente el ecosistema ha migrado a un modelo dinámico con:
+> - **Frontend**: Next.js 16 (desplegado en **Vercel**).
+> - **Persistencia**: Base de datos **Supabase**.
+> - **Backend**: Orquestador serverless (desplegado en **Modal**).
+> 
+> La información de esta auditoría se conserva únicamente por valor histórico y registro académico.
+
+---
+
 # Coherence Report — Blogger Agent TFG
 
 > Última revisión: mayo 2026
 
 ## Resumen General
 
-- **Proyecto**: Sistema multi-agente para mimetizar estilo de bloggers, con generación de posts y despliegue estático.
-- **Stack principal**: Backend Python (orquestador + Daggr), LLMs multi-provider (HuggingFace primario, OpenAI/Gemini/Modal alternativos), web estática HTML + Tailwind CDN en GitHub Pages.
-- **Estructura clave**: `backend/aphra_blogger` (llm providers, agentes, workflows), `backend/src/orchestrator` (orquestador 7 fases), `tools/scraper`, `tests/` (~80 tests), `docs/` (web estática), `project_docs/` (documentación técnica).
+- **Proyecto**: Sistema multi-agente para mimetizar estilo de bloggers, con generación de posts y persistencia dinámica en base de datos.
+- **Stack principal**: Backend Python (orquestador en Modal), frontend en Next.js 16 (Vercel) y persistencia relacional en Supabase.
+- **Estructura clave**: `backend/aphra_blogger` (llm providers, agentes, workflows), `backend/src/orchestrator` (orquestador 7 fases), `frontend/` (aplicación Next.js), `tests/` (~80 tests).
 
 ## Coherencia Resuelta (mayo 2026)
 
@@ -22,27 +34,17 @@
 
 ### ✅ Unificado: URLs del repositorio
 - **URL canónica**: `https://github.com/AlejandroRS21/blogger-agent-tfg`
-- Actualizado en: README.md, pyproject.toml, AGENTS_GUIDE.md, deploy.ps1
+- Actualizado en: README.md, pyproject.toml, AGENTS_GUIDE.md
 
 ### ✅ Resuelto: estado de Modal
-- **Estado real**: Código listo (`modal_app.py` + `llm_modal_host.py`), pendiente de pruebas en producción
+- **Estado real**: Webhook productivo (`modal_app.py` + `llm_modal_host.py`) desplegado y funcional.
 - Actualizado en: README.md, backend/README.md, PROJECT_STATUS.md
 
-### ✅ Resuelto: estructura de docs
-- **`project_docs/`**: Documentación técnica (guías, planes)
-- **`docs/`**: Web estática + COHERENCE_REPORT.md
-- Todos los enlaces corregidos
-
 ### ✅ Resuelto: frontend Next.js
-- Eliminado en febrero 2026 (commit `18e9e2a`)
-- READMEs actualizados para reflejar web estática HTML + Tailwind CDN
-- `FRONTEND_IMPLEMENTATION.md` conservado como referencia histórica
+- Tras ser desestimado a principios de año, el frontend fue completamente rediseñado y reconstruido utilizando Next.js 16, React 19 y Tailwind CSS 4, conectándolo directamente con Supabase y Modal.
+- Desplegado exitosamente en Vercel.
 
-### ✅ Resuelto: archivos de configuración
-- `requirements.txt`: eliminado `daggr` duplicado
-- `pyproject.toml`: fusionado bloque `dependencies` duplicado
-- `.env.example`: completado con todas las variables necesarias
-- `deploy.ps1`: eliminado path hardcodeado, ahora detecta root automáticamente
+---
 
 ## 🧭 Maintenance Checklist
 
@@ -51,9 +53,3 @@
 - [ ] Confirmar estado de Modal después de pruebas en producción
 - [ ] Mantener `.env.example` sincronizado con nuevas variables de entorno
 - [ ] Revisar coherencia entre `requirements.txt` y `pyproject.toml` al agregar dependencias
-- [ ] Ejecutar `pytest --collect-only -q` para verificar conteo real de tests
-- [ ] Actualizar AGENTS_GUIDE.md si cambia el pipeline
-
----
-
-**Nota**: Este informe se actualiza después de cada revisión de coherencia documental. La última corrección mayor fue en mayo 2026, resolviendo 12+ incoherencias identificadas.

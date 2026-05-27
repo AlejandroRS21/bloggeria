@@ -6,44 +6,45 @@
 
 ## 📋 Resumen
 
-Sistema multi-agente funcional con backend en Python, orquestador de 7 fases, ~80 tests, workflow visual con Daggr, y web estática desplegada en GitHub Pages.
+Sistema multiagente funcional con backend en Python expuesto como servicio serverless en Modal, base de datos relacional y persistencia en Supabase, y frontend interactivo desarrollado en Next.js 16 con React 19, desplegado en Vercel.
 
 ### Cambios Recientes
 
-- **Eliminado frontend Next.js** (febrero 2026): reemplazado por HTML estático con Tailwind CDN para simplificar el despliegue.
-- **Eliminadas interfaces Gradio redundantes**: Daggr proporciona toda la funcionalidad de forma nativa.
-- **Agregado `anonymous_blogger.py`**: emulación de blogueros anónimos con perfiles.
-- **Agregado `llm_modal_host.py`**: hosting de Qwen 2.5 7B en GPU A10G en Modal.
+- **Reconstrucción Completa de la Interfaz Web (Mayo 2026)**: Se ha desarrollado un nuevo frontend robusto utilizando Next.js 16, React 19 y Tailwind CSS 4, reemplazando la versión previa por una aplicación moderna y de alto rendimiento.
+- **Persistencia en Supabase**: Integración del cliente Supabase en el frontend para realizar consultas dinámicas sin caché y del cliente de base de datos en el backend de Modal para la inserción automática tras la generación.
+- **Orquestador Serverless en Modal**: Habilitado el orquestador en un webhook serverless, con soporte de secretos para la comunicación con Supabase y proveedores de LLM.
+- **Daggr Integrado**: Mantenimiento del canvas visual e interactivo basado en Gradio para el desarrollo y depuración del flujo de agentes.
 
 ---
 
-## 🏗️ Arquitectura Actual
+## 🏗️ Arquitectura de Producción
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                    BLOGGER AGENT TFG                             │
-│                                                                   │
-│  ┌───────────────────────┐         ┌──────────────────────┐    │
-│  │  WEB ESTÁTICA         │         │  BACKEND (Python)    │    │
-│  │  GitHub Pages         │         │  Daggr :7860         │    │
-│  ├───────────────────────┤         ├──────────────────────┤    │
-│  │                       │         │                      │    │
-│  │  • Homepage           │         │  • Daggr Workflow    │    │
-│  │  • Listar posts       │         │  • 8 Agentes IA      │    │
-│  │  • Ver post           │         │  • HuggingFace LLM   │    │
-│  │  • Tailwind CDN       │         │  • Modal GPU Hosting │    │
-│  │                       │◄───────►│  • Orquestador 7 fases│   │
-│  └───────────────────────┘  JSON   └──────────────────────┘    │
-│                                    Posts                         │
-│           ┌─────────────────────────┐                            │
-│           │  outputs/ + docs/posts/ │                            │
-│           └─────────────────────────┘                            │
-└─────────────────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────────────────────────┐
+│                        BLOGGER AGENT TFG                               │
+│                                                                        │
+│  ┌───────────────────────┐            ┌─────────────────────────────┐  │
+│  │  FRONTEND (Next.js 16)│  Webhook   │  BACKEND (Python / Modal)   │  │
+│  │  Vercel               ├───────────►│  Serverless API             │  │
+│  ├───────────────────────┤            ├─────────────────────────────┤  │
+│  │  • Interfaz React 19  │◄───────────┤  • 8 Agentes IA (Orquestador)│  │
+│  │  • Tailwind CSS 4     │  Slug      │  • Modelos HuggingFace/Gemini│  │
+│  │  • Consultas dinámicas│            │  • Soporte de GPU (A10G)    │  │
+│  └───────────┬───────────┘            └──────────────┬──────────────┘  │
+│              │                                       │                 │
+│    Lectura   │                                       │ Escritura       │
+│    de posts  │                                       │ de posts        │
+│              ▼                                       ▼                 │
+│        ┌───────────────────────────────────────────────────┐           │
+│        │               BASE DE DATOS (Supabase)            │           │
+│        │               Tabla relacional "posts"            │           │
+│        └───────────────────────────────────────────────────┘           │
+└────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 📦 Estructura de Archivos
+## 📦 Estructura de Archivos del Proyecto
 
 ```
 backend/
@@ -65,28 +66,27 @@ backend/
 │   ├── config.py
 │   ├── state.py
 │   └── runner.py
-├── tests/                      # ~80 tests (6 archivos)
+├── tests/                      # ~80 tests
 ├── tools/scraper.py
-├── daggr_blogger_workflow.py   # ⭐ Workflow visual
-├── modal_app.py                # Deployment Modal
+├── daggr_blogger_workflow.py   # ⭐ Workflow visual (Daggr/Gradio)
+├── modal_app.py                # Deployment de Webhook en Modal
 ├── llm_modal_host.py           # Hosting LLM GPU
-├── generate_and_deploy.py      # Pipeline simplificado
-└── outputs/                    # Posts generados (JSON)
+├── generate_and_deploy.py      # Script legacy de prueba local
+└── outputs/                    # Posts de prueba locales (JSON)
 
-docs/                           # Web Estática (GitHub Pages)
-├── posts/                      # Posts HTML generados
-├── index.html                  # Homepage (Tailwind CDN)
-├── posts.json                  # Índice de posts
-└── COHERENCE_REPORT.md
+frontend/                       # Aplicación Next.js 16 (Vercel)
+├── app/
+│   ├── page.tsx                # Listado de artículos dinámico
+│   ├── posts/[slug]/page.tsx   # Lectura de artículo individual
+│   └── posts/new/page.tsx      # Generación autónoma interactiva
+├── lib/
+│   ├── supabase.ts             # Cliente de conexión de Supabase
+│   └── api.ts                  # Métodos de consulta de base de datos
+├── components/                 # Componentes visuales React
+└── package.json
 
-project_docs/                   # Documentación técnica
-├── ORCHESTRATION_PLAN.md
-├── MODAL_DEPLOYMENT.md
-├── HUGGINGFACE_MIGRATION.md
-├── FRONTEND_IMPLEMENTATION.md  # Histórico (frontend eliminado)
-├── HTMLBUILDER_INTEGRATION.md
-├── NEXT_STEPS.md
-└── ...
+docs/                           # (Obsoleto) Web estática anterior
+project_docs/                   # Documentación de diseño y arquitectura
 ```
 
 ---
@@ -96,90 +96,56 @@ project_docs/                   # Documentación técnica
 ### Backend
 - **Agentes**: 8 (StyleAnalyzer, KeywordExtractor, ContentGenerator, Critic, ImageSelector, HTMLBuilder, AnonymousBloggerEmulator, StyleExtractor)
 - **Proveedores LLM**: 4 (HuggingFace, OpenAI, Gemini, Modal GPU)
-- **Tests**: ~80 (6 archivos de test)
+- **Tests**: ~80
 - **Fases del orquestador**: 7
 
-### Web Estática
-- HTML5 + Tailwind CSS (CDN)
-- GitHub Pages
-- 7 posts de ejemplo generados
+### Frontend y Base de Datos
+- Next.js 16 (App Router) + React 19 + Tailwind CSS 4
+- Base de datos relacional PostgreSQL en Supabase
 
-### Total
-- **Progreso**: ~90% completo
-- **Pendiente**: CI/CD, tests E2E
+### Estado Global del Proyecto
+- **Progreso**: ~95% completo
+- **Pendiente**: Automatización de pruebas y CI/CD
 
 ---
 
 ## 🎯 Próximos Pasos
 
 ### Alta Prioridad
-- [ ] **CI/CD**: GitHub Actions para testing automático
-- [ ] **Tests E2E**: Cypress/Playwright para la web estática
-- [ ] **Pruebas Modal**: Testear deployment real en producción
+- [ ] **CI/CD**: Configuración de GitHub Actions para el testeo automático del código de agentes.
+- [ ] **Tests de Integración E2E**: Implementar Playwright para verificar de extremo a extremo la interfaz Next.js y su llamada a la API de Modal.
+- [ ] **Robusteza del Moderador**: Incrementar las reglas semánticas y de seguridad del filtro de contenido de temas en la API de Modal.
 
 ### Media Prioridad
-- [ ] **Sistema de Colas**: Para generaciones múltiples
-- [ ] **Autenticación**: Login para gestión de posts
-- [ ] **Base de Datos**: Persistencia de posts (PostgreSQL)
-
-### Baja Prioridad
-- [ ] **Traducción**: Multi-idioma con i18n
-- [ ] **SEO Avanzado**: Meta tags optimizados
-- [ ] **Analytics**: Tracking de uso
-- [ ] **API Pública**: REST API para terceros
+- [ ] **Sistema de Colas**: Gestión de múltiples peticiones en paralelo en Modal para evitar colisiones por concurrencia.
+- [ ] **Módulo de Autenticación**: Añadir inicio de sesión de administrador en el frontend para gestionar/moderar posts directamente desde la UI.
 
 ---
 
 ## 📖 Documentación
 
 1. [README.md](../README.md) — Visión general ✅
-2. [DAGGR_WORKFLOW.md](DAGGR_WORKFLOW.md) — Guía Daggr
-3. [AGENTS_GUIDE.md](AGENTS_GUIDE.md) — Guía para agentes IA
+2. [PUBLISHING_GUIDE.md](PUBLISHING_GUIDE.md) — Guía de publicación moderna ✅
+3. [AGENTS_GUIDE.md](AGENTS_GUIDE.md) — Guía para agentes IA ✅
 4. [ORCHESTRATION_PLAN.md](../project_docs/ORCHESTRATION_PLAN.md)
 5. [HUGGINGFACE_MIGRATION.md](../project_docs/HUGGINGFACE_MIGRATION.md)
 6. [MODAL_DEPLOYMENT.md](../project_docs/MODAL_DEPLOYMENT.md)
 7. [HTMLBUILDER_INTEGRATION.md](../project_docs/HTMLBUILDER_INTEGRATION.md)
-8. [NEXT_STEPS.md](../project_docs/NEXT_STEPS.md)
 
 ---
 
 ## ✅ Checklist Final
 
-- [x] Backend: 8 agentes con HuggingFace
-- [x] Backend: Orquestador completo (7 fases)
-- [x] Backend: ~80 tests
-- [x] Backend: Daggr workflow visual
-- [x] Backend: Modal deployment preparado
-- [x] Web: HTML estático con Tailwind CDN
-- [x] Web: Auto-actualización de posts.json e index.html
-- [x] Web: Despliegue a GitHub Pages
-- [x] Frontend: Next.js 16 con React 19, TypeScript 5, Tailwind 4
-- [x] Frontend: Modo mock para desarrollo sin backend
-- [x] Frontend: Listo para deploy en Vercel
-- [x] Documentación: Guías actualizadas
-- [x] Limpieza: Eliminado frontend Next.js antiguo (reconstruido)
-- [x] Limpieza: Eliminadas interfaces Gradio duplicadas
-- [ ] CI/CD: GitHub Actions
-- [ ] Tests E2E: Web estática
+- [x] Backend: 8 agentes funcionales integrados
+- [x] Backend: Orquestador en 7 fases con gestión de fallos
+- [x] Backend: Cobertura de tests (~80 unitarios y de integración)
+- [x] Backend: Daggr como visualizador interactivo
+- [x] Cloud: Modal webhook serverless desplegado
+- [x] Base de datos: Persistencia y mapeo automatizado en Supabase
+- [x] Frontend: Aplicación Next.js 16 con React 19 y Tailwind CSS 4
+- [x] Frontend: Conectado a Vercel con consultas en tiempo real (sin caché)
+- [x] Documentación: Manuales actualizados con el nuevo stack
+- [ ] CI/CD: Automatización de tests
+- [ ] Tests E2E: Integración frontend-backend
 
-**Estado Global:** 🟢 ~95% Completo y Funcional
-
----
-
-## 🎓 Proyecto Académico
-
-**Trabajo Final de Grado (TFG)**  
-Especialización en IA y Big Data  
-IES Rafael Alberti — 2026
-
-### Tecnologías Destacadas
-- 🤖 **IA Multi-Agente**: 8 agentes especializados colaborando
-- 🆓 **HuggingFace**: LLM gratuito (Llama 3.1, Mistral, Qwen)
-- 📊 **Daggr**: Workflow visual con Gradio
-- 🖥️ **Modal**: Serverless GPU para LLMs propios
-- 🎨 **Tailwind CSS**: Diseño responsive y elegante
-
----
-
-**Autor:** Equipo Blogger Agent TFG  
-**Licencia:** MIT
+**Estado Global:** 🟢 Funcional y preparado para producción

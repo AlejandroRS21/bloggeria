@@ -1,4 +1,16 @@
-# GitHub Pages - Frontend Estático
+# ⚠️ OBSERVACIÓN IMPORTANTE: DOCUMENTO Y DIRECTORIO OBSOLETOS (LEGACY)
+
+> [!WARNING]
+> **Este directorio (`docs/`) y toda la lógica de frontend estático desplegada en GitHub Pages han sido deprecados y marcados como obsoletos.** El proyecto actualmente emplea una arquitectura dinámica desplegada de la siguiente manera:
+> - **Frontend**: Next.js 16 con React 19 y Tailwind CSS 4, alojado en **Vercel** (`/frontend`).
+> - **Persistencia**: Base de datos Postgres en **Supabase**.
+> - **Backend**: Orquestador multiagente serverless alojado en **Modal** (`/backend`).
+>
+> La información descrita a continuación se conserva únicamente por motivos de registro histórico y consistencia académica del Trabajo Fin de Grado.
+
+---
+
+# GitHub Pages - Frontend Estático (Legacy)
 
 Este directorio contiene el frontend estático del proyecto Blogger Agent TFG, desplegado en GitHub Pages.
 
