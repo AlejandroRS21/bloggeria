@@ -125,17 +125,22 @@ export default function ProjectPage() {
           <div className="mt-16 grid gap-8 md:grid-cols-2 lg:grid-cols-4">
             {steps.map((step, i) => (
               <div key={step.number} className="relative">
+                {/* Línea horizontal en desktop */}
                 {i < steps.length - 1 && (
-                  <div className="absolute left-8 top-12 hidden h-[calc(100%+2rem)] w-0.5 bg-gradient-to-b from-blue-200 to-purple-200 lg:block" />
+                  <div className="absolute top-14 left-[calc(50%+2rem)] right-[calc(-50%+2rem)] h-0.5 bg-gradient-to-r from-blue-200 to-purple-200 hidden lg:block" />
                 )}
-                <div className="flex items-start gap-4 lg:flex-col lg:items-center lg:text-center">
+                {/* Línea vertical en mobile */}
+                {i < steps.length - 1 && (
+                  <div className="absolute left-14 top-[5.5rem] bottom-[-2rem] w-0.5 bg-gradient-to-b from-blue-200 to-purple-200 lg:hidden" />
+                )}
+                <div className="flex items-start gap-4 lg:flex-col lg:items-center lg:text-center p-6 bg-gray-50/60 rounded-2xl border border-gray-100 hover:bg-gray-50 transition-all duration-300">
                   <div
-                    className={`flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-2xl text-lg font-bold text-white shadow-md ${step.color}`}
+                    className={`flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full text-lg font-bold text-white shadow-md ${step.color}`}
                   >
                     {step.number}
                   </div>
                   <div className="min-w-0 lg:mt-4">
-                    <h3 className="text-lg font-semibold text-gray-900">
+                    <h3 className="text-lg font-bold text-gray-900">
                       {step.title}
                     </h3>
                     <p className="mt-2 text-sm leading-relaxed text-gray-600">
