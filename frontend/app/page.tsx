@@ -13,13 +13,13 @@ export default async function HomePage() {
   return (
     <>
       {/* ── Blog Header ── */}
-      <section className="border-b border-gray-200 bg-white">
+      <section className="border-b border-gray-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
         <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16">
           <div className="mx-auto max-w-2xl">
-            <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 sm:text-4xl">
+            <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 sm:text-4xl dark:text-zinc-100">
               Blog
             </h1>
-            <p className="mt-3 text-base leading-relaxed text-gray-600">
+            <p className="mt-3 text-base leading-relaxed text-gray-600 dark:text-zinc-400">
               Posts generados por el sistema multi-agente de IA. Cada artículo
               está escrito emulando el estilo único de su autor de referencia.
             </p>
@@ -28,27 +28,27 @@ export default async function HomePage() {
       </section>
 
       {/* ── Posts Grid ── */}
-      <section className="bg-gray-50 py-12 sm:py-16">
+      <section className="bg-gray-50 py-12 sm:py-16 dark:bg-zinc-900/40">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           {/* Featured post */}
           {featuredPost && (
             <div className="group mb-10">
               <Link
                 href={`/posts/${featuredPost.slug}`}
-                className="relative block overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-all hover:shadow-lg"
+                className="relative block overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-all hover:shadow-lg dark:border-zinc-800 dark:bg-zinc-900"
               >
                 <div className="grid md:grid-cols-5">
                   <div className="flex flex-col justify-center p-8 md:col-span-3">
-                    <span className="mb-3 inline-block w-fit rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">
+                    <span className="mb-3 inline-block w-fit rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700 dark:bg-blue-950/60 dark:text-blue-300">
                       Destacado
                     </span>
-                    <h2 className="text-2xl font-bold text-gray-900 transition-colors group-hover:text-blue-600 md:text-3xl">
+                    <h2 className="text-2xl font-bold text-gray-900 transition-colors group-hover:text-blue-600 md:text-3xl dark:text-zinc-100 dark:group-hover:text-blue-400">
                       {featuredPost.title}
                     </h2>
-                    <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-gray-600">
+                    <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-gray-600 dark:text-zinc-400">
                       {featuredPost.description}
                     </p>
-                    <div className="mt-5 flex flex-wrap items-center gap-3 text-sm text-gray-500">
+                    <div className="mt-5 flex flex-wrap items-center gap-3 text-sm text-gray-500 dark:text-zinc-400">
                       <span className="flex items-center gap-1.5">
                         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
@@ -79,17 +79,17 @@ export default async function HomePage() {
                       {featuredPost.tags.map((tag) => (
                         <span
                           key={tag}
-                          className="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600"
+                          className="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600 dark:bg-zinc-800 dark:text-zinc-400"
                         >
                           {tag}
                         </span>
                       ))}
                     </div>
                   </div>
-                  <div className="hidden items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-50 p-8 md:col-span-2 md:flex">
+                  <div className="hidden items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-50 p-8 md:col-span-2 md:flex dark:from-blue-950/40 dark:to-indigo-950/40">
                     <div className="text-center">
                       <div className="text-6xl">📝</div>
-                      <p className="mt-3 text-sm font-medium text-blue-600">
+                      <p className="mt-3 text-sm font-medium text-blue-600 dark:text-blue-400">
                         Leer post completo →
                       </p>
                     </div>
@@ -108,7 +108,7 @@ export default async function HomePage() {
 
           {/* Generate CTA */}
           <div className="mt-14 text-center">
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-gray-500 dark:text-zinc-400">
               ¿Quieres generar tu propio artículo con el estilo de tu escritor favorito?
             </p>
             <Link

@@ -28,7 +28,7 @@ export default async function PostPage({ params }: PostPageProps) {
       <div className="mb-10 flex items-center justify-between">
         <Link
           href="/"
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-600 transition-colors hover:text-blue-600"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-600 transition-colors hover:text-blue-600 dark:text-zinc-400 dark:hover:text-blue-400"
         >
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
@@ -48,10 +48,10 @@ export default async function PostPage({ params }: PostPageProps) {
       <PostContent post={post} crossLinkedContent={crossLinkedContent} />
 
       {/* Bottom navigation */}
-      <div className="mt-12 flex items-center justify-between border-t border-gray-200 pt-8">
+      <div className="mt-12 flex items-center justify-between border-t border-gray-200 pt-8 dark:border-zinc-800">
         <Link
           href="/"
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-600 transition-colors hover:text-blue-600"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-600 transition-colors hover:text-blue-600 dark:text-zinc-400 dark:hover:text-blue-400"
         >
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
@@ -61,7 +61,7 @@ export default async function PostPage({ params }: PostPageProps) {
 
         <Link
           href="/posts/new"
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-blue-600 transition-colors hover:text-blue-800"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-blue-600 transition-colors hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
         >
           Generar nuevo post
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

@@ -9,20 +9,20 @@ interface PostCardProps {
 
 export default function PostCard({ post }: PostCardProps) {
   const tagColors: Record<string, string> = {
-    Tecnologia: "bg-blue-100 text-blue-700",
-    Innovacion: "bg-green-100 text-green-700",
-    Analisis: "bg-purple-100 text-purple-700",
-    Ciencia: "bg-cyan-100 text-cyan-700",
+    Tecnologia: "bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300",
+    Innovacion: "bg-green-100 text-green-700 dark:bg-green-950/60 dark:text-green-300",
+    Analisis: "bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300",
+    Ciencia: "bg-cyan-100 text-cyan-700 dark:bg-cyan-950/60 dark:text-cyan-300",
   };
 
   return (
-    <article className="group rounded-xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:shadow-md">
+    <article className="group rounded-xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900">
       <Link href={`/posts/${post.slug}`} className="block">
-        <h3 className="text-xl font-bold text-gray-900 transition-colors group-hover:text-blue-600">
+        <h3 className="text-xl font-bold text-gray-900 transition-colors group-hover:text-blue-600 dark:text-zinc-100 dark:group-hover:text-blue-400">
           {post.title}
         </h3>
 
-        <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-gray-600">
+        <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-gray-600 dark:text-zinc-400">
           {post.description}
         </p>
 
@@ -31,7 +31,7 @@ export default function PostCard({ post }: PostCardProps) {
             <span
               key={tag}
               className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                tagColors[tag] || "bg-gray-100 text-gray-600"
+                tagColors[tag] || "bg-gray-100 text-gray-600 dark:bg-zinc-800 dark:text-zinc-400"
               }`}
             >
               {tag}
@@ -39,7 +39,7 @@ export default function PostCard({ post }: PostCardProps) {
           ))}
         </div>
 
-        <div className="mt-4 flex items-center gap-4 text-xs text-gray-500">
+        <div className="mt-4 flex items-center gap-4 text-xs text-gray-500 dark:text-zinc-400">
           <span className="flex items-center gap-1">
             <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
