@@ -46,13 +46,13 @@ export default function ArchivePage() {
 
   return (
     <>
-      <section className="border-b border-gray-200 bg-white">
+      <section className="border-b border-gray-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
         <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16">
           <div className="mx-auto max-w-2xl">
-            <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 sm:text-4xl">
+            <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 sm:text-4xl dark:text-zinc-100">
               Archivo
             </h1>
-            <p className="mt-3 text-base leading-relaxed text-gray-600">
+            <p className="mt-3 text-base leading-relaxed text-gray-600 dark:text-zinc-400">
               Todos los posts generados, con búsqueda incluida.
             </p>
           </div>
@@ -61,7 +61,7 @@ export default function ArchivePage() {
           <div className="mx-auto mt-8 max-w-xl">
             <div className="relative">
               <svg
-                className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400"
+                className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400 dark:text-zinc-500"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -78,34 +78,34 @@ export default function ArchivePage() {
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 placeholder="Buscar posts por título, descripción o tag..."
-                className="w-full rounded-xl border border-gray-300 bg-white py-3 pl-12 pr-4 text-sm shadow-sm placeholder:text-gray-400 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
+                className="w-full rounded-xl border border-gray-300 bg-white py-3 pl-12 pr-4 text-sm shadow-sm placeholder:text-gray-400 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-500 dark:focus:border-blue-500 dark:focus:ring-blue-950"
               />
             </div>
           </div>
         </div>
       </section>
 
-      <section className="bg-gray-50 py-12 sm:py-16">
+      <section className="bg-gray-50 py-12 sm:py-16 dark:bg-zinc-900/40">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           {loading ? (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {Array.from({ length: 6 }).map((_, i) => (
                 <div
                   key={i}
-                  className="animate-pulse rounded-xl border border-gray-200 bg-white p-6"
+                  className="animate-pulse rounded-xl border border-gray-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900"
                 >
-                  <div className="mb-3 h-6 w-3/4 rounded bg-gray-200" />
-                  <div className="mb-4 h-4 w-full rounded bg-gray-100" />
+                  <div className="mb-3 h-6 w-3/4 rounded bg-gray-200 dark:bg-zinc-800" />
+                  <div className="mb-4 h-4 w-full rounded bg-gray-100 dark:bg-zinc-800/60" />
                   <div className="flex gap-2">
-                    <div className="h-5 w-16 rounded-full bg-gray-100" />
-                    <div className="h-5 w-20 rounded-full bg-gray-100" />
+                    <div className="h-5 w-16 rounded-full bg-gray-100 dark:bg-zinc-800/60" />
+                    <div className="h-5 w-20 rounded-full bg-gray-100 dark:bg-zinc-800/60" />
                   </div>
                 </div>
               ))}
             </div>
           ) : posts.length === 0 ? (
             <div className="py-20 text-center">
-              <p className="text-gray-500">
+              <p className="text-gray-500 dark:text-zinc-400">
                 {search
                   ? `No hay resultados para "${search}".`
                   : "Todavía no hay posts."}
@@ -116,7 +116,7 @@ export default function ArchivePage() {
                     setSearchInput("");
                     setSearch("");
                   }}
-                  className="mt-4 text-sm font-medium text-blue-600 hover:text-blue-800"
+                  className="mt-4 text-sm font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
                 >
                   Limpiar búsqueda
                 </button>
@@ -124,7 +124,7 @@ export default function ArchivePage() {
             </div>
           ) : (
             <>
-              <p className="mb-6 text-sm text-gray-500">
+              <p className="mb-6 text-sm text-gray-500 dark:text-zinc-400">
                 {total} {total === 1 ? "post encontrado" : "posts encontrados"}
                 {search && <> para &ldquo;{search}&rdquo;</>}
               </p>
@@ -141,7 +141,7 @@ export default function ArchivePage() {
                   <button
                     onClick={() => setPage((p) => Math.max(1, p - 1))}
                     disabled={page <= 1}
-                    className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
+                    className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
                   >
                     ← Anterior
                   </button>
@@ -156,14 +156,14 @@ export default function ArchivePage() {
                     .map((p, idx, arr) => (
                       <span key={p} className="contents">
                         {idx > 0 && arr[idx - 1] !== p - 1 && (
-                          <span className="px-1 text-gray-400">...</span>
+                          <span className="px-1 text-gray-400 dark:text-zinc-600">...</span>
                         )}
                         <button
                           onClick={() => setPage(p)}
                           className={`min-w-[2.5rem] rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
                             p === page
-                              ? "border-blue-600 bg-blue-600 text-white"
-                              : "border-gray-300 text-gray-700 hover:bg-gray-100"
+                              ? "border-blue-600 bg-blue-600 text-white dark:border-blue-500 dark:bg-blue-600"
+                              : "border-gray-300 text-gray-700 hover:bg-gray-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
                           }`}
                         >
                           {p}
@@ -174,7 +174,7 @@ export default function ArchivePage() {
                   <button
                     onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                     disabled={page >= totalPages}
-                    className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
+                    className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
                   >
                     Siguiente →
                   </button>

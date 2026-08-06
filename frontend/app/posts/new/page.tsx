@@ -147,18 +147,18 @@ export default function NewPostPage() {
   };
 
   return (
-    <main className="max-w-4xl mx-auto px-6 py-12">
+    <main className="mx-auto max-w-4xl px-6 py-12 text-zinc-900 dark:text-zinc-100">
       <div className="mb-12">
-        <h1 className="text-4xl font-semibold tracking-tight mb-4">Crear Nuevo Post</h1>
-        <p className="text-secondary text-lg">
+        <h1 className="mb-4 text-4xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">Crear Nuevo Post</h1>
+        <p className="text-lg text-zinc-600 dark:text-zinc-400">
           Configura el tema y la fuente de inspiración para que la IA haga su magia.
         </p>
       </div>
 
       {!state.isGenerating ? (
-        <form onSubmit={handleSubmit} className="space-y-8 bg-white dark:bg-zinc-900 p-8 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
+        <form onSubmit={handleSubmit} className="space-y-8 rounded-2xl border border-zinc-200 bg-white p-8 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
           <div className="space-y-2">
-            <label htmlFor="topic" className="block text-sm font-semibold uppercase tracking-wider text-zinc-700">
+            <label htmlFor="topic" className="block text-sm font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
               Tema del Post
             </label>
             <input
@@ -168,13 +168,13 @@ export default function NewPostPage() {
               value={state.topic}
               onChange={(e) => dispatch({ type: 'SET_TOPIC', payload: e.target.value })}
               placeholder="Ej: El futuro de la IA en el desarrollo web"
-              className="w-full px-4 py-3 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-transparent focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+              className="w-full rounded-xl border border-zinc-300 bg-transparent px-4 py-3 outline-none transition-all focus:ring-2 focus:ring-blue-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
             />
-            <p className="text-xs text-secondary italic">El moderador con IA validará que el tema sea profesional.</p>
+            <p className="text-xs italic text-zinc-500 dark:text-zinc-400">El moderador con IA validará que el tema sea profesional.</p>
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="urls" className="block text-sm font-semibold uppercase tracking-wider text-zinc-700">
+            <label htmlFor="urls" className="block text-sm font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
               URLs de Inspiración (Separadas por coma)
             </label>
             <input
@@ -183,19 +183,19 @@ export default function NewPostPage() {
               required
               value={state.urls}
               onChange={(e) => dispatch({ type: 'SET_URLS', payload: e.target.value })}
-              className="w-full px-4 py-3 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-transparent focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+              className="w-full rounded-xl border border-zinc-300 bg-transparent px-4 py-3 outline-none transition-all focus:ring-2 focus:ring-blue-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
             />
           </div>
 
           <button
             type="submit"
-            className="w-full bg-primary text-background font-bold py-4 rounded-xl hover:opacity-90 transition-opacity active:scale-[0.98] transform"
+            className="w-full transform rounded-xl bg-blue-600 py-4 font-bold text-white transition-all hover:bg-blue-700 hover:opacity-90 active:scale-[0.98]"
           >
             GENERAR POST AUTÓNOMO
           </button>
           
           {state.error && (
-            <div className="p-4 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-xl border border-red-100 dark:border-red-800 text-sm">
+            <div className="rounded-xl border border-red-100 bg-red-50 p-4 text-sm text-red-600 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-400">
               <strong>Error:</strong> {state.error}
             </div>
           )}
@@ -204,22 +204,22 @@ export default function NewPostPage() {
         <div className="space-y-12 py-12">
           {/* Progress Section */}
           <div className="relative pt-1">
-            <div className="flex mb-4 items-center justify-between">
+            <div className="mb-4 flex items-center justify-between">
               <div>
-                <span className="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-accent bg-accent/10">
+                <span className="inline-block rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold uppercase text-blue-700 dark:bg-blue-950/60 dark:text-blue-300">
                   Progreso de Generación
                 </span>
               </div>
               <div className="text-right">
-                <span className="text-xs font-semibold inline-block text-blue-600">
+                <span className="inline-block text-xs font-semibold text-blue-600 dark:text-blue-400">
                   {Math.round(state.progress)}%
                 </span>
               </div>
             </div>
-            <div className="overflow-hidden h-3 mb-4 text-xs flex rounded-full bg-zinc-100 dark:bg-zinc-800">
+            <div className="mb-4 flex h-3 overflow-hidden rounded-full bg-zinc-100 text-xs dark:bg-zinc-800">
               <div
                 style={{ width: `${state.progress}%` }}
-                className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-blue-600 transition-all duration-1000 ease-out"
+                className="flex flex-col justify-center whitespace-nowrap bg-blue-600 text-center text-white shadow-none transition-all duration-1000 ease-out dark:bg-blue-500"
               ></div>
             </div>
           </div>
@@ -229,34 +229,34 @@ export default function NewPostPage() {
             {PHASES.map((phase, index) => (
               <div 
                 key={phase.id}
-                className={`flex items-center p-4 rounded-xl border transition-all duration-500 ${
+                className={`flex items-center rounded-xl border p-4 transition-all duration-500 ${
                   index === state.currentPhase 
-                    ? "bg-blue-50/50 border-blue-200 scale-[1.02] shadow-md" 
+                    ? "scale-[1.02] border-blue-300 bg-blue-50/80 shadow-md dark:border-blue-800 dark:bg-blue-950/40" 
                     : index < state.currentPhase 
-                    ? "bg-zinc-50 dark:bg-zinc-800/50 border-transparent opacity-60" 
-                    : "bg-transparent border-zinc-200 dark:border-zinc-800 opacity-40"
+                    ? "border-transparent bg-zinc-50 opacity-60 dark:bg-zinc-800/50" 
+                    : "border-zinc-200 bg-transparent opacity-40 dark:border-zinc-800"
                 }`}
               >
-                <span className="text-2xl mr-4">{phase.icon}</span>
+                <span className="mr-4 text-2xl">{phase.icon}</span>
                 <div className="flex-1">
-                  <h3 className={`font-bold ${index === state.currentPhase ? "text-blue-600" : "text-zinc-900"}`}>
+                  <h3 className={`font-bold ${index === state.currentPhase ? "text-blue-600 dark:text-blue-400" : "text-zinc-900 dark:text-zinc-100"}`}>
                     {phase.label}
                   </h3>
-                  <p className="text-xs text-zinc-500">
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400">
                     {index === state.currentPhase ? "En proceso..." : index < state.currentPhase ? "Completado" : "Pendiente"}
                   </p>
                 </div>
                 {index === state.currentPhase && (
-                  <div className="size-2 bg-blue-600 rounded-full animate-ping"></div>
+                  <div className="size-2 rounded-full bg-blue-600 animate-ping dark:bg-blue-400"></div>
                 )}
                 {index < state.currentPhase && (
-                  <span className="text-green-500 text-xl">✓</span>
+                  <span className="text-xl text-green-500 dark:text-green-400">✓</span>
                 )}
               </div>
             ))}
           </div>
 
-          <p className="text-center text-secondary italic animate-pulse">
+          <p className="animate-pulse text-center italic text-zinc-500 dark:text-zinc-400">
             Por favor, no cierres esta ventana. El proceso toma unos 2-3 minutos.
           </p>
         </div>
