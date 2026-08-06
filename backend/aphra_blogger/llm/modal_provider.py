@@ -114,14 +114,3 @@ class ModalProvider(LLMProvider):
             )
         except Exception as e:
             raise RuntimeError(f"Modal function error ({self.function_name}): {e}")
-
-    def text_generation(
-        self,
-        prompt: str,
-        temperature: Optional[float] = None,
-        max_tokens: Optional[int] = None,
-    ) -> str:
-        """Generate text from prompt using Modal."""
-        messages = [{"role": "user", "content": prompt}]
-        response = self.chat_completion(messages, temperature, max_tokens)
-        return response.content

@@ -44,7 +44,6 @@ class OrchestratorConfig:
     # API Keys (from environment)
     gemini_api_key: Optional[str] = None
     openai_api_key: Optional[str] = None
-    anthropic_api_key: Optional[str] = None
     huggingface_token: Optional[str] = None
     modal_api_key: Optional[str] = None
     
@@ -79,7 +78,6 @@ class OrchestratorConfig:
             max_word_count=content.get('max_word_count', 2500),
             gemini_api_key=os.getenv('GEMINI_API_KEY'),
             openai_api_key=os.getenv('OPENAI_API_KEY'),
-            anthropic_api_key=os.getenv('ANTHROPIC_API_KEY'),
             huggingface_token=os.getenv('HF_TOKEN') or os.getenv('HUGGINGFACE_TOKEN'),
             modal_api_key=os.getenv('MODAL_API_KEY'),
             provider=models.get('provider', 'auto'),
@@ -91,7 +89,6 @@ class OrchestratorConfig:
         return cls(
             gemini_api_key=os.getenv('GEMINI_API_KEY'),
             openai_api_key=os.getenv('OPENAI_API_KEY'),
-            anthropic_api_key=os.getenv('ANTHROPIC_API_KEY'),
             huggingface_token=os.getenv('HF_TOKEN') or os.getenv('HUGGINGFACE_TOKEN'),
             modal_api_key=os.getenv('MODAL_API_KEY'),
         )
@@ -101,7 +98,6 @@ class OrchestratorConfig:
         has_key = any([
             self.gemini_api_key,
             self.openai_api_key, 
-            self.anthropic_api_key, 
             self.huggingface_token, 
             self.modal_api_key,
             os.getenv('MODAL_TOKEN_ID') and os.getenv('MODAL_TOKEN_SECRET')

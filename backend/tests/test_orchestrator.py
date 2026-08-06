@@ -22,7 +22,7 @@ class TestOrchestratorConfig:
         """Test validation fails without API keys."""
         config = OrchestratorConfig(
             openai_api_key=None,
-            anthropic_api_key=None
+            gemini_api_key=None
         )
         with pytest.raises(ValueError, match="At least one API key"):
             config.validate()
@@ -185,7 +185,6 @@ class TestBloggerOrchestrator:
         """Test orchestrator initialization."""
         orchestrator = BloggerOrchestrator(config=config, verbose=False)
         assert orchestrator.config == config
-        assert orchestrator.workflow is not None
     
     def test_orchestrator_run_basic(self, config):
         """Test basic orchestrator execution."""

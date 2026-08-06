@@ -155,20 +155,3 @@ def create_llm_provider(
         raise ValueError(
             f"Unknown provider: {provider}. Valid options: 'openai', 'huggingface', 'gemini', 'auto'"
         )
-
-
-def get_default_provider() -> LLMProvider:
-    """
-    Get the default LLM provider.
-
-    Priority:
-    1. HuggingFace (if HF_TOKEN set)
-    2. OpenAI (if OPENAI_API_KEY set)
-
-    Returns:
-        LLMProvider instance
-
-    Raises:
-        ValueError: If no provider is available
-    """
-    return create_llm_provider(provider="auto")

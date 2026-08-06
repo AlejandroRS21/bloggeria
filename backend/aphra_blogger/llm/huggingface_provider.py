@@ -94,37 +94,3 @@ class HuggingFaceProvider(LLMProvider):
             )
         except Exception as e:
             raise RuntimeError(f"HuggingFace API error: {e}")
-    
-    def text_generation(
-        self,
-        prompt: str,
-        temperature: Optional[float] = None,
-        max_tokens: Optional[int] = None,
-    ) -> str:
-        """
-        Alternative method for direct text generation (non-chat models).
-        
-        Args:
-            prompt: Text prompt
-            temperature: Sampling temperature
-            max_tokens: Maximum tokens to generate
-            
-        Returns:
-            Generated text
-        """
-        if not self.is_available():
-            raise RuntimeError("HuggingFace client not available. Check HF_TOKEN.")
-        
-        temp = temperature if temperature is not None else self.config.temperature
-        tokens = max_tokens if max_tokens is not None else self.config.max_tokens
-        
-        try:
-            response = self.client.text_generation(
-                prompt=prompt,
-                temperature=temp,
-                max_new_tokens=tokens,
-            )
-            
-            return response
-        except Exception as e:
-            raise RuntimeError(f"HuggingFace text generation error: {e}")

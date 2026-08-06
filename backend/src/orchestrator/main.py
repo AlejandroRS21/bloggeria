@@ -21,8 +21,6 @@ from bs4 import BeautifulSoup
 
 from .config import OrchestratorConfig
 from .state import StateManager, WorkflowState, PhaseStatus
-from aphra_blogger.workflows.blogger_style import BloggerStyleWorkflow
-from aphra_blogger.context import BloggerContext
 from aphra_blogger.agents.style_analyzer import StyleAnalyzer
 from aphra_blogger.agents.keyword_extractor import KeywordExtractor
 from aphra_blogger.agents.content_generator import ContentGenerator
@@ -68,7 +66,6 @@ class BloggerOrchestrator:
         
         self.config = config
         self.verbose = verbose or config.verbose
-        self.workflow = BloggerStyleWorkflow()
         self.state_manager: Optional[StateManager] = None
         
         # Initialize agents — pass None so each agent's factory resolves

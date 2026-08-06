@@ -42,7 +42,6 @@ from aphra_blogger.agents.content_generator import ContentGenerator
 from aphra_blogger.agents.critic import CriticAgent
 from aphra_blogger.agents.image_selector import ImageSelectorAgent
 from aphra_blogger.agents.html_builder import HTMLBuilder
-from aphra_blogger.agents.research_agent import ResearchAgent
 
 # ============================================================================
 # CONFIGURACIÓN GLOBAL
@@ -91,7 +90,6 @@ def initialize_agents(provider: str, api_key: str):
         state.agents = {
             "style": StyleAnalyzer(provider=state.config.provider, api_key=actual_key),
             "keywords": KeywordExtractor(provider=state.config.provider, api_key=actual_key),
-            "research": ResearchAgent(provider=state.config.provider, api_key=actual_key),
             "generator": ContentGenerator(provider=state.config.provider, api_key=actual_key),
             "critic": CriticAgent(provider=state.config.provider, api_key=actual_key),
             "images": ImageSelectorAgent(provider=state.config.provider, api_key=actual_key),
@@ -116,7 +114,6 @@ topic_input = gr.Textbox(label="Tema del Post", value="El futuro de Next.js")
 style_output = gr.Textbox(label="Análisis de Estilo", lines=10)
 keywords_output = gr.Textbox(label="Keywords Extraídas")
 topic_out_output = gr.Textbox(label="Tema Original", visible=False)
-research_output = gr.Textbox(label="Investigación en tiempo real", lines=5)
 draft_output = gr.Textbox(label="Borrador", lines=20)
 critique_output = gr.Textbox(label="Crítica", lines=10)
 refined_output = gr.Textbox(label="Contenido Refinado", lines=20)
@@ -273,28 +270,10 @@ keyword_extractor = FnNode(
     }
 )
 
-def perform_research(topic_out: Any) -> Dict[str, str]:
-    ensure_agents()
-    actual_topic = ensure_string(topic_out, "topic_out")
-    print(f"🔍 Performing research for: {actual_topic}")
-    res = state.agents["research"].search(query=actual_topic)
-    summary = res.get("summary", "No se encontró información relevante.")
-    return {"research_summary": str(summary)}
-
-research_node = FnNode(
-    fn=perform_research,
-    name="2.5️⃣ Research Agent (Brave Search)",
-    inputs={
-        "topic_out": keyword_extractor.topic_out
-    },
-    outputs={"research_summary": research_output}
-)
-
-def generate_content(topic_out: Any, keywords: Any, style_json: Any, research_summary: Any) -> Dict[str, str]:
+def generate_content(topic_out: Any, keywords: Any, style_json: Any) -> Dict[str, str]:
     ensure_agents()
     actual_topic = ensure_string(topic_out, "topic_out")
     actual_keywords = ensure_string(keywords, "keywords")
-    actual_research = ensure_string(research_summary, "research_summary")
     
     style = ensure_dict(style_json)
     kw_list = [k.strip() for k in actual_keywords.split(",") if k.strip()]
@@ -319,10 +298,8 @@ def generate_content(topic_out: Any, keywords: Any, style_json: Any, research_su
     except Exception as e:
         print(f"⚠️ Error buscando memoria: {e}")
 
-    # Enriquecemos el tema con la investigación real
-    topic_with_context = f"{actual_topic}\n\nDATOS DE INVESTIGACIÓN RECIENTE:\n{actual_research}"
     content = state.agents["generator"].generate_draft(
-        topic=topic_with_context,
+        topic=actual_topic,
         style_profile=style,
         keywords=kw_list,
         blogger_urls=state.get("blogger_urls", None)
@@ -339,8 +316,7 @@ content_generator = FnNode(
     inputs={
         "topic_out": keyword_extractor.topic_out,
         "keywords": keyword_extractor.keywords,
-        "style_json": style_analyzer.style_json,
-        "research_summary": research_node.research_summary
+        "style_json": style_analyzer.style_json
     },
     outputs={"draft_content": draft_output}
 )
@@ -533,14 +509,9 @@ def run_full_pipeline(provider: str, api_key: str, blogger_name: str, sample_pos
         keywords = kw_out["keywords"]
         actual_topic = kw_out["topic_out"]
         
-        # 3. Research
-        print("-> Investigando...")
-        res_out = perform_research(actual_topic)
-        research_summary = res_out["research_summary"]
-        
         # 4. Generator
         print("-> Generando contenido...")
-        gen_out = generate_content(actual_topic, keywords, style_json, research_summary)
+        gen_out = generate_content(actual_topic, keywords, style_json)
         draft = gen_out["draft_content"]
         
         # 5. Critic
@@ -567,7 +538,6 @@ def run_full_pipeline(provider: str, api_key: str, blogger_name: str, sample_pos
         return {
             "style_json": style_json,
             "keywords": keywords,
-            "research": research_summary,
             "draft": draft,
             "critique": critique,
             "refined": refined,
@@ -593,7 +563,6 @@ full_pipeline_node = FnNode(
     outputs={
         "style_json": style_output,
         "keywords": keywords_output,
-        "research": research_output,
         "draft": draft_output,
         "critique": critique_output,
         "refined": refined_output,
@@ -654,7 +623,6 @@ graph = Graph(
         deploy_node,      # ✅ Botón de despliegue
         style_analyzer, 
         keyword_extractor, 
-        research_node, 
         content_generator, 
         critic_agent, 
         content_refiner,

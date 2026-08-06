@@ -202,18 +202,3 @@ class StateManager:
         """Save state to JSON file."""
         with open(filepath, 'w', encoding='utf-8') as f:
             f.write(self.state.to_json())
-    
-    @classmethod
-    def load_from_file(cls, filepath: str) -> "StateManager":
-        """Load state from JSON file."""
-        with open(filepath, 'r', encoding='utf-8') as f:
-            data = json.load(f)
-        
-        # Reconstruct state (simplified)
-        state = WorkflowState(
-            workflow_id=data['workflow_id'],
-            topic=data['topic'],
-            blogger_urls=data['blogger_urls'],
-        )
-        
-        return cls(state)

@@ -111,15 +111,5 @@ class GeminiProvider(LLMProvider):
             {"role": "user", "content": user_prompt},
         ]
 
-    def text_generation(
-        self,
-        prompt: str,
-        temperature: Optional[float] = None,
-        max_tokens: Optional[int] = None,
-    ) -> str:
-        messages = [{"role": "user", "content": prompt}]
-        response = self.chat_completion(messages, temperature, max_tokens)
-        return response.content
-
     def get_model_name(self) -> str:
         return self.model_name

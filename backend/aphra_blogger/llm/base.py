@@ -19,7 +19,6 @@ class LLMConfig:
     
     # HuggingFace specific
     hf_endpoint: Optional[str] = None  # Custom inference endpoint
-    use_api: bool = True  # True for HF Inference API, False for local models
 
 
 @dataclass

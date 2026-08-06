@@ -89,52 +89,6 @@ class NewsResearchAgent:
 
         return available
 
-    def research(
-        self,
-        topic: str,
-        max_articles: int = 10,
-        time_range: str = "m",  # m=mes, w=semana, y=año
-    ) -> ResearchResult:
-        """
-        Investiga noticias actuales sobre un tema.
-
-        Args:
-            topic: Tema a investigar
-            max_articles: Máximo de artículos a buscar
-            time_range: 'm' (mes), 'w' (semana), 'y' (año)
-
-        Returns:
-            ResearchResult con noticias y hallazgos clave
-        """
-        articles = []
-
-        # Try DuckDuckGo first (no API key needed, uses multi-query for better coverage)
-        if "duckduckgo" in self.search_tools_available:
-            articles = self._search_duckduckgo_multi(topic, max_articles, time_range)
-        elif "brave" in self.search_tools_available:
-            articles = self._search_brave(topic, max_articles, time_range)
-        elif "exa" in self.search_tools_available:
-            articles = self._search_exa(topic, max_articles)
-        else:
-            # Fallback to basic scraping
-            articles = self._search_fallback(topic, max_articles)
-
-        # Extract key findings
-        key_findings = self._extract_key_findings(articles)
-        related_topics = self._extract_related_topics(articles)
-
-        # Generate summary
-        summary = self._generate_summary(topic, articles)
-
-        return ResearchResult(
-            topic=topic,
-            search_date=datetime.now().isoformat(),
-            articles=articles,
-            key_findings=key_findings,
-            related_topics=related_topics,
-            summary=summary,
-        )
-
     def _search_brave(self, topic: str, max_articles: int, time_range: str) -> List[NewsArticle]:
         """Search using Brave Search API via direct HTTP (no brave_search package needed)."""
         import requests
