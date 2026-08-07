@@ -55,7 +55,7 @@ _BOILERPLATE_PATTERNS = [
     r"Sure, here's a blog post",
 ]
 
-def quality_metrics(content: str) -> Dict[str, Any]:
+def quality_metrics(content: str) -> dict[str, Any]:
     """Return structural quality metrics for a post's content.
 
     These are the guard values logged before every deletion so a delete

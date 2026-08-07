@@ -1,7 +1,5 @@
 """Tests for cleanup_supabase quality detection (REQ-1: Cleanup Cron Safety)."""
 
-import pytest
-
 from cleanup_supabase import detect_low_quality, quality_metrics
 
 
