@@ -20,9 +20,14 @@ import os
 import re
 from datetime import datetime
 from typing import Dict, Any, List, Optional
+from urllib.parse import urlparse
 
 # Create Modal app
 app = modal.App("blogger-agent-tfg")
+
+# Supabase project the frontend reads from (REQ-2). Writes to any other
+# project are rejected, never silent.
+EXPECTED_SUPABASE_PROJECT_ID = "stqtpbdzqgcbaqdvrsij"
 
 backend_dir = os.path.dirname(__file__)
 
@@ -276,6 +281,48 @@ def moderate_topic(topic: str) -> Dict[str, Any]:
     return {"approved": True, "reason": None}
 
 
+def supabase_project_id(url: str) -> str | None:
+    """Extract the Supabase project ID from a SUPABASE_URL origin.
+
+    Supabase URLs are https://<project-id>.supabase.co, so the project ID
+    is the first label of the netloc. Returns None for unparseable values.
+    """
+    try:
+        return urlparse(url).netloc.split(".")[0] or None
+    except ValueError:
+        return None
+
+
+def persist_post(
+    sb: Any,
+    post_data: dict[str, Any],
+    resolved_project: str | None,
+) -> dict[str, Any]:
+    """Upsert a generated post, rejecting writes to a mismatched project.
+
+    REQ-2: never write silently to a different Supabase project; a mismatch
+    logs both project IDs and returns success:false.
+    REQ-4: log an explicit outcome — success with the inserted row id, or
+    failure with the error detail. Insert failures are never silent.
+    """
+    if resolved_project != EXPECTED_SUPABASE_PROJECT_ID:
+        error = (
+            "Supabase project mismatch: supabase-secret resolves to "
+            f"'{resolved_project}', expected '{EXPECTED_SUPABASE_PROJECT_ID}'. "
+            "Write rejected to prevent silent writes to the wrong project."
+        )
+        print(f"[Webhook] REJECTED write: {error}")
+        return {"success": False, "error": error}
+
+    try:
+        sb.table("posts").upsert(post_data).execute()
+        print(f"[Webhook] Upsert success: id={post_data.get('id')} status=success")
+        return {"success": True}
+    except Exception as db_err:
+        print(f"[Webhook] Upsert FAILED: {db_err}")
+        return {"success": False, "error": f"DB insert failed: {db_err}"}
+
+
 def _map_to_supabase(result: Dict[str, Any]) -> Dict[str, Any]:
     """Map the orchestrator result dict to the Supabase posts schema."""
     metadata = result.get("html_structure", {}).get("metadata", {})
@@ -411,7 +458,12 @@ def webhook(data: Dict[str, Any]) -> Dict[str, Any]:
             provider=provider,
         )
 
-        # Persist to Supabase
+        # ── Persist to Supabase (REQ-2: fail loudly on project mismatch) ──
+        supabase_url = os.environ.get("SUPABASE_URL", "")
+        resolved_project = supabase_project_id(supabase_url)
+        # Startup log: resolved SUPABASE_URL origin + target project id
+        print(f"[Webhook] supabase URL origin: {urlparse(supabase_url).netloc or '(empty)'}")
+        print(f"[Webhook] supabase project: {resolved_project or 'UNKNOWN'}")
         try:
             from supabase import create_client
             sb = create_client(
@@ -419,13 +471,20 @@ def webhook(data: Dict[str, Any]) -> Dict[str, Any]:
                 os.environ["SUPABASE_SERVICE_KEY"],
             )
             post_data = _map_to_supabase(result)
-            sb.table("posts").upsert(post_data).execute()
         except Exception as db_err:
-            # Don't block the response, but report the DB failure
+            print(f"[Webhook] DB init failed: {db_err}")
             return {
                 "success": False,
                 "data": None,
                 "error": f"DB insert failed: {db_err}",
+            }
+
+        outcome = persist_post(sb, post_data, resolved_project)
+        if not outcome["success"]:
+            return {
+                "success": False,
+                "data": None,
+                "error": outcome["error"],
             }
 
         return {
@@ -494,25 +553,37 @@ def scrape_blogger_corpus(
     }
 
 
+def _run_daily_cleanup(dry_run: bool = True):
+    """Run the cleanup cron against the DB.
+
+    Scheduled runs default to DRY-RUN (REQ-1): posts are evaluated and
+    what-would-be-deleted is logged, but nothing is deleted. Real deletion
+    requires an explicit opt-in via dry_run=False.
+    """
+    import sys
+    if "/root" not in sys.path:
+        sys.path.insert(0, "/root")
+
+    from cleanup_supabase import cleanup_posts
+
+    mode = "DRY RUN" if dry_run else "REAL DELETE"
+    print(f"[DailyCleanup] {mode} — deletion requires explicit dry_run=False opt-in")
+    cleanup_posts(keep_limit=100, quality_check=True, dry_run=dry_run)
+    print("[DailyCleanup] finished.")
+
+
 @app.function(
     image=image,
     secrets=[modal.Secret.from_name("supabase-secret")],
     schedule=modal.Cron("0 0 * * *"),  # Runs every day at midnight
 )
-def daily_cleanup():
+def daily_cleanup(dry_run: bool = True):
     """
     Scheduled task to clean up old posts.
-    By default, it keeps the 100 most recent posts and deletes the rest.
+
+    By default it runs in DRY-RUN mode (REQ-1): it keeps the 100 most recent
+    posts, evaluates quality, and only logs what would be deleted.
+    Real deletion requires an explicit opt-in:
+    daily_cleanup.remote(dry_run=False)
     """
-    import sys
-    if "/root" not in sys.path:
-        sys.path.insert(0, "/root")
-    
-    from cleanup_supabase import cleanup_posts
-    
-    print("Starting daily cleanup...")
-    # Keep 100 posts, delete the rest (including images)
-    # Also perform quality check to remove short or poorly structured posts
-    # Set dry_run=False to actually perform the deletion
-    cleanup_posts(keep_limit=100, quality_check=True, dry_run=False)
-    print("Daily cleanup completed.")
+    _run_daily_cleanup(dry_run=dry_run)
