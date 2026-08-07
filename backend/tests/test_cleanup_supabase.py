@@ -1,5 +1,8 @@
 """Tests for cleanup_supabase quality detection (REQ-1: Cleanup Cron Safety)."""
 
+import subprocess
+import sys
+
 from cleanup_supabase import detect_low_quality, quality_metrics
 
 
@@ -58,3 +61,20 @@ class TestQualityMetrics:
     def test_detects_boilerplate_pattern(self):
         metrics = quality_metrics(build_post(200, 3, boilerplate=True))
         assert metrics["boilerplate"] is not None
+
+
+class TestCliErrorPath:
+    def test_missing_creds_exits_cleanly(self):
+        """CLI without SUPABASE creds must exit(1) with a clear error,
+        not crash with NameError (regression: sys was never imported)."""
+        env = {k: v for k, v in __import__("os").environ.items() if not k.startswith("SUPABASE_")}
+        proc = subprocess.run(
+            [sys.executable, "cleanup_supabase.py", "--quality", "--min-words", "200"],
+            capture_output=True,
+            text=True,
+            env=env,
+            cwd=__import__("os").path.dirname(__import__("os").path.dirname(__file__)),
+        )
+        assert proc.returncode == 1
+        assert "Missing SUPABASE_URL" in proc.stdout
+        assert "NameError" not in proc.stderr + proc.stdout
