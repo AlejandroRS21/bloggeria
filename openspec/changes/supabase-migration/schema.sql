@@ -1,5 +1,10 @@
 -- Schema for blogger-agent-tfg posts
--- Run in Supabase SQL Editor
+-- Target project: stqtpbdzqgcbaqdvrsij (supabase-secret MUST resolve to this project)
+-- Apply command (pick one):
+--   a) Supabase Dashboard → SQL Editor → paste this file → Run
+--   b) supabase db push --linked (after `supabase link --project-ref stqtpbdzqgcbaqdvrsij`)
+-- The "Public read" SELECT policy (REQ-3) grants anon read access; if it is
+-- missing, the frontend sees zero posts with no error.
 
 CREATE TABLE IF NOT EXISTS posts (
   id            text PRIMARY KEY,
