@@ -44,7 +44,38 @@ def extract_storage_path(url: str, bucket_name: str) -> Optional[str]:
         pass
     return None
 
-def detect_low_quality(content: str, min_words: int = 400, min_headings: int = 2) -> Tuple[bool, str]:
+# Boilerplate detection (common LLM intro/outro patterns)
+_BOILERPLATE_PATTERNS = [
+    r"Aquí tienes (un|el) post",
+    r"Espero que te guste",
+    r"Como modelo de lenguaje",
+    r"Lo siento, no puedo",
+    r"Aquí hay una entrada de blog",
+    r"I hope this helps",
+    r"Sure, here's a blog post",
+]
+
+def quality_metrics(content: str) -> Dict[str, Any]:
+    """Return structural quality metrics for a post's content.
+
+    These are the guard values logged before every deletion so a delete
+    can be audited after the fact (REQ-1).
+    """
+    word_count = len(content.split())
+    h2_count = len(re.findall(r"<h2", content, re.IGNORECASE))
+    h3_count = len(re.findall(r"<h3", content, re.IGNORECASE))
+    boilerplate = next(
+        (p for p in _BOILERPLATE_PATTERNS if re.search(p, content, re.IGNORECASE)),
+        None,
+    )
+    return {
+        "word_count": word_count,
+        "h2_count": h2_count,
+        "h3_count": h3_count,
+        "boilerplate": boilerplate,
+    }
+
+def detect_low_quality(content: str, min_words: int = 200, min_headings: int = 2) -> Tuple[bool, str]:
     """
     Detects if a post is of low quality based on word count, structure, and boilerplate.
     Returns (is_low_quality, reason)
@@ -52,31 +83,20 @@ def detect_low_quality(content: str, min_words: int = 400, min_headings: int = 2
     if not content:
         return True, "Empty content"
     
+    metrics = quality_metrics(content)
+    
     # Word count
-    word_count = len(content.split())
-    if word_count < min_words:
-        return True, f"Short content ({word_count} words)"
+    if metrics["word_count"] < min_words:
+        return True, f"Short content ({metrics['word_count']} words)"
     
     # Heading count (h2, h3)
-    # Simple regex to find heading tags
-    h2_count = len(re.findall(r'<h2', content, re.IGNORECASE))
-    h3_count = len(re.findall(r'<h3', content, re.IGNORECASE))
-    if (h2_count + h3_count) < min_headings:
-        return True, f"Poor structure ({h2_count} H2, {h3_count} H3)"
+    headings = metrics["h2_count"] + metrics["h3_count"]
+    if headings < min_headings:
+        return True, f"Poor structure ({metrics['h2_count']} H2, {metrics['h3_count']} H3)"
     
-    # Boilerplate detection (common LLM intro/outro patterns)
-    boilerplate_patterns = [
-        r"Aquí tienes (un|el) post",
-        r"Espero que te guste",
-        r"Como modelo de lenguaje",
-        r"Lo siento, no puedo",
-        r"Aquí hay una entrada de blog",
-        r"I hope this helps",
-        r"Sure, here's a blog post"
-    ]
-    for pattern in boilerplate_patterns:
-        if re.search(pattern, content, re.IGNORECASE):
-            return True, f"Found boilerplate: '{pattern}'"
+    # Boilerplate detection
+    if metrics["boilerplate"]:
+        return True, f"Found boilerplate: '{metrics['boilerplate']}'"
             
     return False, ""
 
@@ -84,7 +104,7 @@ def cleanup_posts(
     days: Optional[int] = None,
     keep_limit: Optional[int] = None,
     quality_check: bool = False,
-    min_words: int = 400,
+    min_words: int = 200,
     min_headings: int = 2,
     bucket_name: str = "post-images",
     dry_run: bool = True
@@ -153,6 +173,14 @@ def cleanup_posts(
         
         print(f"\n--- Processing: {slug} (ID: {post_id}) ---")
         print(f"Reason: {reason}")
+        # Log the guard values that this deletion decision is based on
+        # (REQ-1: every deletion MUST be logged before execution).
+        metrics = quality_metrics(post.get("content", ""))
+        print(
+            f"Guard values: words={metrics['word_count']} (min {min_words}), "
+            f"headings={metrics['h2_count'] + metrics['h3_count']} (min {min_headings}), "
+            f"boilerplate={'yes' if metrics['boilerplate'] else 'no'}"
+        )
         
         # 2a. Storage Cleanup
         if img_url:
@@ -189,7 +217,7 @@ if __name__ == "__main__":
     parser.add_argument("--days", type=int, help="Delete posts older than X days")
     parser.add_argument("--keep", type=int, help="Keep only the X newest posts")
     parser.add_argument("--quality", action="store_true", help="Enable quality-based filtering")
-    parser.add_argument("--min-words", type=int, default=400, help="Min words for quality check (default: 400)")
+    parser.add_argument("--min-words", type=int, default=200, help="Min words for quality check (default: 200)")
     parser.add_argument("--min-headings", type=int, default=2, help="Min headings (H2+H3) for quality check (default: 2)")
     parser.add_argument("--bucket", default="post-images", help="Supabase Storage bucket name (default: post-images)")
     parser.add_argument("--run", action="store_true", help="Actually perform deletions (default is dry run)")
