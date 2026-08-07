@@ -43,11 +43,27 @@ class TestDetectLowQuality:
         assert is_low is False, f"expected kept, got: {reason}"
 
     def test_explicit_min_words_overrides_default(self):
-        """Callers can still raise the threshold explicitly."""
+        """Callers can still raise the threshold explicitly; a post failing
+        ONLY the word threshold is still kept when its structure is sound
+        (REQ-1 AND logic: headings >= min_headings protects the post)."""
         content = build_post(300, 4)
+        is_low, reason = detect_low_quality(content, min_words=400)
+        assert is_low is False, f"expected kept by heading guard, got: {reason}"
+
+    def test_short_post_failing_all_thresholds_is_low(self):
+        """A post below every guard (words, headings, boilerplate) is low
+        even with a raised word threshold (REQ-1 AND logic)."""
+        content = build_post(300, 1, boilerplate=True)
         is_low, reason = detect_low_quality(content, min_words=400)
         assert is_low is True
         assert "Short content" in reason
+
+    def test_well_structured_short_post_is_kept(self):
+        """Regression (verify WARNING): a 150-word post with 5 headings
+        must be KEPT — heading guard holds even when words are short."""
+        content = build_post(150, 5, boilerplate=True)
+        is_low, reason = detect_low_quality(content)
+        assert is_low is False, f"expected kept by heading guard, got: {reason}"
 
 
 class TestQualityMetrics:

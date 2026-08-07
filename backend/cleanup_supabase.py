@@ -80,26 +80,33 @@ def detect_low_quality(content: str, min_words: int = 200, min_headings: int = 2
     """
     Detects if a post is of low quality based on word count, structure, and boilerplate.
     Returns (is_low_quality, reason)
+
+    REQ-1: a post is flagged low quality only when it fails ALL guarded
+    thresholds (AND). If any single guard holds (words >= min_words,
+    headings >= min_headings, or no boilerplate), the post is kept.
     """
     if not content:
         return True, "Empty content"
-    
+
     metrics = quality_metrics(content)
-    
-    # Word count
-    if metrics["word_count"] < min_words:
-        return True, f"Short content ({metrics['word_count']} words)"
-    
-    # Heading count (h2, h3)
     headings = metrics["h2_count"] + metrics["h3_count"]
-    if headings < min_headings:
-        return True, f"Poor structure ({metrics['h2_count']} H2, {metrics['h3_count']} H3)"
-    
-    # Boilerplate detection
-    if metrics["boilerplate"]:
-        return True, f"Found boilerplate: '{metrics['boilerplate']}'"
-            
-    return False, ""
+
+    words_fail = metrics["word_count"] < min_words
+    headings_fail = headings < min_headings
+    boilerplate_fail = metrics["boilerplate"] is not None
+
+    # Any guard holding protects the post from automatic deletion (AND logic).
+    if not (words_fail and headings_fail and boilerplate_fail):
+        return False, ""
+
+    reasons = []
+    if words_fail:
+        reasons.append(f"Short content ({metrics['word_count']} words)")
+    if headings_fail:
+        reasons.append(f"Poor structure ({metrics['h2_count']} H2, {metrics['h3_count']} H3)")
+    if boilerplate_fail:
+        reasons.append(f"Found boilerplate: '{metrics['boilerplate']}'")
+    return True, "; ".join(reasons)
 
 def cleanup_posts(
     days: Optional[int] = None,
