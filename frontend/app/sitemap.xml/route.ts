@@ -1,3 +1,5 @@
+export const dynamic = "force-static";
+
 import { getAllPosts } from "@/lib/api";
 
 const BASE_URL = "https://blogger-agent-tfg.vercel.app";
