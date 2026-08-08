@@ -27,6 +27,12 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
+# UI strings per language (REQ-3). Unknown languages default to es.
+_UI_STRINGS = {
+    "es": {"back": "Volver al Blog", "reading_time": "min de lectura", "words": "palabras"},
+    "en": {"back": "Back to Blog", "reading_time": "min read", "words": "words"},
+}
+
 
 @dataclass
 class HTMLOutput:
@@ -145,12 +151,27 @@ class HTMLBuilder:
         # No explicit title found
         return "", content
 
+    @staticmethod
+    def _resolve_language(language: Optional[str], style_profile: Optional[Dict] = None) -> str:
+        """Resolve the effective page language (REQ-3).
+
+        Explicit "es"/"en" wins; otherwise style_profile["language"];
+        missing or invalid values fall back to "es".
+        """
+        if language in ("es", "en"):
+            return language
+        profile_language = (style_profile or {}).get("language")
+        if profile_language in ("es", "en"):
+            return profile_language
+        return "es"
+
     def build(
         self,
         content: str,
         topic: str,
         images: Optional[List[Dict]] = None,
-        style_profile: Optional[Dict] = None
+        style_profile: Optional[Dict] = None,
+        language: Optional[str] = None
     ) -> HTMLOutput:
         """
         Convert Markdown content to structured HTML/JSX.
@@ -160,11 +181,13 @@ class HTMLBuilder:
             topic: Blog post topic (for meta tags)
             images: List of image placements from ImageSelectorAgent
             style_profile: Style profile from StyleAnalyzer (optional)
+            language: "es"/"en"; defaults to style_profile["language"] or "es"
             
         Returns:
             HTMLOutput with html, full_page, and metadata
         """
         logger.info(f"Building HTML/JSX for topic: {topic}")
+        lang = self._resolve_language(language, style_profile)
         
         # Strip the first # Title from content to avoid duplicate <h1>
         extracted_title, body_content = self._strip_title_from_content(content)
@@ -185,8 +208,8 @@ class HTMLBuilder:
         
         # Generate meta tags — use extracted title, fallback to topic
         meta_title = extracted_title or self._generate_meta_title(topic, content)
-        meta_description = self._generate_meta_description(content)
-        meta_keywords = self._extract_keywords_for_meta(content, style_profile)
+        meta_description = self._generate_meta_description(content, language=lang)
+        meta_keywords = self._extract_keywords_for_meta(content, style_profile, language=lang)
         
         # Generate full HTML page
         full_page = self.generate_full_html_page(
@@ -195,7 +218,8 @@ class HTMLBuilder:
             meta_description=meta_description,
             meta_keywords=meta_keywords,
             reading_time=reading_time,
-            word_count=word_count
+            word_count=word_count,
+            lang=lang
         )
         
         output = HTMLOutput(
@@ -346,11 +370,13 @@ class HTMLBuilder:
         meta_description: str,
         meta_keywords: List[str],
         reading_time: int,
-        word_count: int
+        word_count: int,
+        lang: str = "es"
     ) -> str:
         """Generate a complete HTML5 page styled with Tailwind Typography."""
+        ui = _UI_STRINGS.get(lang, _UI_STRINGS["es"])
         return f'''<!DOCTYPE html>
-<html lang="es">
+<html lang="{lang}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -370,7 +396,7 @@ class HTMLBuilder:
         <nav class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             <a href="../index.html" class="text-2xl font-black text-gray-900 tracking-tighter">BLOGGER<span class="text-blue-600">IA</span></a>
             <div class="flex gap-6 text-sm font-bold uppercase tracking-widest text-gray-400">
-                <a href="../index.html" class="hover:text-blue-600 transition-colors">Volver al Blog</a>
+                <a href="../index.html" class="hover:text-blue-600 transition-colors">{ui["back"]}</a>
             </div>
         </nav>
     </header>
@@ -380,9 +406,9 @@ class HTMLBuilder:
             <header class="mb-10 text-center border-b pb-10">
                 <h1 class="text-4xl md:text-5xl font-black text-gray-900 tracking-tighter mb-4 leading-tight">{meta_title}</h1>
                 <div class="flex items-center justify-center gap-3 text-sm font-bold uppercase tracking-widest text-gray-400">
-                    <span>{reading_time} min de lectura</span>
+                    <span>{reading_time} {ui["reading_time"]}</span>
                     <span class="bg-gray-200 w-1.5 h-1.5 rounded-full"></span>
-                    <span>{word_count} palabras</span>
+                    <span>{word_count} {ui["words"]}</span>
                 </div>
             </header>
             
@@ -446,7 +472,7 @@ class HTMLBuilder:
         # Fallback to topic
         return topic
     
-    def _generate_meta_description(self, content: str) -> str:
+    def _generate_meta_description(self, content: str, language: str = "es") -> str:
         """Generate meta description from content."""
         if self.llm and self.llm.is_available():
             try:
@@ -480,12 +506,16 @@ class HTMLBuilder:
                     clean = clean[:157] + "..."
                 return clean.strip()
         
+        # Language-neutral fallback (REQ-3): never force Spanish
+        if language == "en":
+            return "Blog article about technology and innovation."
         return "Artículo de blog sobre tecnología e innovación."
-    
+
     def _extract_keywords_for_meta(
         self,
         content: str,
-        style_profile: Optional[Dict] = None
+        style_profile: Optional[Dict] = None,
+        language: str = "es"
     ) -> List[str]:
         """Extract keywords for meta tags."""
         # If we have style profile with keywords, use those
@@ -512,6 +542,9 @@ class HTMLBuilder:
         # Get top 10
         keywords = [word for word, _ in word_freq.most_common(10)]
         
+        # Language-neutral fallback (REQ-3): never force Spanish
+        if language == "en":
+            return keywords if keywords else ["blog", "technology", "innovation"]
         return keywords if keywords else ["blog", "tecnología", "innovación"]
     
 

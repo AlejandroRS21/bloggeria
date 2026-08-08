@@ -102,7 +102,9 @@ Your task: Create a detailed style profile as JSON with these fields:
   "use_of_humor": "description of how humor is used (or if it is absent)",
   "technical_level": "how technical the content gets (e.g. 'non-technical', 'technical-intermediate', 'very technical')",
   "personality_traits": ["trait1", "trait2", "trait3"],
-  "engagement_style": "how they engage with readers"
+  "engagement_style": "how they engage with readers",
+  "language": "ISO 639-1 code of the language the blogger writes in (e.g. 'es', 'en')",
+  "language_label": "human-readable name of the blogger's language (e.g. 'Español', 'English')"
 }}
 
 Respond with ONLY the JSON, no other text."""
@@ -117,11 +119,26 @@ Respond with ONLY the JSON, no other text."""
             
             import json
             result = json.loads(response.content)
-            return result
+            return self._resolve_language_fields(result)
             
         except Exception as e:
             print(f"Warning: LLM analysis failed: {e}. Using fallback.")
             return self._fallback_analysis(sample_text or "")
+    
+    @staticmethod
+    def _resolve_language_fields(profile: Dict[str, Any]) -> Dict[str, Any]:
+        """Normalize the language fields of a parsed style profile.
+
+        Missing, empty or invalid language values resolve to "es" (REQ-1).
+        """
+        language = profile.get("language")
+        if language not in ("es", "en"):
+            language = "es"
+        profile["language"] = language
+        label = profile.get("language_label")
+        if not label or not isinstance(label, str):
+            profile["language_label"] = "Español" if language == "es" else "English"
+        return profile
     
     def _fallback_analysis(self, text: str) -> Dict[str, Any]:
         """Fallback rule-based analysis when LLM is not available."""
@@ -129,6 +146,8 @@ Respond with ONLY the JSON, no other text."""
             "tone": "conversational, direct, informative",
             "voice": "first person",
             "language_level": "casual tech",
+            "language": "es",
+            "language_label": "Español",
             "structure": "intro → main points → reflection",
             "expressions": [
                 "interesante",

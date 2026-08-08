@@ -16,6 +16,24 @@ except ImportError:
     LLM_AVAILABLE = False
 
 
+# Language rule blocks (REQ-2). "es" entries MUST stay byte-identical
+# to the frozen goldens in tests/golden/es_rules_*.txt (REQ-7).
+_LANGUAGE_RULES_ES_MAIN = '- ### IDIOMA — español REAL, nada de Spanglish\n  - Escribe TODO el post en ESPAÑOL. Título, cuerpo, secciones, TODO.\n  - Traduce cualquier término técnico: "Machine Learning" → "Aprendizaje Automático", "Deep Learning" → "Aprendizaje Profundo", "Neural Networks" → "Redes Neuronales", "Data Science" → "Ciencia de Datos", "Data Preprocessing" → "Preprocesamiento de Datos", "Model Training" → "Entrenamiento de Modelos".\n  - NO dejes NINGUNA palabra en inglés suelta. Nada de "on-line", "performance", "disappointing resultado". TODO traducido.\n  - Usa vocabulario español real, no inventes palabras ("alcanceado" → "alcanzado", "percaté" → "me di cuenta").\n\n- ### GRAMÁTICA y ortografía\n  - Usa tildes correctamente (empecé, percaté, está, cómo, así).\n  - Respeta la concordancia de género y número ("estos temas", no "estas temas").\n  - No inventes palabras. Si no estás seguro de una palabra, usa un sinónimo conocido.\n\n- ### REGISTRO — voz y dialecto consistentes con el blogger original\n  - Identifica el dialecto del blogger a partir de su perfil de estilo y los ejemplos reales.\n  - Si el blogger es de España (tuteo, expresiones como "mazo", "brutal", "o sea"), escribe TODO el post en español peninsular (tú, tienes, fíjate, etc.).\n  - Si el blogger es de Argentina/Uruguay (voseo), usa voseo (vos, tenés, pensá, etc.).\n  - NUNCA mezcles dialectos o pronombres (por ejemplo, no mezcles "tú tienes" con "pensá" o "¿entendés?"). El post (incluyendo el título) debe sonar 100% coherente al origen del blogger.\n  - Elige UN registro (formal o informal) congruente con el blogger y mantenlo todo el post.\n  - Evita el registro formal a menos que el blogger lo use de forma explícita.\n\n- ### TÍTULO PRINCIPAL — formato correcto\n  - La PRIMERA LÍNEA del post debe ser EXACTAMENTE: `# <título gancho>`\n  - Usa el formato markdown `# ` al inicio. NO uses `━━━ title: ... ━━━` ni `Title: ...` ni mayúsculas decorativas.\n  - El título debe ser UN GANCHO: datos concretos, afirmaciones audaces, o contrastes impactantes.\n  - El título debe seguir estrictamente el dialecto del blogger. Si el blogger es de España, el título NO debe llevar acentuación de voseo (ej: usa "esperas" en lugar de "esperás").\n  - Ejemplos BUENOS: `# Los 634 segundos que casi vacían la cartera de un programador`, `# El truco sucio de las academias que prometen programadores en 3 meses`.\n  - Ejemplos MALOS (NUNCA uses estos): títulos en inglés, preguntas tipo "¿Es X realmente Y?", títulos genéricos como "Análisis de X".'
+
+_LANGUAGE_RULES_ES_SIMPLIFIED = '- ### IDIOMA — español REAL, nada de Spanglish\n  - Escribe TODO el post en ESPAÑOL. Título, cuerpo, secciones, TODO.\n  - Traduce cualquier término técnico: "Machine Learning" → "Aprendizaje Automático", "Deep Learning" → "Aprendizaje Profundo", "Neural Networks" → "Redes Neuronales", "Data Science" → "Ciencia de Datos", etc.\n  - NO dejes NINGUNA palabra en inglés suelta. TODO traducido.\n  - Usa vocabulario español real, no inventes palabras.\n\n- ### GRAMÁTICA y ortografía\n  - Usa tildes correctamente (empecé, percaté, está, cómo, así).\n  - Respeta la concordancia de género y número.\n  - No inventes palabras. Usa sinónimos conocidos.\n\n- ### REGISTRO — voz y dialecto consistentes con el blogger original\n  - Identifica el dialecto del blogger a partir de su perfil de estilo.\n  - Si el blogger es de España (tuteo, expresiones como "mazo", "brutal", "o sea"), escribe TODO el post en español peninsular (tú, tienes, fíjate, etc.).\n  - Si el blogger es de Argentina/Uruguay (voseo), usa voseo (vos, tenés, pensá, etc.).\n  - NUNCA mezcles dialectos o pronombres (por ejemplo, no mezcles "tú tienes" con "pensá" o "¿entendés?"). El post (incluyendo el título) debe sonar 100% coherente al origen del blogger.\n  - Elige UN registro (formal o informal) congruente con el blogger y mantenlo todo el post.\n  - Evita el registro formal a menos que el blogger lo use de forma explícita.\n\n- ### TÍTULO PRINCIPAL — formato correcto\n  - La PRIMERA LÍNEA debe ser EXACTAMENTE: `# <título gancho>`\n  - Usa formato markdown `# `. NO uses `━━━ title:` ni `Title:` ni mayúsculas decorativas.\n  - El título debe ser UN GANCHO: datos concretos, afirmaciones audaces.\n  - El título debe seguir estrictamente el dialecto del blogger. Si el blogger es de España, el título NO debe llevar acentuación de voseo (ej: usa "esperas" en lugar de "esperás").\n  - NUNCA uses títulos en inglés ni preguntas tipo "¿Es X realmente Y?".'
+
+_LANGUAGE_RULES_EN = '- ### LANGUAGE — write in real English\n  - Write the ENTIRE post in ENGLISH. Title, body, sections, everything.\n  - Keep technical terms as-is ("Machine Learning", "Deep Learning", "Neural Networks", "Data Science"). Do NOT translate them.\n  - Do not leave stray words in other languages.\n  - Use natural English vocabulary.\n\n- ### GRAMMAR and spelling\n  - Use correct English grammar and spelling.\n  - Respect subject-verb agreement ("these topics", not "this topics").\n  - Don\'t invent words. When unsure, use a known synonym.\n\n- ### VOICE and register\n  - Match the blogger\'s voice from the style profile and real examples.\n  - Pick ONE register (formal or informal) consistent with the blogger and keep it for the whole post.\n  - Avoid formal register unless the blogger explicitly uses it.\n\n- ### MAIN TITLE — correct format\n  - The FIRST LINE of the post must be EXACTLY: `# <hook title>`\n  - Use markdown `# ` at the start. Do NOT use `━━━ title: ... ━━━` nor `Title: ...` nor decorative caps.\n  - The title must be a HOOK: concrete data, bold claims, or striking contrasts.\n  - Examples of GOOD titles: `# The 634 seconds that almost emptied a programmer\'s wallet`, `# The dirty trick of bootcamps that promise programmers in 3 months`.\n'
+
+_SYSTEM_PROMPTS = {
+    "es": "Eres un escritor de blogs profesional. Escribes posts como lo haría el blogger real: con voz propia, estructura orgánica, y respetando fielmente su estilo lingüístico y dialecto original sin caer en modismos que no correspondan.",
+    "en": "You are a professional blog writer. You write posts the way the real blogger would: with your own voice, organic structure, and faithfully respecting their linguistic style and dialect without falling into mannerisms that do not fit.",
+}
+
+_ATTRIBUTION_TEMPLATES = {
+    "es": "\n\n---\n\n*✍️ Este post fue escrito emulando el estilo de [{name}]({url}).*",
+    "en": "\n\n---\n\n*✍️ This post was written emulating the style of [{name}]({url}).*",
+}
+
 class ContentGenerator:
     """
     Generates blog content based on a topic and style profile.
@@ -128,6 +146,33 @@ class ContentGenerator:
         return name.capitalize()
 
     @staticmethod
+    def _resolve_language(language: str, style_profile: Optional[Dict[str, Any]]) -> str:
+        """Resolve the effective generation language (REQ-2).
+
+        Explicit "es"/"en" wins; "auto" reads style_profile["language"];
+        missing or invalid values fall back to "es".
+        """
+        if language in ("es", "en"):
+            return language
+        if language == "auto":
+            profile_language = (style_profile or {}).get("language")
+            if profile_language in ("es", "en"):
+                return profile_language
+        return "es"
+
+    @staticmethod
+    def _language_rules(language: str, simplified: bool = False) -> str:
+        """Return the IDIOMA/GRAMÁTICA/REGISTRO/TÍTULO rules block (REQ-2).
+
+        "es" returns the block byte-identical to the pre-change prompts
+        (frozen in tests/golden/es_rules_*.txt); "en" returns English-only
+        rules with technical terms kept as-is and no dialect/voseo rules.
+        """
+        if language == "en":
+            return _LANGUAGE_RULES_EN
+        return _LANGUAGE_RULES_ES_SIMPLIFIED if simplified else _LANGUAGE_RULES_ES_MAIN
+
+    @staticmethod
     def _build_style_context(profile: Dict[str, Any], blogger_urls: Optional[List[str]]) -> str:
         """Build a rich style context block from the profile."""
         if not profile:
@@ -189,13 +234,14 @@ class ContentGenerator:
         return "\n".join(blocks)
 
     @staticmethod
-    def _build_attribution(blogger_urls: Optional[List[str]]) -> str:
-        """Build attribution footer for the post."""
+    def _build_attribution(blogger_urls: Optional[List[str]], language: str = "es") -> str:
+        """Build attribution footer for the post, localized per language."""
         if not blogger_urls or not blogger_urls[0]:
             return ""
         name = ContentGenerator._extract_blogger_name(blogger_urls)
         url = blogger_urls[0].strip().rstrip("/")
-        return f"\n\n---\n\n*✍️ Este post fue escrito emulando el estilo de [{name}]({url}).*"
+        template = _ATTRIBUTION_TEMPLATES.get(language, _ATTRIBUTION_TEMPLATES["es"])
+        return template.format(name=name, url=url)
 
     def generate_draft(
         self,
@@ -207,6 +253,7 @@ class ContentGenerator:
         min_words: int = 1500,
         max_words: int = 2500,
         blogger_urls: List[str] = None,
+        language: str = "auto",
     ) -> str:
         """
         Generate initial draft content using in-context learning from real blog examples.
@@ -220,14 +267,16 @@ class ContentGenerator:
             min_words: Minimum word count
             max_words: Maximum word count
             blogger_urls: Original blogger URLs for attribution
+            language: "auto" (explicit > style_profile > "es"), "es" or "en"
 
         Returns:
             Draft content as markdown string
         """
         profile = style_profile or self.style_profile or {}
+        effective_language = self._resolve_language(language, profile)
 
         if not self.llm or not self.llm.is_available():
-            return self._fallback_draft(topic, keywords, profile)
+            return self._fallback_draft(topic, keywords, profile, effective_language)
 
         keywords_str = ", ".join(keywords[:10]) if keywords else ""
 
@@ -235,7 +284,7 @@ class ContentGenerator:
         style_context = self._build_style_context(profile, blogger_urls)
 
         # Build attribution footer
-        attribution = self._build_attribution(blogger_urls)
+        attribution = self._build_attribution(blogger_urls, effective_language)
 
         # Fit context to Modal's 4096 token limit
         sample_text, research_context = self._fit_context_to_token_limit(
@@ -257,6 +306,7 @@ Usa esta información como base factual para el post. No inventes datos, básate
 
         if sample_text and len(sample_text.strip()) > 200:
             # ---- PROMPT CON EJEMPLOS REALES (modo principal) ----
+            language_rules = self._language_rules(effective_language, simplified=False)
             prompt = f"""Abajo tienes posts REALES escritos por {blogger_name}, cuyo estilo de escritura tienes que imitar fielmente, e información factual sobre el tema del post.
 
 ━━━━━━ EJEMPLOS DEL BLOGGER ORIGINAL ────────
@@ -269,32 +319,7 @@ Ahora escribe un NUEVO post sobre: {topic}
 
 REGLAS:
 
-- ### IDIOMA — español REAL, nada de Spanglish
-  - Escribe TODO el post en ESPAÑOL. Título, cuerpo, secciones, TODO.
-  - Traduce cualquier término técnico: "Machine Learning" → "Aprendizaje Automático", "Deep Learning" → "Aprendizaje Profundo", "Neural Networks" → "Redes Neuronales", "Data Science" → "Ciencia de Datos", "Data Preprocessing" → "Preprocesamiento de Datos", "Model Training" → "Entrenamiento de Modelos".
-  - NO dejes NINGUNA palabra en inglés suelta. Nada de "on-line", "performance", "disappointing resultado". TODO traducido.
-  - Usa vocabulario español real, no inventes palabras ("alcanceado" → "alcanzado", "percaté" → "me di cuenta").
-
-- ### GRAMÁTICA y ortografía
-  - Usa tildes correctamente (empecé, percaté, está, cómo, así).
-  - Respeta la concordancia de género y número ("estos temas", no "estas temas").
-  - No inventes palabras. Si no estás seguro de una palabra, usa un sinónimo conocido.
-
-- ### REGISTRO — voz y dialecto consistentes con el blogger original
-  - Identifica el dialecto del blogger a partir de su perfil de estilo y los ejemplos reales.
-  - Si el blogger es de España (tuteo, expresiones como "mazo", "brutal", "o sea"), escribe TODO el post en español peninsular (tú, tienes, fíjate, etc.).
-  - Si el blogger es de Argentina/Uruguay (voseo), usa voseo (vos, tenés, pensá, etc.).
-  - NUNCA mezcles dialectos o pronombres (por ejemplo, no mezcles "tú tienes" con "pensá" o "¿entendés?"). El post (incluyendo el título) debe sonar 100% coherente al origen del blogger.
-  - Elige UN registro (formal o informal) congruente con el blogger y mantenlo todo el post.
-  - Evita el registro formal a menos que el blogger lo use de forma explícita.
-
-- ### TÍTULO PRINCIPAL — formato correcto
-  - La PRIMERA LÍNEA del post debe ser EXACTAMENTE: `# <título gancho>`
-  - Usa el formato markdown `# ` al inicio. NO uses `━━━ title: ... ━━━` ni `Title: ...` ni mayúsculas decorativas.
-  - El título debe ser UN GANCHO: datos concretos, afirmaciones audaces, o contrastes impactantes.
-  - El título debe seguir estrictamente el dialecto del blogger. Si el blogger es de España, el título NO debe llevar acentuación de voseo (ej: usa "esperas" en lugar de "esperás").
-  - Ejemplos BUENOS: `# Los 634 segundos que casi vacían la cartera de un programador`, `# El truco sucio de las academias que prometen programadores en 3 meses`.
-  - Ejemplos MALOS (NUNCA uses estos): títulos en inglés, preguntas tipo "¿Es X realmente Y?", títulos genéricos como "Análisis de X".
+{language_rules}
 
 - ### CONTENIDO y estructura
   - BÁSATE EN LA INFORMACIÓN REAL proporcionada arriba. No inventes datos.
@@ -319,6 +344,7 @@ REGLAS:
 Escribe el post completo ahora:{attribution}"""
         else:
             # ---- PROMPT SIMPLIFICADO (sin ejemplos del blogger) ----
+            language_rules = self._language_rules(effective_language, simplified=True)
             prompt = f"""{research_block}
 Escribe un post de blog imitando el estilo de {blogger_name}. Abajo está su perfil de estilo.
 
@@ -328,31 +354,7 @@ Tema: {topic}
 
 REGLAS:
 
-- ### IDIOMA — español REAL, nada de Spanglish
-  - Escribe TODO el post en ESPAÑOL. Título, cuerpo, secciones, TODO.
-  - Traduce cualquier término técnico: "Machine Learning" → "Aprendizaje Automático", "Deep Learning" → "Aprendizaje Profundo", "Neural Networks" → "Redes Neuronales", "Data Science" → "Ciencia de Datos", etc.
-  - NO dejes NINGUNA palabra en inglés suelta. TODO traducido.
-  - Usa vocabulario español real, no inventes palabras.
-
-- ### GRAMÁTICA y ortografía
-  - Usa tildes correctamente (empecé, percaté, está, cómo, así).
-  - Respeta la concordancia de género y número.
-  - No inventes palabras. Usa sinónimos conocidos.
-
-- ### REGISTRO — voz y dialecto consistentes con el blogger original
-  - Identifica el dialecto del blogger a partir de su perfil de estilo.
-  - Si el blogger es de España (tuteo, expresiones como "mazo", "brutal", "o sea"), escribe TODO el post en español peninsular (tú, tienes, fíjate, etc.).
-  - Si el blogger es de Argentina/Uruguay (voseo), usa voseo (vos, tenés, pensá, etc.).
-  - NUNCA mezcles dialectos o pronombres (por ejemplo, no mezcles "tú tienes" con "pensá" o "¿entendés?"). El post (incluyendo el título) debe sonar 100% coherente al origen del blogger.
-  - Elige UN registro (formal o informal) congruente con el blogger y mantenlo todo el post.
-  - Evita el registro formal a menos que el blogger lo use de forma explícita.
-
-- ### TÍTULO PRINCIPAL — formato correcto
-  - La PRIMERA LÍNEA debe ser EXACTAMENTE: `# <título gancho>`
-  - Usa formato markdown `# `. NO uses `━━━ title:` ni `Title:` ni mayúsculas decorativas.
-  - El título debe ser UN GANCHO: datos concretos, afirmaciones audaces.
-  - El título debe seguir estrictamente el dialecto del blogger. Si el blogger es de España, el título NO debe llevar acentuación de voseo (ej: usa "esperas" en lugar de "esperás").
-  - NUNCA uses títulos en inglés ni preguntas tipo "¿Es X realmente Y?".
+{language_rules}
 
 - ### CONTENIDO y calidad
   - BÁSATE EN LA INFORMACIÓN REAL. No inventes datos.
@@ -377,7 +379,7 @@ Escribe el post ahora:{attribution}"""
 
         try:
             messages = self.llm.create_messages(
-                system_prompt="Eres un escritor de blogs profesional. Escribes posts como lo haría el blogger real: con voz propia, estructura orgánica, y respetando fielmente su estilo lingüístico y dialecto original sin caer en modismos que no correspondan.",
+                system_prompt=_SYSTEM_PROMPTS.get(effective_language, _SYSTEM_PROMPTS["es"]),
                 user_prompt=prompt,
             )
 
@@ -445,9 +447,39 @@ Provide the refined version in markdown format."""
             return draft
 
     def _fallback_draft(
-        self, topic: str, keywords: list = None, style_profile: Dict[str, Any] = None
+        self, topic: str, keywords: list = None, style_profile: Dict[str, Any] = None,
+        language: str = "es",
     ) -> str:
         """Generate a basic draft when LLM is not available."""
+        if language == "en":
+            keywords_str = ", ".join(keywords[:5]) if keywords else "technology, innovation"
+
+            return f"""# {topic}
+
+Exploring the implications of {topic} and its current impact.
+
+## Introduction to the Topic
+
+The current landscape forces us to look closely at how everything evolves. When we analyze this, we realize there is much more beneath the surface. The connection with {keywords_str} becomes evident when we look at it in detail.
+
+## Development and Key Points
+
+First, it is important to understand the fundamental context. It did not appear without precedent; it represents the maturation of certain previous ideas. As we go deeper, the patterns become clearer.
+
+It is worth highlighting some essential elements:
+- The rapid evolution of the tools.
+- The need for constant adaptation.
+- The challenges inherent in implementation.
+
+## Analysis and Perspective
+
+When evaluating the alternatives, it is clear there is no single correct solution. It depends largely on the use case and the specific goals being pursued.
+
+## Conclusion
+
+In short, {topic} represents another step in this direction. We will keep watching how this whole landscape develops in the coming months. The debate, for sure, is on the table.
+"""
+
         keywords_str = ", ".join(keywords[:5]) if keywords else "tecnología, innovación"
 
         return f"""# {topic}

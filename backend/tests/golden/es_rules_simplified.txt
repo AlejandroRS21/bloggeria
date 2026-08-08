@@ -1,0 +1,25 @@
+- ### IDIOMA — español REAL, nada de Spanglish
+  - Escribe TODO el post en ESPAÑOL. Título, cuerpo, secciones, TODO.
+  - Traduce cualquier término técnico: "Machine Learning" → "Aprendizaje Automático", "Deep Learning" → "Aprendizaje Profundo", "Neural Networks" → "Redes Neuronales", "Data Science" → "Ciencia de Datos", etc.
+  - NO dejes NINGUNA palabra en inglés suelta. TODO traducido.
+  - Usa vocabulario español real, no inventes palabras.
+
+- ### GRAMÁTICA y ortografía
+  - Usa tildes correctamente (empecé, percaté, está, cómo, así).
+  - Respeta la concordancia de género y número.
+  - No inventes palabras. Usa sinónimos conocidos.
+
+- ### REGISTRO — voz y dialecto consistentes con el blogger original
+  - Identifica el dialecto del blogger a partir de su perfil de estilo.
+  - Si el blogger es de España (tuteo, expresiones como "mazo", "brutal", "o sea"), escribe TODO el post en español peninsular (tú, tienes, fíjate, etc.).
+  - Si el blogger es de Argentina/Uruguay (voseo), usa voseo (vos, tenés, pensá, etc.).
+  - NUNCA mezcles dialectos o pronombres (por ejemplo, no mezcles "tú tienes" con "pensá" o "¿entendés?"). El post (incluyendo el título) debe sonar 100% coherente al origen del blogger.
+  - Elige UN registro (formal o informal) congruente con el blogger y mantenlo todo el post.
+  - Evita el registro formal a menos que el blogger lo use de forma explícita.
+
+- ### TÍTULO PRINCIPAL — formato correcto
+  - La PRIMERA LÍNEA debe ser EXACTAMENTE: `# <título gancho>`
+  - Usa formato markdown `# `. NO uses `━━━ title:` ni `Title:` ni mayúsculas decorativas.
+  - El título debe ser UN GANCHO: datos concretos, afirmaciones audaces.
+  - El título debe seguir estrictamente el dialecto del blogger. Si el blogger es de España, el título NO debe llevar acentuación de voseo (ej: usa "esperas" en lugar de "esperás").
+  - NUNCA uses títulos en inglés ni preguntas tipo "¿Es X realmente Y?".

@@ -1,0 +1,78 @@
+Abajo tienes posts REALES escritos por Javipas, cuyo estilo de escritura tienes que imitar fielmente, e información factual sobre el tema del post.
+
+━━━━━━ EJEMPLOS DEL BLOGGER ORIGINAL ────────
+Párrafo de ejemplo del blogger sobre tecnología y programación. Párrafo de ejemplo del blogger sobre tecnología y programación. Párrafo de ejemplo del blogger sobre tecnología y programación. Párrafo de ejemplo del blogger sobre tecnología y programación. Párrafo de ejemplo del blogger sobre tecnología y programación. Párrafo de ejemplo del blogger sobre tecnología y programación. Párrafo de ejemplo del blogger sobre tecnología y programación. Párrafo de ejemplo del blogger sobre tecnología y programación. Párrafo de ejemplo del blogger sobre tecnología y programación. Párrafo de ejemplo del blogger sobre tecnología y programación. Párrafo de ejemplo del blogger sobre tecnología y programación. Párrafo de ejemplo del blogger sobre tecnología y programación. Párrafo de ejemplo del blogger sobre tecnología y programación. Párrafo de ejemplo del blogger sobre tecnología y programación. Párrafo de ejemplo del blogger sobre tecnología y programación. Párrafo de ejemplo del blogger sobre tecnología y programación. Párrafo de ejemplo del blogger sobre tecnología y programación. Párrafo de ejemplo del blogger sobre tecnología y programación. Párrafo de ejemplo del blogger sobre tecnología y programación. Párrafo de ejemplo del blogger sobre tecnología y programación. 
+━━━━━━ FIN DE LOS EJEMPLOS ──────────────────
+
+━━━━━━ INFORMACIÓN REAL SOBRE EL TEMA ━━━━━━━━
+Usa esta información como base factual para el post. No inventes datos, básate en esto.
+Resultado de investigación: la IA generativa creció un 40% en 2025. Resultado de investigación: la IA generativa creció un 40% en 2025. Resultado de investigación: la IA generativa creció un 40% en 2025. Resultado de investigación: la IA generativa creció un 40% en 2025. Resultado de investigación: la IA generativa creció un 40% en 2025. Resultado de investigación: la IA generativa creció un 40% en 2025. Resultado de investigación: la IA generativa creció un 40% en 2025. Resultado de investigación: la IA generativa creció un 40% en 2025. Resultado de investigación: la IA generativa creció un 40% en 2025. Resultado de investigación: la IA generativa creció un 40% en 2025. Resultado de investigación: la IA generativa creció un 40% en 2025. Resultado de investigación: la IA generativa creció un 40% en 2025. Resultado de investigación: la IA generativa creció un 40% en 2025. Resultado de investigación: la IA generativa creció un 40% en 2025. Resultado de investigación: la IA generativa creció un 40% en 2025. 
+━━━━━━ FIN DE INFORMACIÓN ━━━━━━━━━━━━━━━━━━━━━
+
+Ahora escribe un NUEVO post sobre: El futuro de la IA en el desarrollo web
+
+━━━━━━ PERFIL DE ESTILO ─────────────────────
+Blogger de referencia: Javipas
+Blog de referencia: https://javipas.com
+
+Tono y Voz:
+  Tono: conversational, direct
+  Voz: first person
+
+Nivel técnico: technical-intermediate
+━━━━━━ FIN DEL PERFIL ─────────────────
+
+REGLAS:
+
+- ### IDIOMA — español REAL, nada de Spanglish
+  - Escribe TODO el post en ESPAÑOL. Título, cuerpo, secciones, TODO.
+  - Traduce cualquier término técnico: "Machine Learning" → "Aprendizaje Automático", "Deep Learning" → "Aprendizaje Profundo", "Neural Networks" → "Redes Neuronales", "Data Science" → "Ciencia de Datos", "Data Preprocessing" → "Preprocesamiento de Datos", "Model Training" → "Entrenamiento de Modelos".
+  - NO dejes NINGUNA palabra en inglés suelta. Nada de "on-line", "performance", "disappointing resultado". TODO traducido.
+  - Usa vocabulario español real, no inventes palabras ("alcanceado" → "alcanzado", "percaté" → "me di cuenta").
+
+- ### GRAMÁTICA y ortografía
+  - Usa tildes correctamente (empecé, percaté, está, cómo, así).
+  - Respeta la concordancia de género y número ("estos temas", no "estas temas").
+  - No inventes palabras. Si no estás seguro de una palabra, usa un sinónimo conocido.
+
+- ### REGISTRO — voz y dialecto consistentes con el blogger original
+  - Identifica el dialecto del blogger a partir de su perfil de estilo y los ejemplos reales.
+  - Si el blogger es de España (tuteo, expresiones como "mazo", "brutal", "o sea"), escribe TODO el post en español peninsular (tú, tienes, fíjate, etc.).
+  - Si el blogger es de Argentina/Uruguay (voseo), usa voseo (vos, tenés, pensá, etc.).
+  - NUNCA mezcles dialectos o pronombres (por ejemplo, no mezcles "tú tienes" con "pensá" o "¿entendés?"). El post (incluyendo el título) debe sonar 100% coherente al origen del blogger.
+  - Elige UN registro (formal o informal) congruente con el blogger y mantenlo todo el post.
+  - Evita el registro formal a menos que el blogger lo use de forma explícita.
+
+- ### TÍTULO PRINCIPAL — formato correcto
+  - La PRIMERA LÍNEA del post debe ser EXACTAMENTE: `# <título gancho>`
+  - Usa el formato markdown `# ` al inicio. NO uses `━━━ title: ... ━━━` ni `Title: ...` ni mayúsculas decorativas.
+  - El título debe ser UN GANCHO: datos concretos, afirmaciones audaces, o contrastes impactantes.
+  - El título debe seguir estrictamente el dialecto del blogger. Si el blogger es de España, el título NO debe llevar acentuación de voseo (ej: usa "esperas" en lugar de "esperás").
+  - Ejemplos BUENOS: `# Los 634 segundos que casi vacían la cartera de un programador`, `# El truco sucio de las academias que prometen programadores en 3 meses`.
+  - Ejemplos MALOS (NUNCA uses estos): títulos en inglés, preguntas tipo "¿Es X realmente Y?", títulos genéricos como "Análisis de X".
+
+- ### CONTENIDO y estructura
+  - BÁSATE EN LA INFORMACIÓN REAL proporcionada arriba. No inventes datos.
+  - NUNCA uses citas académicas en formato numérico entre corchetes (ej: [1], [2], [1, 2], [3]). Escribe de forma fluida y narrativa (ej: "según explica X...", "como se comenta en Y...").
+  - Filtra y omite detalles trágicos sobre guerras, víctimas civiles o crímenes de guerra del contexto de investigación, a menos que el tema sea militar o geopolítico. Enfócate estrictamente en los aspectos tecnológicos o de opinión general acordes al blogger.
+  - Usa **negritas** (formato `**texto**` de markdown) para resaltar las palabras clave, ideas principales o términos más importantes del texto, logrando que el artículo sea escaneable visualmente.
+  - Incluye AL MENOS 2 datos concretos o citas específicas de la investigación. No te quedes en generalidades.
+  - NO uses estructuras de plantilla como "Contexto", "Introducción", "Lo que he aprendido", "Reflexión final" o "Conclusión" como títulos de sección. Deja que la estructura fluya naturalmente.
+  - Cada título de sección debe ser ESPECÍFICO al contenido concreto, no genérico. Si ese título pudiera aparecer en cualquier otro post, está mal.
+  - Piensa: "¿Qué es lo más interesante de esta información?" y empieza por ahí.
+  - Varía la longitud de las secciones. Algunas ideas merecen un párrafo, otras merecen varios.
+  - Si el blogger usa primera persona, anécdotas personales, humor, etc., haz lo mismo.
+  - Menciona estos temas si aplican naturalmente: inteligencia artificial, python, machine learning
+
+- ### ESTILO — emulación del blogger + que no parezca IA
+  - Emula el estilo de Javipas en TODO el post: su vocabulario, expresiones, tono, forma de empezar y terminar. El perfil de estilo está arriba.
+  - NO aclares que esto es contenido generado por IA.
+  - NO generes URLs de imágenes falsas (src="https://..." inventadas).
+  - Varía los conectores. No uses "Sin embargo" más de una vez. Alterna con "Pero", "No obstante", "Ahora bien", "Eso sí", "El problema", "Lo cierto es que", etc.
+  - Escribe como un ser humano, no como un asistente. Sin estructuras repetitivas.
+
+Escribe el post completo ahora:
+
+---
+
+*✍️ Este post fue escrito emulando el estilo de [Javipas](https://javipas.com).*
