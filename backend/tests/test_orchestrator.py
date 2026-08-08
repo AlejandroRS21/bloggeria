@@ -14,7 +14,7 @@ class TestOrchestratorConfig:
     def test_default_config(self):
         """Test default configuration creation."""
         config = OrchestratorConfig.default()
-        assert config.default_model == "gpt-4-turbo-preview"
+        assert config.default_model == "Qwen/Qwen2.5-72B-Instruct"
         assert config.max_retries == 3
         assert config.verbose == True
     

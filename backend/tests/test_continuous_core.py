@@ -7,6 +7,56 @@ from datetime import datetime, timedelta, timezone
 from src.orchestrator.continuous.topic_selector import TopicSelector, TopicCandidate
 from src.orchestrator.continuous.validation import DraftValidator
 from src.orchestrator.safety import SafetyAgent
+from src.orchestrator.config import OrchestratorConfig
+
+
+class TestOrchestratorConfigTomlAndQwen:
+    """Test suite for TOML config parsing and Qwen default overrides."""
+
+    def test_default_config_qwen_defaults(self):
+        config = OrchestratorConfig.default()
+        assert config.default_model == "Qwen/Qwen2.5-72B-Instruct"
+
+    def test_from_toml_parsing(self, tmp_path):
+        toml_content = """
+[models]
+provider = "huggingface"
+default_model = "Qwen/Qwen2.5-72B-Instruct"
+
+[workflow]
+enable_critic = false
+max_iterations = 4
+verbose = false
+
+[content]
+min_word_count = 500
+max_word_count = 1500
+"""
+        config_file = tmp_path / "test_config.toml"
+        config_file.write_text(toml_content)
+
+        config = OrchestratorConfig.from_toml(str(config_file))
+
+        assert config.provider == "huggingface"
+        assert config.default_model == "Qwen/Qwen2.5-72B-Instruct"
+        assert config.enable_critique is False
+        assert config.max_critique_iterations == 4
+        assert config.verbose is False
+        assert config.min_word_count == 500
+        assert config.max_word_count == 1500
+
+    def test_from_toml_fallback_defaults(self, tmp_path):
+        toml_content = """
+[models]
+"""
+        config_file = tmp_path / "empty_config.toml"
+        config_file.write_text(toml_content)
+
+        config = OrchestratorConfig.from_toml(str(config_file))
+
+        assert config.default_model == "Qwen/Qwen2.5-72B-Instruct"
+        assert config.enable_critique is True
+        assert config.min_word_count == 800
 
 
 class TestTopicSelector:
