@@ -2,7 +2,60 @@
 
 > Sistema multiagent de inteligencia artificial diseñado para la emulación estilística de blogs, incorporando visualización interactiva de flujos de trabajo (Daggr). Desarrollado bajo una arquitectura moderna basada en Next.js, Modal y Supabase.
 
-## 🌐 Arquitectura y Despliegue del Sistema
+<p align="center">
+  <img src="bloggeria.png" alt="Blogger Agent TFG — Sistema multiagente de IA para emulación estilística de blogs" width="680">
+</p>
+
+*Multi-agent AI system that analyzes a blogger's style, generates new articles that faithfully mimic it and publishes them end to end.*
+
+<p align="center">
+  <a href="https://blogger-agent-tfg.vercel.app"><strong>Live Demo — blogger-agent-tfg.vercel.app</strong></a>
+</p>
+
+<div align="center">
+  <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/static/v1?label=License&message=MIT&color=4caf50&labelColor=gray&style=flat&cacheSeconds=300"/></a>
+  <a href="https://github.com/AlejandroRS21/blogger-agent-tfg"><img alt="GitHub Stars" src="https://img.shields.io/static/v1?label=GitHub&message=Stars&color=181717&labelColor=gray&style=flat&cacheSeconds=300"/></a>
+  <a href="https://blogger-agent-tfg.vercel.app"><img alt="Live Demo" src="https://img.shields.io/static/v1?label=Live%20Demo&message=Vercel&color=10b981&labelColor=gray&style=flat&cacheSeconds=300"/></a>
+  <a href="https://nextjs.org"><img alt="Next.js" src="https://img.shields.io/static/v1?label=Next.js&message=16&color=000000&labelColor=gray&style=flat&cacheSeconds=300"/></a>
+  <a href="https://react.dev"><img alt="React" src="https://img.shields.io/static/v1?label=React&message=19&color=61dafb&labelColor=gray&style=flat&cacheSeconds=300"/></a>
+  <a href="https://www.typescriptlang.org"><img alt="TypeScript" src="https://img.shields.io/static/v1?label=TypeScript&message=5&color=3178c6&labelColor=gray&style=flat&cacheSeconds=300"/></a>
+  <a href="https://www.python.org"><img alt="Python" src="https://img.shields.io/static/v1?label=Python&message=3.11%2B&color=3776ab&labelColor=gray&style=flat&cacheSeconds=300"/></a>
+  <a href="https://tailwindcss.com"><img alt="Tailwind CSS" src="https://img.shields.io/static/v1?label=Tailwind%20CSS&message=4&color=06b6d4&labelColor=gray&style=flat&cacheSeconds=300"/></a>
+  <a href="https://supabase.com"><img alt="Supabase" src="https://img.shields.io/static/v1?label=Supabase&message=Postgres&color=3ecf8e&labelColor=gray&style=flat&cacheSeconds=300"/></a>
+  <a href="https://modal.com"><img alt="Modal" src="https://img.shields.io/static/v1?label=Modal&message=Serverless&color=9f7aea&labelColor=gray&style=flat&cacheSeconds=300"/></a>
+  <a href="https://huggingface.co"><img alt="HuggingFace" src="https://img.shields.io/static/v1?label=HuggingFace&message=Inference%20API&color=ffd21e&labelColor=gray&style=flat&cacheSeconds=300"/></a>
+</div>
+
+---
+
+## Índice de Contenidos
+
+- [Índice de Contenidos](#índice-de-contenidos)
+- [Arquitectura y Despliegue del Sistema](#arquitectura-y-despliegue-del-sistema)
+- [Descripción del Proyecto](#descripción-del-proyecto)
+- [Arquitectura del Sistema](#arquitectura-del-sistema)
+- [Inicio Rápido](#inicio-rápido)
+  - [Backend — Orquestador Completo](#backend-orquestador-completo)
+  - [Interfaz Visual Interactiva con Daggr (Recomendado)](#interfaz-visual-interactiva-con-daggr-recomendado)
+  - [Pipeline Simplificado](#pipeline-simplificado)
+  - [Frontend — Next.js 16](#frontend-nextjs-16)
+  - [Despliegue en Vercel](#despliegue-en-vercel)
+  - [Batería de Pruebas](#batería-de-pruebas)
+- [Flujo de Trabajo (7 Fases)](#flujo-de-trabajo-7-fases)
+  - [Diagrama del Proceso (Pipeline de Agentes)](#diagrama-del-proceso-pipeline-de-agentes)
+- [Integración con la Plataforma Modal](#integración-con-la-plataforma-modal)
+- [Estado del Proyecto](#estado-del-proyecto)
+  - [Hitos Completados](#hitos-completados)
+  - [Tareas Pendientes](#tareas-pendientes)
+- [Documentación Técnica](#documentación-técnica)
+- [Tecnologías Empleadas](#tecnologías-empleadas)
+- [Consistencia Documental](#consistencia-documental)
+- [Licencia](#licencia)
+- [Contexto Académico](#contexto-académico)
+
+---
+
+## Arquitectura y Despliegue del Sistema
 
 El ecosistema de la aplicación está compuesto por tres componentes principales, desplegados de la siguiente forma:
 
