@@ -18,6 +18,7 @@ type State = {
   topic: string;
   selectedPresetId: string | null;
   customUrl: string;
+  language: string;
   isGenerating: boolean;
   currentPhase: number;
   progress: number;
@@ -28,6 +29,7 @@ type Action =
   | { type: 'SET_TOPIC'; payload: string }
   | { type: 'TOGGLE_PRESET'; payload: string }
   | { type: 'SET_CUSTOM_URL'; payload: string }
+  | { type: 'SET_LANGUAGE'; payload: string }
   | { type: 'START_GENERATION' }
   | { type: 'NEXT_PHASE' }
   | { type: 'SET_ERROR'; payload: string }
@@ -37,6 +39,7 @@ const initialState: State = {
   topic: "",
   selectedPresetId: null,
   customUrl: "",
+  language: "auto",
   isGenerating: false,
   currentPhase: 0,
   progress: 0,
@@ -51,6 +54,8 @@ function reducer(state: State, action: Action): State {
       return { ...state, selectedPresetId: state.selectedPresetId === action.payload ? null : action.payload };
     case 'SET_CUSTOM_URL':
       return { ...state, customUrl: action.payload };
+    case 'SET_LANGUAGE':
+      return { ...state, language: action.payload };
     case 'START_GENERATION':
       return { ...state, isGenerating: true, currentPhase: 0, progress: 0, error: null };
     case 'NEXT_PHASE': {
@@ -149,7 +154,8 @@ export default function NewPostPage() {
         body: JSON.stringify({
           topic: state.topic,
           blogger_urls: bloggerUrls,
-          provider: "gemini"
+          provider: "gemini",
+          language: state.language
         }),
       });
 
@@ -236,6 +242,23 @@ export default function NewPostPage() {
               placeholder="Ej: https://miblog.com"
               className="w-full rounded-xl border border-zinc-300 bg-transparent px-4 py-3 outline-none transition-all focus:ring-2 focus:ring-blue-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
             />
+          </div>
+
+          <div className="space-y-2">
+            <label htmlFor="language" className="block text-sm font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
+              Idioma de Generación
+            </label>
+            <select
+              id="language"
+              value={state.language}
+              onChange={(e) => dispatch({ type: 'SET_LANGUAGE', payload: e.target.value })}
+              className="w-full rounded-xl border border-zinc-300 bg-transparent px-4 py-3 outline-none transition-all focus:ring-2 focus:ring-blue-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+            >
+              <option value="auto">Auto (detectar del estilo)</option>
+              <option value="es">Español</option>
+              <option value="en">English</option>
+            </select>
+            <p className="text-xs italic text-zinc-500 dark:text-zinc-400">Auto usa el idioma del blogger de inspiración; si no se detecta, se genera en español.</p>
           </div>
 
           <button
