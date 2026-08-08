@@ -2,6 +2,7 @@
 
 import { useReducer, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { PRESET_BLOGGERS, normalizeUrl } from "@/lib/bloggers";
 
 const PHASES = [
   { id: "safety", label: "Protección de Contenido", icon: "🛡️", duration: 5000 },
@@ -15,7 +16,8 @@ const PHASES = [
 
 type State = {
   topic: string;
-  urls: string;
+  selectedPresetId: string | null;
+  customUrl: string;
   isGenerating: boolean;
   currentPhase: number;
   progress: number;
@@ -24,7 +26,8 @@ type State = {
 
 type Action = 
   | { type: 'SET_TOPIC'; payload: string }
-  | { type: 'SET_URLS'; payload: string }
+  | { type: 'TOGGLE_PRESET'; payload: string }
+  | { type: 'SET_CUSTOM_URL'; payload: string }
   | { type: 'START_GENERATION' }
   | { type: 'NEXT_PHASE' }
   | { type: 'SET_ERROR'; payload: string }
@@ -32,7 +35,8 @@ type Action =
 
 const initialState: State = {
   topic: "",
-  urls: "https://javipas.com",
+  selectedPresetId: null,
+  customUrl: "",
   isGenerating: false,
   currentPhase: 0,
   progress: 0,
@@ -43,8 +47,10 @@ function reducer(state: State, action: Action): State {
   switch (action.type) {
     case 'SET_TOPIC':
       return { ...state, topic: action.payload };
-    case 'SET_URLS':
-      return { ...state, urls: action.payload };
+    case 'TOGGLE_PRESET':
+      return { ...state, selectedPresetId: state.selectedPresetId === action.payload ? null : action.payload };
+    case 'SET_CUSTOM_URL':
+      return { ...state, customUrl: action.payload };
     case 'START_GENERATION':
       return { ...state, isGenerating: true, currentPhase: 0, progress: 0, error: null };
     case 'NEXT_PHASE': {
@@ -117,6 +123,24 @@ export default function NewPostPage() {
     dispatch({ type: 'START_GENERATION' });
 
     try {
+      // Blogger style sources: active preset + optional custom URL (normalized)
+      const presetUrl = PRESET_BLOGGERS.find((b) => b.id === state.selectedPresetId)?.url;
+      const bloggerUrls: string[] = [];
+      if (presetUrl) bloggerUrls.push(presetUrl);
+      const custom = state.customUrl.trim();
+      if (custom) {
+        try {
+          bloggerUrls.push(normalizeUrl(custom));
+        } catch {
+          dispatch({ type: 'SET_ERROR', payload: 'Introduce una URL de inspiración válida (ej: https://miblog.com)' });
+          return;
+        }
+      }
+      if (bloggerUrls.length === 0) {
+        dispatch({ type: 'SET_ERROR', payload: 'Selecciona un blogger o introduce una URL de inspiración' });
+        return;
+      }
+
       const webhookUrl = process.env.NEXT_PUBLIC_MODAL_WEBHOOK_URL || "https://alejandrors21--blogger-agent-tfg-webhook.modal.run";
       
       const response = await fetch(webhookUrl, {
@@ -124,7 +148,7 @@ export default function NewPostPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           topic: state.topic,
-          blogger_urls: state.urls.split(",").map(u => u.trim()),
+          blogger_urls: bloggerUrls,
           provider: "gemini"
         }),
       });
@@ -174,15 +198,42 @@ export default function NewPostPage() {
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="urls" className="block text-sm font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
-              URLs de Inspiración (Separadas por coma)
+            <label className="block text-sm font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
+              Blogger de Inspiración
+            </label>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {PRESET_BLOGGERS.map((blogger) => {
+                const isActive = state.selectedPresetId === blogger.id;
+                return (
+                  <button
+                    key={blogger.id}
+                    type="button"
+                    aria-pressed={isActive}
+                    onClick={() => dispatch({ type: 'TOGGLE_PRESET', payload: blogger.id })}
+                    className={`rounded-xl border px-4 py-3 text-left transition-all ${
+                      isActive
+                        ? "border-blue-500 bg-blue-50 ring-2 ring-blue-500 dark:border-blue-400 dark:bg-blue-950/40"
+                        : "border-zinc-300 bg-transparent hover:border-blue-300 dark:border-zinc-700 dark:hover:border-zinc-600"
+                    }`}
+                  >
+                    <span className="block font-semibold text-zinc-900 dark:text-zinc-100">{blogger.name}</span>
+                    <span className="block text-xs text-zinc-500 dark:text-zinc-400">{blogger.niche}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label htmlFor="custom-url" className="block text-sm font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
+              URL de Inspiración (Opcional)
             </label>
             <input
-              id="urls"
+              id="custom-url"
               type="text"
-              required
-              value={state.urls}
-              onChange={(e) => dispatch({ type: 'SET_URLS', payload: e.target.value })}
+              value={state.customUrl}
+              onChange={(e) => dispatch({ type: 'SET_CUSTOM_URL', payload: e.target.value })}
+              placeholder="Ej: https://miblog.com"
               className="w-full rounded-xl border border-zinc-300 bg-transparent px-4 py-3 outline-none transition-all focus:ring-2 focus:ring-blue-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
             />
           </div>
