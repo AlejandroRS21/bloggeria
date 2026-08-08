@@ -214,6 +214,7 @@ frontend/.next/
 frontend/out/
 frontend/node_modules/
 frontend/.env*.local
+*.tsbuildinfo
 
 # Playwright MCP artifacts
 .playwright-mcp/
