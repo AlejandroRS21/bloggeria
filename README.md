@@ -32,6 +32,7 @@
 
 - [Índice de Contenidos](#índice-de-contenidos)
 - [Arquitectura y Despliegue del Sistema](#arquitectura-y-despliegue-del-sistema)
+  - [Flujo de Generación y Publicación](#flujo-de-generación-y-publicación)
 - [Descripción del Proyecto](#descripción-del-proyecto)
 - [Arquitectura del Sistema](#arquitectura-del-sistema)
 - [Inicio Rápido](#inicio-rápido)
@@ -49,6 +50,9 @@
   - [Tareas Pendientes](#tareas-pendientes)
 - [Documentación Técnica](#documentación-técnica)
 - [Tecnologías Empleadas](#tecnologías-empleadas)
+  - [Backend](#backend)
+  - [Frontend](#frontend)
+  - [DevOps & Cloud](#devops-cloud)
 - [Consistencia Documental](#consistencia-documental)
 - [Licencia](#licencia)
 - [Contexto Académico](#contexto-académico)
@@ -73,13 +77,13 @@ El ecosistema de la aplicación está compuesto por tres componentes principales
 
 ---
 
-## 📋 Descripción del Proyecto
+## Descripción del Proyecto
 
 Este sistema multiagente ha sido diseñado para analizar en detalle el estilo de redacción de un autor (blogger) y generar nuevos artículos de divulgación que mimetizan fielmente su tono de voz. La arquitectura y el flujo de agentes de este desarrollo están inspirados en el proyecto [Aphra](https://github.com/DavidLMS/aphra).
 
 El backend emplea **HuggingFace** como proveedor de modelos de lenguaje principal (de acceso gratuito), **Modal** para la infraestructura sin servidor (serverless) con soporte para GPU, y **Daggr** para la visualización interactiva del flujo de trabajo de los agentes. El frontend está desarrollado con **Next.js 16**, React 19, TypeScript y Tailwind CSS 4, persistiendo todos los artículos de manera centralizada en **Supabase**.
 
-## 🏗️ Arquitectura del Sistema
+## Arquitectura del Sistema
 
 ```
 blogger-agent-tfg/
@@ -161,7 +165,7 @@ blogger-agent-tfg/
 
 ---
 
-## 🚀 Inicio Rápido
+## Inicio Rápido
 
 ### Backend — Orquestador Completo
 
@@ -170,12 +174,12 @@ blogger-agent-tfg/
 git clone https://github.com/AlejandroRS21/blogger-agent-tfg.git
 cd blogger-agent-tfg/backend
 
-# 2. Configuración automatizada con el gestor UV ⚡
+# 2. Configuración automatizada con el gestor UV
 ./setup.sh   # Linux/macOS
 # o bien
 .\setup.ps1  # Windows
 
-# 3. Configurar las claves de API (gratuitas) 🆓
+# 3. Configurar las claves de API (gratuitas)
 export HF_TOKEN="hf_..."           # HuggingFace (modelo primario, gratuito)
 # Proveedores alternativos:
 export GEMINI_API_KEY="..."        # Gemini (gratuito con límites de cuota)
@@ -188,7 +192,7 @@ python -m src.orchestrator.runner \
   --output "post.json"
 ```
 
-### Interfaz Visual Interactiva con Daggr (Recomendado) 🎨
+### Interfaz Visual Interactiva con Daggr (Recomendado)
 
 ```bash
 cd backend
@@ -197,11 +201,11 @@ python daggr_blogger_workflow.py
 ```
 
 **Funcionalidades de Daggr:**
-- 📊 **Visualización del flujo de trabajo**: Lienzo interactivo que muestra las conexiones entre agentes.
-- 🔍 **Inspección por nodo**: Permite examinar en detalle la entrada y salida de cada agente.
-- 🔄 **Reejecución selectiva**: Capacidad para ejecutar únicamente los nodos requeridos.
-- ⏱️ **Depuración visual**: Facilita la identificación de errores en cada fase del proceso.
-- 💾 **Persistencia**: Conserva el estado del flujo de trabajo entre diferentes sesiones.
+- **Visualización del flujo de trabajo**: Lienzo interactivo que muestra las conexiones entre agentes.
+- **Inspección por nodo**: Permite examinar en detalle la entrada y salida de cada agente.
+- **Reejecución selectiva**: Capacidad para ejecutar únicamente los nodos requeridos.
+- **Depuración visual**: Facilita la identificación de errores en cada fase del proceso.
+- **Persistencia**: Conserva el estado del flujo de trabajo entre diferentes sesiones.
 
 ### Pipeline Simplificado
 
@@ -210,7 +214,7 @@ cd backend
 python generate_and_deploy.py "El futuro de la IA en 2026"
 ```
 
-### Frontend — Next.js 16 ⚛️
+### Frontend — Next.js 16
 
 ```bash
 cd frontend
@@ -222,7 +226,7 @@ npm run dev
 **Modo simulado (Mock)** (por defecto): Funciona de manera autónoma sin necesidad de backend, proporcionando datos de ejemplo.
 **Modo real**: Requiere configurar las variables `USE_MOCK=false` y la dirección `BACKEND_URL` en el archivo `frontend/.env.local`.
 
-#### Despliegue en Vercel 🚀
+#### Despliegue en Vercel
 
 1. Importar el repositorio en [vercel.com](https://vercel.com)
 2. **Directorio raíz (Root Directory)**: `frontend`
@@ -252,7 +256,7 @@ python test_full_pipeline.py
 
 ---
 
-## 📊 Flujo de Trabajo (7 Fases)
+## Flujo de Trabajo (7 Fases)
 
 ### Diagrama del Proceso (Pipeline de Agentes)
 
@@ -301,7 +305,7 @@ graph LR
 
 ---
 
-## 🚀 Integración con la Plataforma Modal
+## Integración con la Plataforma Modal
 
 La plataforma **Modal** se emplea para habilitar despliegues sin servidor (serverless) con soporte para GPU:
 
@@ -318,9 +322,9 @@ modal deploy backend/llm_modal_host.py
 
 ---
 
-## 📊 Estado del Proyecto
+## Estado del Proyecto
 
-### ✅ Hitos Completados
+### Hitos Completados
 - **Abstracción de LLM**: Soporte multiproveedor (HuggingFace, OpenAI, Gemini, Modal GPU).
 - **Arquitectura de agentes**: Implementación completa de StyleAnalyzer, KeywordExtractor, ContentGenerator, Critic, ImageSelector, HTMLBuilder y AnonymousBloggerEmulator.
 - **Orquestador**: Flujo de 7 fases con gestión de reintentos, registro de logs y control de estado.
@@ -331,17 +335,18 @@ modal deploy backend/llm_modal_host.py
 - **Persistencia y BD**: Conexión e inserción directa de publicaciones en Supabase.
 - **Modal**: Preparado para el despliegue sin servidor (serverless) de los componentes de backend.
 
-### ⏳ Tareas Pendientes
+### Tareas Pendientes
 - **CI/CD**: Configuración de GitHub Actions para la ejecución de pruebas y despliegue automático.
 - **Pruebas de extremo a extremo (E2E)**: Implementación de Cypress o Playwright para validar la aplicación web Next.js.
 - **Pruebas en entorno Modal**: Validación del despliegue real en producción.
 
 ---
 
-## 📚 Documentación Técnica
+## Documentación Técnica
 
 - [Plan de Orquestación](project_docs/ORCHESTRATION_PLAN.md): Plan conceptual y de desarrollo del orquestador.
 - [Próximos Pasos](project_docs/NEXT_STEPS.md): Hoja de ruta y planificación de futuras tareas.
+- [Estado del Proyecto](PROJECT_STATUS.md): Resumen consolidado del estado e historial del proyecto.
 - [Despliegue en Modal](project_docs/MODAL_DEPLOYMENT.md): Guía de despliegue para los servicios del backend.
 - [Migración a HuggingFace](project_docs/HUGGINGFACE_MIGRATION.md): Documentación sobre la integración con la API de HuggingFace.
 - [Integración de HTMLBuilder](project_docs/HTMLBUILDER_INTEGRATION.md): Guía del módulo conversor HTMLBuilder.
@@ -353,11 +358,11 @@ modal deploy backend/llm_modal_host.py
 
 ---
 
-## 📦 Tecnologías Empleadas
+## Tecnologías Empleadas
 
 ### Backend
 - Python 3.11+
-- **HuggingFace Inference API** — LLM primario (gratuito) ✅
+- **HuggingFace Inference API** — LLM primario (gratuito)
 - OpenAI API — Fallback opcional
 - Google Gemini — Alternativa de inferencia gratuita
 - **Modal** — Despliegue sin servidor con GPU (A10G)
@@ -381,7 +386,7 @@ modal deploy backend/llm_modal_host.py
 
 ---
 
-## 🧭 Consistencia Documental
+## Consistencia Documental
 
 Este documento refleja el estado actual del proyecto a fecha de mayo de 2026.
 
@@ -389,13 +394,13 @@ Este documento refleja el estado actual del proyecto a fecha de mayo de 2026.
 
 ---
 
-## 📝 Licencia
+## Licencia
 
 MIT License — Consulte [LICENSE](LICENSE) para obtener más detalles.
 
 ---
 
-## 👨‍🎓 Contexto Académico
+## Contexto Académico
 
 Trabajo Final de Grado (TFG) — Especialización en Inteligencia Artificial y Big Data  
 Instituto de Educación Secundaria (IES) Rafael Alberti — Convocatoria de 2026.
