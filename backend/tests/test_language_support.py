@@ -268,3 +268,121 @@ class TestHtmlLanguage:
         assert kw_en == ["blog", "technology", "innovation"]
         kw_es = builder._extract_keywords_for_meta("xx yy", language="es")
         assert kw_es == ["blog", "tecnología", "innovación"]
+class TestWorkflowStateLanguage:
+    """REQ-5: WorkflowState.language serialization + backward-compat default."""
+
+    def test_default_is_auto(self):
+        state = WorkflowState(workflow_id="x", topic="T", blogger_urls=["u"])
+        assert state.language == "auto"
+
+    def test_explicit_language(self):
+        state = WorkflowState(workflow_id="x", topic="T", blogger_urls=["u"], language="en")
+        assert state.language == "en"
+
+    def test_to_dict_serializes_language(self):
+        state = WorkflowState(workflow_id="x", topic="T", blogger_urls=["u"], language="en")
+        assert state.to_dict()["language"] == "en"
+
+    def test_old_state_without_language_rehydrates(self):
+        old = {"workflow_id": "x", "topic": "T", "blogger_urls": ["u"]}
+        state = WorkflowState(**old)
+        assert state.language == "auto"
+
+
+class TestOrchestratorLanguage:
+    """REQ-4: run(language=...) passthrough into draft + html phases."""
+
+    @pytest.fixture
+    def config(self):
+        return OrchestratorConfig(
+            openai_api_key="test-key",
+            max_retries=1,
+            verbose=False,
+            enable_critique=False,
+        )
+
+    @pytest.fixture
+    def offline(self, monkeypatch):
+        """Keep the pipeline offline/deterministic."""
+
+        class Resp:
+            status_code = 400
+            text = ""
+
+        monkeypatch.setattr("src.orchestrator.main.requests.get", lambda *a, **k: Resp())
+        monkeypatch.setattr(
+            "src.orchestrator.main.research_topic_online",
+            lambda *a, **k: {"context": "Research synthesis.", "articles": [],
+                             "key_findings": [], "research_synthesis": "Synth.",
+                             "scrape_stats": {}},
+        )
+
+    def _draft_spy(self, orchestrator):
+        captured = {}
+
+        def fake_generate_draft(**kwargs):
+            captured["language"] = kwargs.get("language")
+            return "# Título\n\nContenido de prueba con varias palabras. " * 30
+
+        orchestrator.content_generator.generate_draft = fake_generate_draft
+        return captured
+
+    def test_explicit_en_flows_to_state_and_draft(self, config, offline):
+        orch = BloggerOrchestrator(config=config, verbose=False)
+        captured = self._draft_spy(orch)
+        orch.run(topic="Test", blogger_urls=["https://example.com"], language="en")
+        assert orch.get_state().language == "en"
+        assert captured["language"] == "en"
+
+    def test_auto_derives_from_profile(self, config, offline):
+        orch = BloggerOrchestrator(config=config, verbose=False)
+        orch.style_analyzer.analyze = lambda blogger_urls, sample_text=None: {
+            "language": "en", "tone": "conversational",
+        }
+        captured = self._draft_spy(orch)
+        orch.run(topic="Test", blogger_urls=["https://example.com"], language="auto")
+        assert captured["language"] == "en"
+
+    def test_auto_without_profile_language_falls_back_es(self, config, offline):
+        orch = BloggerOrchestrator(config=config, verbose=False)
+        orch.style_analyzer.analyze = lambda blogger_urls, sample_text=None: {"tone": "x"}
+        captured = self._draft_spy(orch)
+        orch.run(topic="Test", blogger_urls=["https://example.com"], language="auto")
+        assert captured["language"] == "es"
+
+    def test_html_phase_receives_resolved_language(self, config, offline):
+        orch = BloggerOrchestrator(config=config, verbose=False)
+        self._draft_spy(orch)
+        captured = {}
+        real_build = orch.html_builder.build
+
+        def fake_build(*args, **kwargs):
+            captured["language"] = kwargs.get("language")
+            return real_build(*args, **kwargs)
+
+        orch.html_builder.build = fake_build
+        orch.run(topic="Test", blogger_urls=["https://example.com"], language="en")
+        assert captured["language"] == "en"
+
+
+class TestWebhookLanguage:
+    """REQ-6: payload language normalized to es|en|auto; never rejected."""
+
+    def test_accepts_es_en_auto(self):
+        from modal_app import _normalize_language
+        assert _normalize_language("es") == "es"
+        assert _normalize_language("en") == "en"
+        assert _normalize_language("auto") == "auto"
+
+    def test_invalid_or_missing_falls_back_auto(self):
+        from modal_app import _normalize_language
+        assert _normalize_language("fr") == "auto"
+        assert _normalize_language("") == "auto"
+        assert _normalize_language(None) == "auto"
+        assert _normalize_language(42) == "auto"
+
+    def test_extract_from_payload(self):
+        from modal_app import _extract_language
+        assert _extract_language({"language": "en"}) == "en"
+        assert _extract_language({"topic": "x"}) == "auto"
+        assert _extract_language({"language": "fr"}) == "auto"

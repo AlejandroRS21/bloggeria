@@ -68,6 +68,7 @@ def generate_blog_post(
     min_word_count: int = 800,
     max_word_count: int = 2500,
     provider: str = "gemini",
+    language: str = "auto",
 ) -> Dict[str, Any]:
     """
     Generate a blog post that mimics the style of the given blogger.
@@ -87,6 +88,7 @@ def generate_blog_post(
         min_word_count: Minimum words for generated content (default: 800)
         max_word_count: Maximum words for generated content (default: 2500)
         provider: LLM provider to use ("huggingface", "openai", "auto")
+        language: "auto" (explicit > style_profile > "es"), "es" or "en"
         
     Returns:
         Dict with complete blog post data
@@ -119,10 +121,27 @@ def generate_blog_post(
     result = orchestrator.run(
         topic=topic,
         blogger_urls=blogger_urls,
+        language=language,
         output_path=None,  # Don't save to file in serverless
     )
     
     return result
+
+
+def _normalize_language(language: Any) -> str:
+    """Normalize a webhook language value to es|en|auto (REQ-6).
+
+    Invalid or missing values fall back to "auto" — the webhook NEVER rejects
+    a request because of a bad language value.
+    """
+    if language in ("es", "en", "auto"):
+        return language
+    return "auto"
+
+
+def _extract_language(data: Dict[str, Any]) -> str:
+    """Extract and normalize the optional language param from a payload."""
+    return _normalize_language(data.get("language", "auto"))
 
 
 def _parse_moderation_response(text: str) -> Dict[str, Any]:
@@ -419,6 +438,7 @@ def webhook(data: Dict[str, Any]) -> Dict[str, Any]:
         min_word_count = data.get("min_word_count", 800)
         max_word_count = data.get("max_word_count", 2500)
         provider = data.get("provider", "gemini")
+        language = _extract_language(data)
         
         # Validate types
         if not isinstance(blogger_urls, list):
@@ -456,6 +476,7 @@ def webhook(data: Dict[str, Any]) -> Dict[str, Any]:
             min_word_count=min_word_count,
             max_word_count=max_word_count,
             provider=provider,
+            language=language,
         )
 
         # ── Persist to Supabase (REQ-2: fail loudly on project mismatch) ──

@@ -57,6 +57,7 @@ class WorkflowState:
     
     # Execution tracking
     workflow_id: str
+    language: str = "auto"  # "auto" | "es" | "en" (REQ-4/5)
     start_time: datetime = field(default_factory=datetime.now)
     end_time: Optional[datetime] = None
     total_duration: Optional[float] = None
@@ -87,6 +88,7 @@ class WorkflowState:
             'workflow_id': self.workflow_id,
             'topic': self.topic,
             'blogger_urls': self.blogger_urls,
+            'language': self.language,
             'start_time': self.start_time.isoformat(),
             'end_time': self.end_time.isoformat() if self.end_time else None,
             'total_duration': self.total_duration,

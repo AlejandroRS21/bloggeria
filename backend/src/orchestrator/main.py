@@ -139,10 +139,25 @@ class BloggerOrchestrator:
         
         raise RuntimeError(f"Unexpected error in retry logic for {phase_name}")
     
+    @staticmethod
+    def _resolve_language(language: str, style_profile: Optional[Dict[str, Any]]) -> str:
+        """Resolve the effective generation language (REQ-4).
+
+        Explicit "es"/"en" wins; "auto" reads style_profile["language"];
+        missing or invalid values fall back to "es".
+        """
+        if language in ("es", "en"):
+            return language
+        profile_language = (style_profile or {}).get("language")
+        if profile_language in ("es", "en"):
+            return profile_language
+        return "es"
+
     def run(
         self,
         topic: str,
         blogger_urls: List[str],
+        language: str = "auto",
         output_path: Optional[str] = None
     ) -> Dict[str, Any]:
         """
@@ -151,17 +166,23 @@ class BloggerOrchestrator:
         Args:
             topic: Topic to write about
             blogger_urls: List of URLs to analyze for style
+            language: "auto" (explicit > style_profile > "es"), "es" or "en"
             output_path: Optional path to save workflow state JSON
             
         Returns:
             Dictionary with generated content and metadata
         """
+        if language not in ("es", "en", "auto"):
+            self._log(f"Invalid language '{language}'; defaulting to 'auto'", "WARNING")
+            language = "auto"
+
         # Initialize state
         workflow_id = str(uuid.uuid4())[:8]
         state = WorkflowState(
             workflow_id=workflow_id,
             topic=topic,
             blogger_urls=blogger_urls,
+            language=language,
         )
         self.state_manager = StateManager(state)
         
@@ -417,7 +438,10 @@ class BloggerOrchestrator:
                 research_context=research_context,
                 min_words=self.config.min_word_count,
                 max_words=self.config.max_word_count,
-                blogger_urls=self.state_manager.state.blogger_urls
+                blogger_urls=self.state_manager.state.blogger_urls,
+                language=self._resolve_language(
+                    self.state_manager.state.language, style
+                ),
             )
             return draft
         
@@ -499,7 +523,10 @@ class BloggerOrchestrator:
                 content=content,
                 topic=topic,
                 images=images,
-                style_profile=style_profile
+                style_profile=style_profile,
+                language=self._resolve_language(
+                    self.state_manager.state.language, style_profile
+                ),
             )
             
             # Generate slug from topic (lowercase, replace spaces with hyphens)
