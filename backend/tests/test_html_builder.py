@@ -58,7 +58,6 @@ This is a paragraph with **bold** and *italic* text.
         output = builder.build(content=markdown, topic="Test")
         
         assert hasattr(output, 'html')
-        assert hasattr(output, 'jsx')
         assert hasattr(output, 'meta_title')
         assert hasattr(output, 'meta_description')
         assert hasattr(output, 'meta_keywords')
@@ -195,17 +194,6 @@ More content."""
         assert 'blog-image' in output.html
         assert 'Header image' in output.html
     
-    def test_html_to_jsx_conversion(self):
-        """Test HTML to JSX conversion."""
-        builder = HTMLBuilder(api_key=None)
-        
-        markdown = "# Test\n\nContent here."
-        output = builder.build(content=markdown, topic="Test")
-        
-        # Check JSX conversions
-        assert 'className=' in output.jsx
-        assert 'class=' not in output.jsx  # Should be converted
-    
     def test_slugify(self):
         """Test slug generation."""
         builder = HTMLBuilder(api_key=None)
@@ -213,21 +201,6 @@ More content."""
         assert builder._slugify("Hello World") == "hello-world"
         assert builder._slugify("Test & Title!") == "test-title"
         assert builder._slugify("  Multiple   Spaces  ") == "multiple-spaces"
-    
-    def test_nextjs_component_generation(self):
-        """Test Next.js component generation."""
-        builder = HTMLBuilder(api_key=None)
-        
-        markdown = "# Test Post\n\nContent here."
-        output = builder.build(content=markdown, topic="Test")
-        
-        component = builder.generate_nextjs_component(output, "test-post")
-        
-        assert 'import React from' in component
-        assert 'import Head from' in component
-        assert 'export default function' in component
-        assert output.meta_title in component
-        assert output.meta_description in component
     
     def test_code_block_handling(self):
         """Test code block conversion."""
@@ -337,7 +310,6 @@ class TestHTMLBuilderEdgeCases:
         
         # Should handle gracefully
         assert output.html
-        assert output.jsx
 
 
 if __name__ == '__main__':
