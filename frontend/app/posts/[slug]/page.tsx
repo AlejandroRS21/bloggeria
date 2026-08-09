@@ -8,7 +8,12 @@ interface PostPageProps {
   params: Promise<{ slug: string }>;
 }
 
-export const revalidate = 0; // Desactivar cache estático para posts nuevos
+export const dynamicParams = false;
+
+export async function generateStaticParams() {
+  const posts = await getAllPosts();
+  return posts.map((post) => ({ slug: post.slug }));
+}
 
 export default async function PostPage({ params }: PostPageProps) {
   const { slug } = await params;

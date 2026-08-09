@@ -3,8 +3,6 @@ import PostCard from "@/components/PostCard";
 import { getAllPosts } from "@/lib/api";
 import type { BlogPost } from "@/types/post";
 
-export const revalidate = 0; // Desactivar cache para que salgan los posts nuevos
-
 export default async function HomePage() {
   const posts = await getAllPosts();
   const featuredPost: BlogPost | undefined = posts[0];
