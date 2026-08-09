@@ -222,7 +222,12 @@ export default function NewPostPage() {
                         : "border-zinc-300 bg-transparent hover:border-blue-300 dark:border-zinc-700 dark:hover:border-zinc-600"
                     }`}
                   >
-                    <span className="block font-semibold text-zinc-900 dark:text-zinc-100">{blogger.name}</span>
+                    <span className="flex items-center justify-between gap-2 font-semibold text-zinc-900 dark:text-zinc-100">
+                      <span className="truncate">{blogger.name}</span>
+                      <span className="shrink-0 rounded-full bg-zinc-100 px-1.5 py-0.5 text-[10px] font-semibold text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+                        {blogger.lang.toUpperCase()}
+                      </span>
+                    </span>
                     <span className="block text-xs text-zinc-500 dark:text-zinc-400">{blogger.niche}</span>
                   </button>
                 );
