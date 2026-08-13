@@ -29,6 +29,16 @@ export default function PostContent({ post, crossLinkedContent }: PostContentPro
           <span>{post.reading_time} min de lectura</span>
           <span className="text-gray-300 dark:text-zinc-700">|</span>
           <span>{post.word_count} palabras</span>
+          {post.style_source && post.style_source_url && (
+            <a
+              href={post.style_source_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700 transition-colors hover:bg-blue-100 dark:bg-blue-950/60 dark:text-blue-300 dark:hover:bg-blue-900/60"
+            >
+              Estilo de {post.style_source}
+            </a>
+          )}
         </div>
 
         {post.tags.length > 0 && (

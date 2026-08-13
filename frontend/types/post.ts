@@ -10,6 +10,8 @@ export interface BlogPost {
   reading_time: number;
   keywords: string[];
   tags: string[];
+  style_source?: string;
+  style_source_url?: string;
   html_structure?: {
     html: string;
     jsx: string;

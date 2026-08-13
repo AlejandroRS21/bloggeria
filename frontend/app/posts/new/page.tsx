@@ -129,7 +129,8 @@ export default function NewPostPage() {
 
     try {
       // Blogger style sources: active preset + optional custom URL (normalized)
-      const presetUrl = PRESET_BLOGGERS.find((b) => b.id === state.selectedPresetId)?.url;
+      const preset = PRESET_BLOGGERS.find((b) => b.id === state.selectedPresetId);
+      const presetUrl = preset?.url;
       const bloggerUrls: string[] = [];
       if (presetUrl) bloggerUrls.push(presetUrl);
       const custom = state.customUrl.trim();
@@ -154,6 +155,7 @@ export default function NewPostPage() {
         body: JSON.stringify({
           topic: state.topic,
           blogger_urls: bloggerUrls,
+          ...(preset ? { blogger_name: preset.name } : {}),
           provider: "gemini",
           language: state.language
         }),

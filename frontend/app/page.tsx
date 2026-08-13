@@ -94,6 +94,16 @@ export default async function HomePage() {
                   </div>
                 </div>
               </Link>
+              {featuredPost.style_source && featuredPost.style_source_url && (
+                <a
+                  href={featuredPost.style_source_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-3 inline-block rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-700 transition-colors hover:bg-blue-100 dark:bg-blue-950/60 dark:text-blue-300 dark:hover:bg-blue-900/60"
+                >
+                  Estilo de {featuredPost.style_source}
+                </a>
+              )}
             </div>
           )}
 
