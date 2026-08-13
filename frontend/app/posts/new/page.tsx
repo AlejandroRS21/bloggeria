@@ -1,8 +1,8 @@
 "use client";
 
-import { useReducer, useEffect } from "react";
+import { useReducer, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { PRESET_BLOGGERS, normalizeUrl } from "@/lib/bloggers";
+import { getBloggersByLanguage } from "@/lib/bloggers";
 
 const PHASES = [
   { id: "safety", label: "Protección de Contenido", icon: "🛡️", duration: 5000 },
@@ -14,22 +14,25 @@ const PHASES = [
   { id: "publishing", label: "Guardando en Base de Datos", icon: "🚀", duration: 6000 },
 ];
 
+type Language = "es" | "en";
+
 type State = {
   topic: string;
-  selectedPresetId: string | null;
+  selectedBloggerSlug: string | null;
   customUrl: string;
-  language: string;
+  language: Language;
   isGenerating: boolean;
   currentPhase: number;
   progress: number;
   error: string | null;
 };
 
-type Action = 
+type Action =
   | { type: 'SET_TOPIC'; payload: string }
-  | { type: 'TOGGLE_PRESET'; payload: string }
+  | { type: 'SELECT_BLOGGER'; payload: string }
+  | { type: 'RESET_BLOGGER_SELECTION' }
   | { type: 'SET_CUSTOM_URL'; payload: string }
-  | { type: 'SET_LANGUAGE'; payload: string }
+  | { type: 'SET_LANGUAGE'; payload: Language }
   | { type: 'START_GENERATION' }
   | { type: 'NEXT_PHASE' }
   | { type: 'SET_ERROR'; payload: string }
@@ -37,9 +40,9 @@ type Action =
 
 const initialState: State = {
   topic: "",
-  selectedPresetId: null,
+  selectedBloggerSlug: null,
   customUrl: "",
-  language: "auto",
+  language: "es",
   isGenerating: false,
   currentPhase: 0,
   progress: 0,
@@ -50,8 +53,10 @@ function reducer(state: State, action: Action): State {
   switch (action.type) {
     case 'SET_TOPIC':
       return { ...state, topic: action.payload };
-    case 'TOGGLE_PRESET':
-      return { ...state, selectedPresetId: state.selectedPresetId === action.payload ? null : action.payload };
+    case 'SELECT_BLOGGER':
+      return { ...state, selectedBloggerSlug: state.selectedBloggerSlug === action.payload ? null : action.payload };
+    case 'RESET_BLOGGER_SELECTION':
+      return { ...state, selectedBloggerSlug: null };
     case 'SET_CUSTOM_URL':
       return { ...state, customUrl: action.payload };
     case 'SET_LANGUAGE':
@@ -61,10 +66,10 @@ function reducer(state: State, action: Action): State {
     case 'NEXT_PHASE': {
       const nextPhase = state.currentPhase + 1;
       const stepProgress = 100 / PHASES.length;
-      return { 
-        ...state, 
-        currentPhase: nextPhase, 
-        progress: Math.min(state.progress + stepProgress, 100) 
+      return {
+        ...state,
+        currentPhase: nextPhase,
+        progress: Math.min(state.progress + stepProgress, 100)
       };
     }
     case 'SET_ERROR':
@@ -79,6 +84,11 @@ function reducer(state: State, action: Action): State {
 export default function NewPostPage() {
   const [state, dispatch] = useReducer(reducer, initialState);
   const { push, refresh } = useRouter();
+
+  const filteredBloggers = useMemo(
+    () => getBloggersByLanguage(state.language),
+    [state.language]
+  );
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -115,6 +125,28 @@ export default function NewPostPage() {
     return null;
   };
 
+  /** Mapea el status del proxy a un mensaje claro en español */
+  const messageFromResponse = async (res: Response): Promise<string> => {
+    let backendError = "";
+    try {
+      const data = await res.json();
+      backendError = data?.error || "";
+    } catch {
+      // respuesta sin JSON: usamos el status
+    }
+    if (backendError) return backendError;
+    if (res.status === 400) return "Algunos campos del formulario son inválidos (tema, blogger o URL). Revisa e inténtalo de nuevo.";
+    if (res.status === 504) return "El servidor tardó demasiado en responder. Inténtalo de nuevo en unos minutos.";
+    if (res.status === 500) return "Error interno del servidor. Inténtalo de nuevo más tarde.";
+    return `Error del servidor (HTTP ${res.status}). Inténtalo de nuevo.`;
+  };
+
+  const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const lang = e.target.value as Language;
+    dispatch({ type: 'SET_LANGUAGE', payload: lang });
+    dispatch({ type: 'RESET_BLOGGER_SELECTION' });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -124,45 +156,31 @@ export default function NewPostPage() {
       dispatch({ type: 'SET_ERROR', payload: moderationError });
       return;
     }
+    if (!state.selectedBloggerSlug) {
+      dispatch({ type: 'SET_ERROR', payload: 'Selecciona un blogger de inspiración' });
+      return;
+    }
 
     dispatch({ type: 'START_GENERATION' });
 
     try {
-      // Blogger style sources: active preset + optional custom URL (normalized)
-      const preset = PRESET_BLOGGERS.find((b) => b.id === state.selectedPresetId);
-      const presetUrl = preset?.url;
-      const bloggerUrls: string[] = [];
-      if (presetUrl) bloggerUrls.push(presetUrl);
-      const custom = state.customUrl.trim();
-      if (custom) {
-        try {
-          bloggerUrls.push(normalizeUrl(custom));
-        } catch {
-          dispatch({ type: 'SET_ERROR', payload: 'Introduce una URL de inspiración válida (ej: https://miblog.com)' });
-          return;
-        }
-      }
-      if (bloggerUrls.length === 0) {
-        dispatch({ type: 'SET_ERROR', payload: 'Selecciona un blogger o introduce una URL de inspiración' });
-        return;
-      }
-
-      const webhookUrl = process.env.NEXT_PUBLIC_MODAL_WEBHOOK_URL || "https://alejandrors21--blogger-agent-tfg-webhook.modal.run";
-      
-      const response = await fetch(webhookUrl, {
+      const customUrl = state.customUrl.trim();
+      const response = await fetch("/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           topic: state.topic,
-          blogger_urls: bloggerUrls,
-          ...(preset ? { blogger_name: preset.name } : {}),
-          provider: "gemini",
-          language: state.language
+          bloggerSlug: state.selectedBloggerSlug,
+          language: state.language,
+          ...(customUrl ? { customUrl } : {}),
         }),
       });
 
-      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(await messageFromResponse(response));
+      }
 
+      const result = await response.json();
       if (!result.success) {
         throw new Error(result.error || "Error desconocido en la generación");
       }
@@ -174,9 +192,15 @@ export default function NewPostPage() {
       }, 2000);
 
     } catch (err: any) {
-      dispatch({ type: 'SET_ERROR', payload: err.message });
+      const message =
+        err?.message === "Failed to fetch"
+          ? "No se pudo conectar con el servidor. Comprueba tu conexión e inténtalo de nuevo."
+          : (err?.message || "Error desconocido en la generación");
+      dispatch({ type: 'SET_ERROR', payload: message });
     }
   };
+
+  const canSubmit = state.topic.trim().length > 0 && state.selectedBloggerSlug !== null;
 
   return (
     <main className="mx-auto max-w-4xl px-6 py-12 text-zinc-900 dark:text-zinc-100">
@@ -191,7 +215,7 @@ export default function NewPostPage() {
         <form onSubmit={handleSubmit} className="space-y-8 rounded-2xl border border-zinc-200 bg-white p-8 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
           <div className="space-y-2">
             <label htmlFor="topic" className="block text-sm font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
-              Tema del Post
+              Título del Artículo
             </label>
             <input
               id="topic"
@@ -206,18 +230,34 @@ export default function NewPostPage() {
           </div>
 
           <div className="space-y-2">
+            <label htmlFor="language" className="block text-sm font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
+              Idioma de Generación
+            </label>
+            <select
+              id="language"
+              value={state.language}
+              onChange={handleLanguageChange}
+              className="w-full rounded-xl border border-zinc-300 bg-transparent px-4 py-3 outline-none transition-all focus:ring-2 focus:ring-blue-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+            >
+              <option value="es">Español</option>
+              <option value="en">English</option>
+            </select>
+            <p className="text-xs italic text-zinc-500 dark:text-zinc-400">Los bloggers disponibles se filtran según el idioma elegido.</p>
+          </div>
+
+          <div className="space-y-2">
             <label className="block text-sm font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
-              Blogger de Inspiración
+              Blogger de Inspiración {state.language === "en" ? "(English)" : "(Español)"}
             </label>
             <div className="grid gap-3 sm:grid-cols-2">
-              {PRESET_BLOGGERS.map((blogger) => {
-                const isActive = state.selectedPresetId === blogger.id;
+              {filteredBloggers.map((blogger) => {
+                const isActive = state.selectedBloggerSlug === blogger.id;
                 return (
                   <button
                     key={blogger.id}
                     type="button"
                     aria-pressed={isActive}
-                    onClick={() => dispatch({ type: 'TOGGLE_PRESET', payload: blogger.id })}
+                    onClick={() => dispatch({ type: 'SELECT_BLOGGER', payload: blogger.id })}
                     className={`rounded-xl border px-4 py-3 text-left transition-all ${
                       isActive
                         ? "border-blue-500 bg-blue-50 ring-2 ring-blue-500 dark:border-blue-400 dark:bg-blue-950/40"
@@ -234,6 +274,11 @@ export default function NewPostPage() {
                   </button>
                 );
               })}
+              {filteredBloggers.length === 0 && (
+                <p className="col-span-full text-sm italic text-zinc-500 dark:text-zinc-400">
+                  No hay bloggers disponibles para este idioma.
+                </p>
+              )}
             </div>
           </div>
 
@@ -251,32 +296,16 @@ export default function NewPostPage() {
             />
           </div>
 
-          <div className="space-y-2">
-            <label htmlFor="language" className="block text-sm font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
-              Idioma de Generación
-            </label>
-            <select
-              id="language"
-              value={state.language}
-              onChange={(e) => dispatch({ type: 'SET_LANGUAGE', payload: e.target.value })}
-              className="w-full rounded-xl border border-zinc-300 bg-transparent px-4 py-3 outline-none transition-all focus:ring-2 focus:ring-blue-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
-            >
-              <option value="auto">Auto (detectar del estilo)</option>
-              <option value="es">Español</option>
-              <option value="en">English</option>
-            </select>
-            <p className="text-xs italic text-zinc-500 dark:text-zinc-400">Auto usa el idioma del blogger de inspiración; si no se detecta, se genera en español.</p>
-          </div>
-
           <button
             type="submit"
-            className="w-full transform rounded-xl bg-blue-600 py-4 font-bold text-white transition-all hover:bg-blue-700 hover:opacity-90 active:scale-[0.98]"
+            disabled={!canSubmit}
+            className="w-full transform rounded-xl bg-blue-600 py-4 font-bold text-white transition-all hover:bg-blue-700 hover:opacity-90 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-blue-600"
           >
             GENERAR POST AUTÓNOMO
           </button>
-          
+
           {state.error && (
-            <div className="rounded-xl border border-red-100 bg-red-50 p-4 text-sm text-red-600 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-400">
+            <div role="alert" className="rounded-xl border border-red-100 bg-red-50 p-4 text-sm text-red-600 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-400">
               <strong>Error:</strong> {state.error}
             </div>
           )}
@@ -308,13 +337,13 @@ export default function NewPostPage() {
           {/* Phases List */}
           <div className="grid gap-4">
             {PHASES.map((phase, index) => (
-              <div 
+              <div
                 key={phase.id}
                 className={`flex items-center rounded-xl border p-4 transition-all duration-500 ${
-                  index === state.currentPhase 
-                    ? "scale-[1.02] border-blue-300 bg-blue-50/80 shadow-md dark:border-blue-800 dark:bg-blue-950/40" 
-                    : index < state.currentPhase 
-                    ? "border-transparent bg-zinc-50 opacity-60 dark:bg-zinc-800/50" 
+                  index === state.currentPhase
+                    ? "scale-[1.02] border-blue-300 bg-blue-50/80 shadow-md dark:border-blue-800 dark:bg-blue-950/40"
+                    : index < state.currentPhase
+                    ? "border-transparent bg-zinc-50 opacity-60 dark:bg-zinc-800/50"
                     : "border-zinc-200 bg-transparent opacity-40 dark:border-zinc-800"
                 }`}
               >
