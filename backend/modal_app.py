@@ -342,7 +342,9 @@ def persist_post(
         return {"success": False, "error": f"DB insert failed: {db_err}"}
 
 
-def _map_to_supabase(result: Dict[str, Any]) -> Dict[str, Any]:
+def _map_to_supabase(
+    result: Dict[str, Any], blogger_name: Optional[str] = None
+) -> Dict[str, Any]:
     """Map the orchestrator result dict to the Supabase posts schema."""
     metadata = result.get("html_structure", {}).get("metadata", {})
     workflow_id = result.get("workflow_id", "")
@@ -358,6 +360,19 @@ def _map_to_supabase(result: Dict[str, Any]) -> Dict[str, Any]:
     if img_match:
         cover_img = img_match.group(1)
     
+    # Atribución de estilo (REQ-2): blogger_name explícito > heurística desde
+    # la primera URL > None. Reutiliza ContentGenerator en modo solo lectura
+    # (REQ-8: content_generator.py queda intacto).
+    blogger_urls = result.get("blogger_urls") or []
+    style_source_url = blogger_urls[0] if blogger_urls else None
+    style_source = None
+    if style_source_url:
+        if blogger_name:
+            style_source = blogger_name
+        else:
+            from aphra_blogger.agents.content_generator import ContentGenerator
+            style_source = ContentGenerator._extract_blogger_name(blogger_urls)
+    
     return {
         "id": workflow_id,
         "slug": unique_slug,
@@ -371,6 +386,8 @@ def _map_to_supabase(result: Dict[str, Any]) -> Dict[str, Any]:
         "keywords": result.get("keywords", []),
         "tags": metadata.get("keywords", []),
         "cover_image_url": cover_img,
+        "style_source": style_source,
+        "style_source_url": style_source_url,
     }
 
 
@@ -393,6 +410,7 @@ def webhook(data: Dict[str, Any]) -> Dict[str, Any]:
     {
         "blogger_urls": ["url1", "url2", ...],
         "topic": "Topic to write about",
+        "blogger_name": "Author name", // optional (REQ-3)
         "enable_critique": true,  // optional
         "min_word_count": 800,    // optional
         "max_word_count": 2500,   // optional
@@ -454,6 +472,15 @@ def webhook(data: Dict[str, Any]) -> Dict[str, Any]:
                 "data": None,
                 "error": "topic must be a string"
             }
+
+        # Atribución de estilo (REQ-3): blogger_name opcional y string
+        blogger_name = data.get("blogger_name")
+        if blogger_name is not None and not isinstance(blogger_name, str):
+            return {
+                "success": False,
+                "data": None,
+                "error": "blogger_name must be a string"
+            }
         
         # ── Content Moderation ────────────────────────────────────────────
         moderation = moderate_topic(topic)
@@ -491,7 +518,7 @@ def webhook(data: Dict[str, Any]) -> Dict[str, Any]:
                 os.environ["SUPABASE_URL"],
                 os.environ["SUPABASE_SERVICE_KEY"],
             )
-            post_data = _map_to_supabase(result)
+            post_data = _map_to_supabase(result, blogger_name=blogger_name)
         except Exception as db_err:
             print(f"[Webhook] DB init failed: {db_err}")
             return {

@@ -19,8 +19,14 @@ CREATE TABLE IF NOT EXISTS posts (
   keywords      text[],
   tags          text[],
   cover_image_url text,
+  style_source      text,
+  style_source_url  text,
   created_at    timestamptz DEFAULT now()
 );
+
+-- Migration note (existing databases; fresh installs get CREATE TABLE above):
+--   ALTER TABLE posts ADD COLUMN style_source text;
+--   ALTER TABLE posts ADD COLUMN style_source_url text;
 
 -- Public read policy (TFG demo — no auth)
 ALTER TABLE posts ENABLE ROW LEVEL SECURITY;
