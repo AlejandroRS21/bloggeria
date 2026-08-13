@@ -16,6 +16,14 @@ export const PRESET_BLOGGERS: BloggerPreset[] = [
   { id: "overreacted", name: "Dan Abramov", url: "https://overreacted.io", niche: "Desarrollo frontend y React", lang: "en" },
 ];
 
+export function getBloggersByLanguage(lang: "es" | "en"): BloggerPreset[] {
+  return PRESET_BLOGGERS.filter((b) => b.lang === lang);
+}
+
+export function getBloggerBySlug(slug: string): BloggerPreset | undefined {
+  return PRESET_BLOGGERS.find((b) => b.id === slug);
+}
+
 /**
  * Normalizes a user-supplied blog URL to an absolute http(s) URL.
  * - Bare domains (e.g. "miblog.com") get "https://" prepended.
