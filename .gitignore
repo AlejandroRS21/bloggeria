@@ -220,3 +220,8 @@ frontend/next-env.d.ts
 # Playwright MCP artifacts
 .playwright-mcp/
 .vercel
+
+# Playwright
+frontend/test-results/
+frontend/playwright-report/
+frontend/blob-report/
