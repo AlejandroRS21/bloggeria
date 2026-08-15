@@ -391,27 +391,24 @@ Escribe el post ahora:{attribution}"""
             print(f"Warning: Content generation failed: {e}. Using fallback.")
             return self._fallback_draft(topic, keywords, profile)
 
-    def refine_content(
-        self, draft: str, critique_feedback: Dict[str, Any], style_profile: Dict[str, Any]
+    @staticmethod
+    def _build_refine_prompt(
+        draft: str,
+        critique_feedback: Dict[str, Any],
+        language: str,
+        style_profile: Dict[str, Any] = None,
     ) -> str:
-        """
-        Refine content based on critique feedback.
+        """Build the refinement user prompt (language-aware).
 
-        Args:
-            draft: Original draft
-            critique_feedback: Feedback from CriticAgent
-            style_profile: Style profile for reference
-
-        Returns:
-            Refined content
+        Reuses the frozen language rules (REQ-7 goldens) and the localized
+        system prompt so refined output stays in the target language.
         """
-        if not self.llm or not self.llm.is_available():
-            return draft  # Return original if no LLM available
+        language_rules = ContentGenerator._language_rules(language)
 
         suggestions = critique_feedback.get("suggestions", [])
         suggestions_str = "\\n".join(f"- {s}" for s in suggestions)
 
-        prompt = f"""Refine this blog post based on the critique feedback.
+        return f"""Refine this blog post based on the critique feedback.
 
 ORIGINAL CONTENT:
 {draft}
@@ -430,11 +427,45 @@ INSTRUCTIONS:
 - Preserve personal anecdotes and expressions
 - Keep the length similar (don't add too much)
 
+LANGUAGE RULES (MUST follow strictly):
+
+{language_rules}
+
 Provide the refined version in markdown format."""
+
+    def refine_content(
+        self,
+        draft: str,
+        critique_feedback: Dict[str, Any],
+        style_profile: Dict[str, Any],
+        language: str = "es",
+    ) -> str:
+        """
+        Refine content based on critique feedback.
+
+        Args:
+            draft: Original draft
+            critique_feedback: Feedback from CriticAgent
+            style_profile: Style profile for reference
+            language: Target language ("es" or "en") for the refined output.
+                Defaults to "es".
+
+        Returns:
+            Refined content
+        """
+        if not self.llm or not self.llm.is_available():
+            return draft  # Return original if no LLM available
+
+        prompt = self._build_refine_prompt(
+            draft=draft,
+            critique_feedback=critique_feedback,
+            language=language,
+            style_profile=style_profile,
+        )
 
         try:
             messages = self.llm.create_messages(
-                system_prompt="You are an editor helping improve blog posts while maintaining the author's unique voice.",
+                system_prompt=_SYSTEM_PROMPTS.get(language, _SYSTEM_PROMPTS["es"]),
                 user_prompt=prompt,
             )
 
