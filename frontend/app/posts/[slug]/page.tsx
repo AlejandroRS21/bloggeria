@@ -8,7 +8,8 @@ interface PostPageProps {
   params: Promise<{ slug: string }>;
 }
 
-export const dynamicParams = false;
+export const dynamicParams = true;
+export const dynamic = "force-dynamic";
 
 export async function generateStaticParams() {
   const posts = await getAllPosts();

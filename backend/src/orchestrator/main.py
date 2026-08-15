@@ -492,13 +492,14 @@ class BloggerOrchestrator:
             draft = self.state_manager.state.draft_content
             critique = self.state_manager.state.metadata.get('critique_result', {})
             style = self.state_manager.state.style_profile
-            keywords = self.state_manager.state.keywords
-            
+
             refined = self.content_generator.refine_content(
                 draft=draft,
                 critique_feedback=critique,
                 style_profile=style,
-                keywords=keywords
+                language=self._resolve_language(
+                    self.state_manager.state.language, style
+                ),
             )
             return refined
         

@@ -9,7 +9,12 @@ from pathlib import Path
 
 import pytest
 
-from aphra_blogger.agents.content_generator import ContentGenerator
+from aphra_blogger.agents.content_generator import (
+    ContentGenerator,
+    _LANGUAGE_RULES_EN,
+    _LANGUAGE_RULES_ES_MAIN,
+    _SYSTEM_PROMPTS,
+)
 from aphra_blogger.agents.html_builder import HTMLBuilder
 from aphra_blogger.agents.style_analyzer import StyleAnalyzer
 from src.orchestrator.config import OrchestratorConfig
@@ -175,6 +180,71 @@ class TestGeneratorLanguage:
         assert es_footer == (GOLDEN_DIR / "footer_es.txt").read_text(encoding="utf-8")
         en_footer = gen._build_attribution(URLS, language="en")
         assert "This post was written emulating the style of [Javipas]" in en_footer
+
+
+class TestRefineContentLanguage:
+    """Refine phase: _build_refine_prompt reuses golden language rules + localized system prompt."""
+
+    def test_refine_prompt_es_injects_language_rules(self):
+        prompt = ContentGenerator._build_refine_prompt(
+            draft="# Título\n\nBorrador del post en español.",
+            critique_feedback={
+                "suggestions": ["Mejora la introducción"],
+                "coherence_score": 7,
+                "style_match": 6,
+            },
+            language="es",
+            style_profile=PROFILE,
+        )
+        assert _LANGUAGE_RULES_ES_MAIN in prompt
+
+    def test_refine_prompt_en_injects_english_rules(self):
+        prompt = ContentGenerator._build_refine_prompt(
+            draft="# Title\n\nDraft in English.",
+            critique_feedback={
+                "suggestions": ["Improve the intro"],
+                "coherence_score": 8,
+                "style_match": 7,
+            },
+            language="en",
+            style_profile=PROFILE,
+        )
+        assert _LANGUAGE_RULES_EN in prompt
+
+    def test_refine_content_default_language_es(self):
+        gen = _fresh_generator()
+        gen.refine_content(
+            draft="# Título\n\nBorrador en español.",
+            critique_feedback={"suggestions": ["Mejora la intro"]},
+            style_profile=PROFILE,
+        )
+        call = gen.llm.calls[-1]
+        assert call["system"] == _SYSTEM_PROMPTS["es"]
+        assert _LANGUAGE_RULES_ES_MAIN in call["user"]
+
+    def test_refine_content_es_localized_system_prompt(self):
+        gen = _fresh_generator()
+        gen.refine_content(
+            draft="# Título\n\nBorrador en español.",
+            critique_feedback={"suggestions": ["Mejora la intro"]},
+            style_profile=PROFILE,
+            language="es",
+        )
+        call = gen.llm.calls[-1]
+        assert call["system"] == _SYSTEM_PROMPTS["es"]
+        assert _LANGUAGE_RULES_ES_MAIN in call["user"]
+
+    def test_refine_content_en_localized_system_prompt(self):
+        gen = _fresh_generator()
+        gen.refine_content(
+            draft="# Title\n\nDraft in English.",
+            critique_feedback={"suggestions": ["Improve the intro"]},
+            style_profile=PROFILE,
+            language="en",
+        )
+        call = gen.llm.calls[-1]
+        assert call["system"] == _SYSTEM_PROMPTS["en"]
+        assert _LANGUAGE_RULES_EN in call["user"]
 
 
 class TestGoldenRegression:

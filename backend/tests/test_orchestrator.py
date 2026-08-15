@@ -235,5 +235,88 @@ class TestBloggerOrchestrator:
         assert state.topic == "Test"
 
 
+class TestPhaseRefinement:
+    """Refinement phase: resolved language passed through, stale `keywords=` kwarg dropped."""
+
+    @pytest.fixture
+    def critique_config(self):
+        return OrchestratorConfig(
+            openai_api_key="test-key",
+            max_retries=1,
+            verbose=False,
+            enable_critique=True,
+        )
+
+    @pytest.fixture
+    def offline(self, monkeypatch):
+        """Keep the pipeline offline/deterministic."""
+
+        class Resp:
+            status_code = 400
+            text = ""
+
+        monkeypatch.setattr("src.orchestrator.main.requests.get", lambda *a, **k: Resp())
+        monkeypatch.setattr(
+            "src.orchestrator.main.research_topic_online",
+            lambda *a, **k: {
+                "context": "Research synthesis.",
+                "articles": [],
+                "key_findings": [],
+                "research_synthesis": "Synth.",
+                "scrape_stats": {},
+            },
+        )
+
+    def _critique_config_orchestrator(self, orch):
+        orch.style_analyzer.analyze = lambda blogger_urls, sample_text=None: {
+            "language": "en",
+            "tone": "conversational",
+        }
+        orch.critic.critique = lambda content, style_profile=None, topic=None: {
+            "needs_revision": True,
+            "coherence_score": 8,
+            "style_match": 7,
+            "suggestions": ["Shorten the intro"],
+        }
+        return orch
+
+    def test_refinement_passes_resolved_language_and_drops_keywords(self, critique_config, offline):
+        orch = self._critique_config_orchestrator(
+            BloggerOrchestrator(config=critique_config, verbose=False)
+        )
+        captured = {}
+
+        def fake_refine_content(**kwargs):
+            captured["kwargs"] = kwargs
+            return "# Refined\n\n" + "Contenido refinado en inglés. " * 20
+
+        orch.content_generator.refine_content = fake_refine_content
+        orch.run(topic="Test", blogger_urls=["https://example.com"], language="en")
+
+        assert captured["kwargs"]["language"] == "en"
+        assert "keywords" not in captured["kwargs"]
+
+    def test_refinement_auto_resolves_language_from_profile(self, critique_config, offline):
+        orch = BloggerOrchestrator(config=critique_config, verbose=False)
+        orch.style_analyzer.analyze = lambda blogger_urls, sample_text=None: {
+            "language": "es",
+            "tone": "conversational",
+        }
+        orch.critic.critique = lambda content, style_profile=None, topic=None: {
+            "needs_revision": True,
+            "coherence_score": 8,
+            "style_match": 7,
+            "suggestions": ["Mejora la intro"],
+        }
+        captured = {}
+        orch.content_generator.refine_content = lambda **kwargs: (
+            captured.update(kwargs) or "# Refinado\n\n" + "Contenido refinado en español. " * 20
+        )
+        orch.run(topic="Test", blogger_urls=["https://example.com"], language="auto")
+
+        assert captured["language"] == "es"
+        assert "keywords" not in captured
+
+
 if __name__ == '__main__':
     pytest.main([__file__, '-v'])
