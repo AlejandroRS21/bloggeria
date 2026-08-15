@@ -57,6 +57,7 @@ image = (
         modal.Secret.from_name("gemini-secret"),
         modal.Secret.from_name("brave-secret"),
         modal.Secret.from_name("unsplash-secret"),
+        modal.Secret.from_name("supabase-secret"),
     ],
     timeout=600,  # 10 minutes max
     memory=2048,  # 2GB RAM
@@ -69,6 +70,8 @@ def generate_blog_post(
     max_word_count: int = 2500,
     provider: str = "gemini",
     language: str = "auto",
+    job_id: Optional[str] = None,
+    blogger_name: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
     Generate a blog post that mimics the style of the given blogger.
@@ -125,6 +128,24 @@ def generate_blog_post(
         output_path=None,  # Don't save to file in serverless
     )
     
+    # ── Persist to Supabase ──────────────────────────────────────────
+    supabase_url = os.environ.get("SUPABASE_URL", "")
+    resolved_project = supabase_project_id(supabase_url)
+    print(f"[generate_blog_post] supabase URL origin: {urlparse(supabase_url).netloc or '(empty)'}")
+    print(f"[generate_blog_post] supabase project: {resolved_project or 'UNKNOWN'}")
+    try:
+        from supabase import create_client
+        sb = create_client(
+            os.environ["SUPABASE_URL"],
+            os.environ["SUPABASE_SERVICE_KEY"],
+        )
+        post_data = _map_to_supabase(result, blogger_name=blogger_name, job_id=job_id)
+        outcome = persist_post(sb, post_data, resolved_project)
+        if not outcome["success"]:
+            print(f"[generate_blog_post] Failed to persist post: {outcome.get('error')}")
+    except Exception as db_err:
+        print(f"[generate_blog_post] DB persistence failed: {db_err}")
+
     return result
 
 
@@ -343,7 +364,7 @@ def persist_post(
 
 
 def _map_to_supabase(
-    result: Dict[str, Any], blogger_name: Optional[str] = None
+    result: Dict[str, Any], blogger_name: Optional[str] = None, job_id: Optional[str] = None
 ) -> Dict[str, Any]:
     """Map the orchestrator result dict to the Supabase posts schema."""
     metadata = result.get("html_structure", {}).get("metadata", {})
@@ -375,6 +396,7 @@ def _map_to_supabase(
     
     return {
         "id": workflow_id,
+        "job_id": job_id,
         "slug": unique_slug,
         "title": metadata.get("title") or result.get("title", "Sin título"),
         "description": metadata.get("description", ""),
@@ -457,6 +479,7 @@ def webhook(data: Dict[str, Any]) -> Dict[str, Any]:
         max_word_count = data.get("max_word_count", 2500)
         provider = data.get("provider", "gemini")
         language = _extract_language(data)
+        job_id = data.get("job_id")
         
         # Validate types
         if not isinstance(blogger_urls, list):
@@ -471,6 +494,13 @@ def webhook(data: Dict[str, Any]) -> Dict[str, Any]:
                 "success": False,
                 "data": None,
                 "error": "topic must be a string"
+            }
+
+        if job_id is not None and not isinstance(job_id, str):
+            return {
+                "success": False,
+                "data": None,
+                "error": "job_id must be a string"
             }
 
         # Atribución de estilo (REQ-3): blogger_name opcional y string
@@ -495,8 +525,8 @@ def webhook(data: Dict[str, Any]) -> Dict[str, Any]:
         print(f"[Webhook] Topic approved by moderator ✓")
         # ──────────────────────────────────────────────────────────────────
         
-        # Call the generator
-        result = generate_blog_post.remote(
+        # Call the generator asynchronously
+        generate_blog_post.spawn(
             blogger_urls=blogger_urls,
             topic=topic,
             enable_critique=enable_critique,
@@ -504,41 +534,14 @@ def webhook(data: Dict[str, Any]) -> Dict[str, Any]:
             max_word_count=max_word_count,
             provider=provider,
             language=language,
+            job_id=job_id,
+            blogger_name=blogger_name,
         )
-
-        # ── Persist to Supabase (REQ-2: fail loudly on project mismatch) ──
-        supabase_url = os.environ.get("SUPABASE_URL", "")
-        resolved_project = supabase_project_id(supabase_url)
-        # Startup log: resolved SUPABASE_URL origin + target project id
-        print(f"[Webhook] supabase URL origin: {urlparse(supabase_url).netloc or '(empty)'}")
-        print(f"[Webhook] supabase project: {resolved_project or 'UNKNOWN'}")
-        try:
-            from supabase import create_client
-            sb = create_client(
-                os.environ["SUPABASE_URL"],
-                os.environ["SUPABASE_SERVICE_KEY"],
-            )
-            post_data = _map_to_supabase(result, blogger_name=blogger_name)
-        except Exception as db_err:
-            print(f"[Webhook] DB init failed: {db_err}")
-            return {
-                "success": False,
-                "data": None,
-                "error": f"DB insert failed: {db_err}",
-            }
-
-        outcome = persist_post(sb, post_data, resolved_project)
-        if not outcome["success"]:
-            return {
-                "success": False,
-                "data": None,
-                "error": outcome["error"],
-            }
 
         return {
             "success": True,
-            "data": {"slug": post_data["slug"]},
-            "error": None,
+            "job_id": job_id,
+            "status": "queued",
         }
         
     except Exception as e:

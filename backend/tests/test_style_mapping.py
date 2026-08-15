@@ -54,3 +54,41 @@ class TestWebhookBloggerNameGuard:
             "data": None,
             "error": "blogger_name must be a string",
         }
+
+    def test_non_string_job_id_rejected(self, monkeypatch):
+        monkeypatch.setattr(
+            modal_app, "moderate_topic", lambda topic: {"approved": True}
+        )
+        payload = {
+            "blogger_urls": ["https://simonwillison.net"],
+            "topic": "IA en el desarrollo web",
+            "job_id": 12345,
+        }
+        result = webhook.local(payload)
+        assert result == {
+            "success": False,
+            "data": None,
+            "error": "job_id must be a string",
+        }
+
+    def test_async_job_id_success(self, monkeypatch):
+        monkeypatch.setattr(
+            modal_app, "moderate_topic", lambda topic: {"approved": True}
+        )
+        spawn_called = {}
+        def fake_spawn(**kwargs):
+            spawn_called.update(kwargs)
+        monkeypatch.setattr(modal_app.generate_blog_post, "spawn", fake_spawn)
+
+        payload = {
+            "blogger_urls": ["https://simonwillison.net"],
+            "topic": "IA en el desarrollo web",
+            "job_id": "test-job-123",
+        }
+        result = webhook.local(payload)
+        assert result == {
+            "success": True,
+            "job_id": "test-job-123",
+            "status": "queued",
+        }
+        assert spawn_called.get("job_id") == "test-job-123"
