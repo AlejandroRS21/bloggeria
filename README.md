@@ -1,4 +1,4 @@
-# Blogger Agent TFG
+# BloggerIA
 
 > Multi-agent artificial intelligence system designed for stylistic blog emulation, featuring interactive workflow visualization (Daggr). Built on a modern architecture based on Next.js, Modal and Supabase.
 
