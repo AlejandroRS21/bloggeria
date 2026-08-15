@@ -9,6 +9,9 @@ interface TagPageProps {
 
 export async function generateStaticParams() {
   const tags = await getAllTags();
+  if (tags.length === 0) {
+    return [{ tag: "_placeholder" }];
+  }
   return tags.map(({ tag }) => ({ tag: tag.toLowerCase() }));
 }
 

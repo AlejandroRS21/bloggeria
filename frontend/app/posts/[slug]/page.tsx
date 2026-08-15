@@ -12,6 +12,9 @@ export const dynamicParams = false;
 
 export async function generateStaticParams() {
   const posts = await getAllPosts();
+  if (posts.length === 0) {
+    return [{ slug: "_placeholder" }];
+  }
   return posts.map((post) => ({ slug: post.slug }));
 }
 
