@@ -389,7 +389,7 @@ Escribe el post ahora:{attribution}"""
 
         except Exception as e:
             print(f"Warning: Content generation failed: {e}. Using fallback.")
-            return self._fallback_draft(topic, keywords, profile)
+            return self._fallback_draft(topic, keywords, profile, effective_language)
 
     @staticmethod
     def _build_refine_prompt(
