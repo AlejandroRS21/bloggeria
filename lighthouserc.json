@@ -1,7 +1,9 @@
 {
   "ci": {
     "collect": {
-      "staticDistDir": "frontend/out",
+      "startServerCommand": "npm --prefix frontend start",
+      "url": ["http://localhost:3000/"],
+      "startServerReadyPattern": "Ready in",
       "numberOfRuns": 3
     },
     "assert": {

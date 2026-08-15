@@ -24,15 +24,18 @@ jobs:
         working-directory: ./frontend
         run: npm ci
 
-      - name: Build Static Export
+      - name: Build Frontend
         working-directory: ./frontend
         run: npm run build
         env:
-          # App reads these at build time (utils/supabase/*); define in repo vars.
+          # App reads these at build time (lib/supabase.ts); define in repo vars.
           NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
 
       - name: Run Lighthouse CI
         run: npx @lhci/cli@0.13.0 autorun
         env:
+          # Server-rendered pages read these at runtime too.
+          NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
