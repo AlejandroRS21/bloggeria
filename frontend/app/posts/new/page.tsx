@@ -1,8 +1,11 @@
 "use client";
 
-import { useReducer, useEffect, useMemo } from "react";
+import { useReducer, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getBloggersByLanguage } from "@/lib/bloggers";
+import { getBloggersByLanguage, getBloggerBySlug, normalizeUrl } from "@/lib/bloggers";
+import { supabase } from "@/lib/supabase";
+
+const DEFAULT_WEBHOOK_URL = "https://alejandrors21--blogger-agent-tfg-webhook.modal.run";
 
 const PHASES = [
   { id: "safety", label: "Protección de Contenido", icon: "🛡️", duration: 5000 },
@@ -83,6 +86,7 @@ function reducer(state: State, action: Action): State {
 
 export default function NewPostPage() {
   const [state, dispatch] = useReducer(reducer, initialState);
+  const [infoMessage, setInfoMessage] = useState<string | null>(null);
   const { push, refresh } = useRouter();
 
   const filteredBloggers = useMemo(
@@ -106,8 +110,6 @@ export default function NewPostPage() {
     const trimmed = topic.trim().toLowerCase();
     if (trimmed.length < 2) return "El tema es demasiado corto.";
 
-    // Patrones de contenido explícito/denigrante (primera línea de defensa)
-    // La protección real está en el backend con Gemini
     const blockedPatterns = [
       /\b(sexo|sexual|pornograf[íi]a|xxx|porno|desnud[oa]s?|er[óo]tico)\b/i,
       /\b(violaci[óo]n|maltrato|tortura|gore|sangriento)\b/i,
@@ -125,32 +127,36 @@ export default function NewPostPage() {
     return null;
   };
 
-  /** Mapea el status del proxy a un mensaje claro en español */
-  const messageFromResponse = async (res: Response): Promise<string> => {
-    let backendError = "";
-    try {
-      const data = await res.json();
-      backendError = data?.error || "";
-    } catch {
-      // respuesta sin JSON: usamos el status
-    }
-    if (backendError) return backendError;
-    if (res.status === 400) return "Algunos campos del formulario son inválidos (tema, blogger o URL). Revisa e inténtalo de nuevo.";
-    if (res.status === 504) return "El servidor tardó demasiado en responder. Inténtalo de nuevo en unos minutos.";
-    if (res.status === 500) return "Error interno del servidor. Inténtalo de nuevo más tarde.";
-    return `Error del servidor (HTTP ${res.status}). Inténtalo de nuevo.`;
-  };
-
   const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const lang = e.target.value as Language;
     dispatch({ type: 'SET_LANGUAGE', payload: lang });
     dispatch({ type: 'RESET_BLOGGER_SELECTION' });
   };
 
+  const pollSupabaseForPost = async (jobId: string): Promise<string | null> => {
+    const startTime = Date.now();
+    const timeoutMs = 300_000; // 300s
+    const pollIntervalMs = 3000; // 3000ms
+
+    while (Date.now() - startTime < timeoutMs) {
+      const { data } = await supabase
+        .from("posts")
+        .select("slug")
+        .eq("job_id", jobId)
+        .maybeSingle();
+
+      if (data?.slug) {
+        return data.slug;
+      }
+      await new Promise((resolve) => setTimeout(resolve, pollIntervalMs));
+    }
+    return null;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setInfoMessage(null);
 
-    // Client-side moderation first
     const moderationError = isTopicAppropriate(state.topic);
     if (moderationError) {
       dispatch({ type: 'SET_ERROR', payload: moderationError });
@@ -161,36 +167,63 @@ export default function NewPostPage() {
       return;
     }
 
+    const preset = getBloggerBySlug(state.selectedBloggerSlug);
+    if (!preset) {
+      dispatch({ type: 'SET_ERROR', payload: 'Blogger no encontrado' });
+      return;
+    }
+
+    const bloggerUrls = [preset.url];
+    const custom = state.customUrl.trim();
+    if (custom) {
+      try {
+        bloggerUrls.push(normalizeUrl(custom));
+      } catch {
+        dispatch({ type: 'SET_ERROR', payload: 'Custom URL inválida' });
+        return;
+      }
+    }
+
+    const jobId = crypto.randomUUID();
     dispatch({ type: 'START_GENERATION' });
 
     try {
-      const customUrl = state.customUrl.trim();
-      const response = await fetch("/api/generate", {
+      const webhookUrl = process.env.NEXT_PUBLIC_MODAL_WEBHOOK_URL || DEFAULT_WEBHOOK_URL;
+      const response = await fetch(webhookUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          topic: state.topic,
-          bloggerSlug: state.selectedBloggerSlug,
+          topic: state.topic.trim(),
+          blogger_urls: bloggerUrls,
+          blogger_name: preset.name,
+          provider: "gemini",
           language: state.language,
-          ...(customUrl ? { customUrl } : {}),
+          job_id: jobId,
         }),
       });
 
-      if (!response.ok) {
-        throw new Error(await messageFromResponse(response));
+      let resData: any = null;
+      try {
+        resData = await response.json();
+      } catch {}
+
+      if (!response.ok || !resData?.success) {
+        const errorMsg = resData?.error || `Error del servidor (HTTP ${response.status}). Inténtalo de nuevo.`;
+        dispatch({ type: 'SET_ERROR', payload: errorMsg });
+        return;
       }
 
-      const result = await response.json();
-      if (!result.success) {
-        throw new Error(result.error || "Error desconocido en la generación");
-      }
+      // Webhook returned 200 with status: queued. Poll Supabase.
+      const slug = await pollSupabaseForPost(jobId);
 
-      // If successful, wait a bit for the last phase animation and redirect
-      setTimeout(() => {
-        push("/");
+      if (slug) {
+        // Post found, redirect to post or homepage
+        push(`/posts/${slug}`);
         refresh();
-      }, 2000);
-
+      } else {
+        // Polling timed out (300s)
+        setInfoMessage("El post se está generando en segundo plano y aparecerá en el inicio al terminar.");
+      }
     } catch (err: any) {
       const message =
         err?.message === "Failed to fetch"
@@ -369,6 +402,12 @@ export default function NewPostPage() {
           <p className="animate-pulse text-center italic text-zinc-500 dark:text-zinc-400">
             Por favor, no cierres esta ventana. El proceso toma unos 2-3 minutos.
           </p>
+
+          {infoMessage && (
+            <div role="status" className="rounded-xl border border-blue-100 bg-blue-50 p-4 text-center text-sm text-blue-700 dark:border-blue-900/50 dark:bg-blue-950/40 dark:text-blue-300">
+              {infoMessage}
+            </div>
+          )}
         </div>
       )}
     </main>
