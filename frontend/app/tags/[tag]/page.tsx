@@ -7,6 +7,9 @@ interface TagPageProps {
   params: Promise<{ tag: string }>;
 }
 
+export const dynamicParams = true;
+export const dynamic = "force-dynamic";
+
 export async function generateStaticParams() {
   const tags = await getAllTags();
   if (tags.length === 0) {

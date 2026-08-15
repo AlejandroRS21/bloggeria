@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { getAllTags } from "@/lib/api";
 
+export const dynamic = "force-dynamic";
+
 function getTagColor(tag: string): string {
   const colors = [
     "bg-blue-100 text-blue-700 ring-blue-200 dark:bg-blue-950/80 dark:text-blue-300 dark:ring-blue-900",

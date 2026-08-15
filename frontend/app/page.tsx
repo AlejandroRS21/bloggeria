@@ -3,6 +3,8 @@ import PostCard from "@/components/PostCard";
 import { getAllPosts } from "@/lib/api";
 import type { BlogPost } from "@/types/post";
 
+export const dynamic = "force-dynamic";
+
 export default async function HomePage() {
   const posts = await getAllPosts();
   const featuredPost: BlogPost | undefined = posts[0];
