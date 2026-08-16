@@ -103,12 +103,14 @@ def _client_ip(request: Any) -> Optional[str]:
     """Extract client IP from FastAPI Request (supports X-Forwarded-For)."""
     if not request:
         return None
+    client = getattr(request, "client", None)
+    if client and getattr(client, "host", None):
+        return client.host
     headers = getattr(request, "headers", {}) or {}
     xff = headers.get("x-forwarded-for") or headers.get("X-Forwarded-For")
     if xff and isinstance(xff, str):
         return xff.split(",")[0].strip()
-    client = getattr(request, "client", None)
-    return getattr(client, "host", None) if client else None
+    return None
 
 
 def _rate_limited(
@@ -138,6 +140,7 @@ def _mark_job(
     status: str,
     store: Any = None,
     ip: Optional[str] = None,
+    error: Optional[str] = None,
 ):
     """Record job lifecycle state in Modal Dict."""
     if not job_id:
@@ -148,6 +151,7 @@ def _mark_job(
         "status": status,
         "updated_at": datetime.now().timestamp(),
         "ip": ip or existing.get("ip"),
+        "error": error if error is not None else existing.get("error"),
     }
 
 
@@ -217,6 +221,27 @@ def enqueue_job(
     queue.put(payload)
 
 
+def _prune_done_jobs(store: Any = None, ttl: float = JOB_STALE_TIMEOUT_SECONDS) -> int:
+    """Remove done job entries older than the TTL to bound store memory."""
+    store = store if store is not None else _get_job_store()
+    now = datetime.now().timestamp()
+    pruned = 0
+    try:
+        keys = list(store.keys())
+    except Exception:
+        return 0
+    for k in keys:
+        item = store.get(k, {})
+        if isinstance(item, dict) and item.get("status") == "done":
+            if now - item.get("updated_at", 0) > ttl:
+                try:
+                    del store[k]
+                    pruned += 1
+                except Exception:
+                    pass
+    return pruned
+
+
 def _drain_once(
     queue: Any = None,
     job_store: Any = None,
@@ -226,6 +251,7 @@ def _drain_once(
     """Process up to available capacity from the FIFO queue."""
     queue = queue if queue is not None else _get_queue()
     job_store = job_store if job_store is not None else _get_job_store()
+    _prune_done_jobs(job_store, ttl=JOB_STALE_TIMEOUT_SECONDS)
     if spawner is None:
         spawner = generate_blog_post.spawn
     max_conc = max_conc if max_conc is not None else MAX_CONCURRENT_GENERATIONS
@@ -250,7 +276,7 @@ def _drain_once(
         except Exception as spawn_err:
             print(f"[_drain_once] Failed to spawn job {job_id}: {spawn_err}")
             if job_id:
-                _mark_job(job_id, "done", store=job_store)
+                _mark_job(job_id, "failed", store=job_store, error=str(spawn_err))
 
     return drained
 

@@ -7,10 +7,12 @@ ever touched (REQ-TEST-5.1, REQ-TEST-5.2).
 
 import time
 from datetime import datetime
+from types import SimpleNamespace
 
 import modal_app
 from modal_app import (
     JOB_STALE_TIMEOUT_SECONDS,
+    _client_ip,
     _drain_once,
     _is_job_active,
     _mark_job,
@@ -113,7 +115,7 @@ class TestJobLifecycle:
         assert store["job-x"]["status"] == "done"
         assert "updated_at" in store["job-x"]
 
-    def test_drain_marks_done_when_spawn_fails(self):
+    def test_drain_marks_failed_when_spawn_fails(self):
         queue = _MemoryQueue()
         queue.put(_payload("job-fail"))
         store = {}
@@ -123,7 +125,8 @@ class TestJobLifecycle:
 
         _drain_once(queue=queue, job_store=store, max_conc=1, spawner=boom)
 
-        assert store["job-fail"]["status"] == "done"
+        assert store["job-fail"]["status"] == "failed"
+        assert "spawn failed" in store["job-fail"]["error"]
         assert queue.len() == 0
 
 
@@ -221,6 +224,60 @@ class TestRateLimit:
         result = webhook.local(_payload("job-ok"))
         assert result == {"success": True, "job_id": "job-ok", "status": "queued"}
         assert captured.get("job_id") == "job-ok"
+
+
+class TestClientIp:
+    def test_client_ip_prefers_client_host(self):
+        request = SimpleNamespace(
+            client=SimpleNamespace(host="10.0.0.1"),
+            headers={"x-forwarded-for": "1.2.3.4"},
+        )
+        assert _client_ip(request) == "10.0.0.1"
+
+    def test_client_ip_falls_back_to_xff(self):
+        request = SimpleNamespace(
+            client=None,
+            headers={"x-forwarded-for": "1.2.3.4, 5.6.7.8"},
+        )
+        assert _client_ip(request) == "1.2.3.4"
+
+    def test_client_ip_none_when_neither(self):
+        request = SimpleNamespace(client=None, headers={})
+        assert _client_ip(request) is None
+
+
+class TestPruneDoneJobs:
+    def test_prune_removes_old_done(self):
+        store = {
+            "job-old": {
+                "status": "done",
+                "updated_at": datetime.now().timestamp() - 7300,
+                "ip": None,
+            }
+        }
+        _drain_once(queue=_MemoryQueue(), job_store=store)
+        assert "job-old" not in store
+
+    def test_prune_keeps_recent_done(self):
+        store = {
+            "job-recent": {
+                "status": "done",
+                "updated_at": datetime.now().timestamp() - 120,
+                "ip": None,
+            }
+        }
+        _drain_once(queue=_MemoryQueue(), job_store=store)
+        assert store["job-recent"]["status"] == "done"
+
+    def test_prune_never_removes_non_done(self):
+        old = datetime.now().timestamp() - 100000
+        store = {
+            "job-running": {"status": "running", "updated_at": old, "ip": None},
+            "job-queued": {"status": "queued", "updated_at": old, "ip": None},
+            "job-failed": {"status": "failed", "updated_at": old, "ip": None},
+        }
+        _drain_once(queue=_MemoryQueue(), job_store=store)
+        assert set(store) == {"job-running", "job-queued", "job-failed"}
 
 
 class TestEnqueueJob:
