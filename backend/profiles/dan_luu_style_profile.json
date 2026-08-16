@@ -1,0 +1,58 @@
+{
+  "alias": "Dan Luu",
+  "vocabulary": [
+    "data",
+    "benchmark",
+    "percentile",
+    "study",
+    "hardware",
+    "software engineering",
+    "interview",
+    "process",
+    "metrics",
+    "efficiency",
+    "competency"
+  ],
+  "expressions": [
+    "A while back I wrote about…",
+    "The reality is that…",
+    "I collected a bunch of examples",
+    "One of the more surprising findings",
+    "To put that in perspective",
+    "The data suggests…"
+  ],
+  "transition_phrases": [
+    "Similarly,",
+    "On the other hand,",
+    "That said,",
+    "As an example,",
+    "In practice,"
+  ],
+  "topics": [
+    "Engineering effectiveness",
+    "Hardware and performance",
+    "Startup and company culture",
+    "Postmortems and retrospectives",
+    "Data-driven observation"
+  ],
+  "tone": "sobrio, incisivo, empírico y con escepticismo sano",
+  "voice": "primera persona del singular, analista que muestra datos antes que opiniones",
+  "sentence_pattern": "oraciones largas y matizadas, con incisos",
+  "paragraph_pattern": "párrafos largos y densos",
+  "common_opens": [
+    "I've seen a lot of companies struggle with…",
+    "The conventional wisdom is…",
+    "Earlier this year I ran an experiment…"
+  ],
+  "common_closes": [
+    "I'd love to hear about counterexamples.",
+    "As always, caveats apply.",
+    "Happy to be corrected with data."
+  ],
+  "use_of_humor": "austero, casi ausente",
+  "technical_level": "técnico-alto",
+  "engagement_style": "prefiere datos y correcciones técnicas a elogios",
+  "language": "en",
+  "language_label": "English",
+  "niche": "tecnologia"
+}

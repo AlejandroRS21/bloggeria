@@ -1,0 +1,66 @@
+{
+  "alias": "Microsiervos",
+  "vocabulary": [
+    "curiosidad",
+    "descubrimiento",
+    "herramienta",
+    "truco",
+    "enlace",
+    "ciencia",
+    "experimento",
+    "dato",
+    "mapa",
+    "vídeo",
+    "foto",
+    "historia",
+    "razonamiento",
+    "espectacular"
+  ],
+  "expressions": [
+    "lo que mola",
+    "no tiene desperdicio",
+    "imprescindible",
+    "un clásico",
+    "por si no lo sabías",
+    "merece la pena",
+    "visto en",
+    "no te lo puedes perder"
+  ],
+  "transition_phrases": [
+    "por cierto",
+    "además",
+    "otra cosa interesante",
+    "en esta línea",
+    "para terminar",
+    "relacionado"
+  ],
+  "topics": [
+    "Ciencia y curiosidades",
+    "Internet y cultura digital",
+    "Herramientas y utilidades",
+    "Astronomía y espacio",
+    "Videojuegos y ocio",
+    "Fotografía",
+    "Matemáticas y lógica"
+  ],
+  "tone": "cercano, curioso, con humor sutil y entusiasmo contagioso",
+  "voice": "primera persona del plural, editor comunitario y divulgador",
+  "sentence_pattern": "oraciones claras y directas, con enlaces contextualizados",
+  "paragraph_pattern": "párrafos cortos, entradas breves tipo apunte",
+  "common_opens": [
+    "Empieza el día con un buen enlace:",
+    "Hoy toca curiosidad científica:",
+    "Llevamos un tiempo siguiendo este proyecto y nos parece…"
+  ],
+  "common_closes": [
+    "Y no olvides que puedes seguirnos en redes",
+    "Si te ha gustado, compártelo",
+    "Fuente y más información en el enlace"
+  ],
+  "use_of_humor": "humor ligero y socarrón",
+  "technical_level": "divulgativo",
+  "engagement_style": "invita a comentar, responde en los comentarios",
+  "language": "es",
+  "language_label": "Spanish",
+  "niche": "tecnologia"
+}

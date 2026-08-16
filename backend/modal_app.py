@@ -39,6 +39,7 @@ image = (
     .pip_install("google-genai")
     .add_local_dir(os.path.join(backend_dir, "src"), remote_path="/root/src")
     .add_local_dir(os.path.join(backend_dir, "tools"), remote_path="/root/tools")
+    .add_local_dir(os.path.join(backend_dir, "profiles"), remote_path="/root/backend/profiles")
     .add_local_dir(os.path.join(backend_dir, "aphra_blogger"), remote_path="/root/aphra_blogger")
     .add_local_file(os.path.join(backend_dir, "cleanup_supabase.py"), remote_path="/root/cleanup_supabase.py")
 )

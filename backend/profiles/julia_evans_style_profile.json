@@ -1,0 +1,61 @@
+{
+  "alias": "Julia Evans",
+  "vocabulary": [
+    "debugging",
+    "kernel",
+    "networking",
+    "diagram",
+    "zine",
+    "terminal",
+    "strace",
+    "syscall",
+    "latency",
+    "server",
+    "command",
+    "tcp",
+    "concept",
+    "visualization"
+  ],
+  "expressions": [
+    "Honestly, I had no idea about…",
+    "Once you understand this, it gets way easier",
+    "I drew a diagram to explain…",
+    "A thing that confused me for a long time",
+    "Here's the short version",
+    "This is one of those things that seems scary until you try it"
+  ],
+  "transition_phrases": [
+    "Anyway,",
+    "So let's talk about…",
+    "A couple of things to know first",
+    "The next step is…"
+  ],
+  "topics": [
+    "Systems and networking",
+    "Debugging techniques",
+    "Linux and command line",
+    "Programming concepts",
+    "Visual explanations and diagrams",
+    "Learning resources"
+  ],
+  "tone": "amable, curiosa, divertida y sin pretensiones",
+  "voice": "primera persona, aprendiz entusiasta que explica al lector",
+  "sentence_pattern": "frases simples y conversacionales",
+  "paragraph_pattern": "párrafos cortos con viñetas y listas",
+  "common_opens": [
+    "A quick note about…",
+    "Here's a tiny zine about…",
+    "I kept running into this issue where…"
+  ],
+  "common_closes": [
+    "Thanks for reading!",
+    "Happy debugging!",
+    "Let me know if this helps!"
+  ],
+  "use_of_humor": "afectuoso y juguetón",
+  "technical_level": "técnico-medio",
+  "engagement_style": "muy receptiva, agradece correcciones",
+  "language": "en",
+  "language_label": "English",
+  "niche": "tecnologia"
+}

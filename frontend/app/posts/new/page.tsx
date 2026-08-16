@@ -2,7 +2,7 @@
 
 import { useReducer, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getBloggersByLanguage, getBloggerBySlug, normalizeUrl } from "@/lib/bloggers";
+import { getBloggersByLanguage, getBloggerBySlug, normalizeUrl, NICHE_LABELS } from "@/lib/bloggers";
 import { supabase } from "@/lib/supabase";
 
 const DEFAULT_WEBHOOK_URL = "https://alejandrors21--blogger-agent-tfg-webhook.modal.run";
@@ -282,33 +282,45 @@ export default function NewPostPage() {
             <label className="block text-sm font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
               Blogger de Inspiración {state.language === "en" ? "(English)" : "(Español)"}
             </label>
-            <div className="grid gap-3 sm:grid-cols-2">
-              {filteredBloggers.map((blogger) => {
-                const isActive = state.selectedBloggerSlug === blogger.id;
-                return (
-                  <button
-                    key={blogger.id}
-                    type="button"
-                    aria-pressed={isActive}
-                    onClick={() => dispatch({ type: 'SELECT_BLOGGER', payload: blogger.id })}
-                    className={`rounded-xl border px-4 py-3 text-left transition-all ${
-                      isActive
-                        ? "border-blue-500 bg-blue-50 ring-2 ring-blue-500 dark:border-blue-400 dark:bg-blue-950/40"
-                        : "border-zinc-300 bg-transparent hover:border-blue-300 dark:border-zinc-700 dark:hover:border-zinc-600"
-                    }`}
-                  >
-                    <span className="flex items-center justify-between gap-2 font-semibold text-zinc-900 dark:text-zinc-100">
-                      <span className="truncate">{blogger.name}</span>
-                      <span className="shrink-0 rounded-full bg-zinc-100 px-1.5 py-0.5 text-[10px] font-semibold text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
-                        {blogger.lang.toUpperCase()}
-                      </span>
-                    </span>
-                    <span className="block text-xs text-zinc-500 dark:text-zinc-400">{blogger.niche}</span>
-                  </button>
-                );
-              })}
+            <div className="space-y-4">
+              {Object.entries(NICHE_LABELS)
+                .filter(([niche]) => filteredBloggers.some((b) => b.niche === niche))
+                .map(([niche, { label, emoji }]) => (
+                  <div key={niche}>
+                    <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                      {emoji} {label}
+                    </h4>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      {filteredBloggers
+                        .filter((b) => b.niche === niche)
+                        .map((blogger) => {
+                          const isActive = state.selectedBloggerSlug === blogger.id;
+                          return (
+                            <button
+                              key={blogger.id}
+                              type="button"
+                              aria-pressed={isActive}
+                              onClick={() => dispatch({ type: 'SELECT_BLOGGER', payload: blogger.id })}
+                              className={`rounded-xl border px-4 py-3 text-left transition-all ${
+                                isActive
+                                  ? "border-blue-500 bg-blue-50 ring-2 ring-blue-500 dark:border-blue-400 dark:bg-blue-950/40"
+                                  : "border-zinc-300 bg-transparent hover:border-blue-300 dark:border-zinc-700 dark:hover:border-zinc-600"
+                              }`}
+                            >
+                              <span className="flex items-center justify-between gap-2 font-semibold text-zinc-900 dark:text-zinc-100">
+                                <span className="truncate">{blogger.name}</span>
+                                <span className="shrink-0 rounded-full bg-zinc-100 px-1.5 py-0.5 text-[10px] font-semibold text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+                                  {blogger.lang.toUpperCase()}
+                                </span>
+                              </span>
+                            </button>
+                          );
+                        })}
+                    </div>
+                  </div>
+                ))}
               {filteredBloggers.length === 0 && (
-                <p className="col-span-full text-sm italic text-zinc-500 dark:text-zinc-400">
+                <p className="text-sm italic text-zinc-500 dark:text-zinc-400">
                   No hay bloggers disponibles para este idioma.
                 </p>
               )}

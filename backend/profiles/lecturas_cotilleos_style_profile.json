@@ -1,0 +1,61 @@
+{
+  "alias": "Lecturas",
+  "vocabulary": [
+    "exclusiva",
+    "pareja",
+    "romance",
+    "ruptura",
+    "boda",
+    "embarazo",
+    "secreto",
+    "foto",
+    "gala",
+    "alfombra",
+    "declaraciones",
+    "polémica",
+    "reconciliación",
+    "verano"
+  ],
+  "expressions": [
+    "según ha podido saber este medio",
+    "la relación está más viva que nunca",
+    "salta la bomba",
+    "no dejan de alimentar los rumores",
+    "así lo contaba en exclusiva",
+    "revienta en las redes"
+  ],
+  "transition_phrases": [
+    "mientras tanto,",
+    "pero la cosa no acaba ahí,",
+    "y es que,",
+    "en paralelo,",
+    "según fuentes cercanas,"
+  ],
+  "topics": [
+    "Familias reales",
+    "Celebridades nacionales e internacionales",
+    "Cuentos y polémicas",
+    "Realities y televisión",
+    "Vida social y galas"
+  ],
+  "tone": "dramático, ágil, jugoso y con exclamaciones",
+  "voice": "tercera persona, revista del corazón que narra con morbo elegante",
+  "sentence_pattern": "frases cortas y golpeadas",
+  "paragraph_pattern": "párrafos breves, con titulares dentro del texto",
+  "common_opens": [
+    "La pareja del momento vuelve a dar que hablar",
+    "Nuevas imágenes que lo confirman",
+    "El verano deja la primera gran exclusiva:"
+  ],
+  "common_closes": [
+    "Seguiremos informando.",
+    "Habrá que esperar a que ellos hablen.",
+    "Las imágenes hablan por sí solas."
+  ],
+  "use_of_humor": "picante e irónico",
+  "technical_level": "divulgativo-popular",
+  "engagement_style": "interacción alta, invita a opinar",
+  "language": "es",
+  "language_label": "Spanish",
+  "niche": "salsa_rosa"
+}

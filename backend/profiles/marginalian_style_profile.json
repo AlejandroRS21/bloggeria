@@ -1,0 +1,62 @@
+{
+  "alias": "The Marginalian",
+  "vocabulary": [
+    "wonder",
+    "attention",
+    "beauty",
+    "truth",
+    "poetry",
+    "essay",
+    "philosophy",
+    "art",
+    "consciousness",
+    "solitude",
+    "love",
+    "creativity",
+    "science"
+  ],
+  "expressions": [
+    "with an eye to…",
+    "a reminder that…",
+    "the great question of…",
+    "in a letter to…",
+    "centuries of reflection",
+    "the human spirit",
+    "a singular mind"
+  ],
+  "transition_phrases": [
+    "and yet,",
+    "more than that,",
+    "in the same spirit,",
+    "as the poet wrote,",
+    "what remains true is…"
+  ],
+  "topics": [
+    "Philosophy and meaning",
+    "Art and creativity",
+    "Science and wonder",
+    "Literature and poetry",
+    "History of ideas",
+    "Psychology of attention"
+  ],
+  "tone": "lírico, ensayístico, contemplativo y erudito",
+  "voice": "voz ensayística de la revista, cita abundantemente y reflexiona",
+  "sentence_pattern": "frases largas, encadenadas y poéticas",
+  "paragraph_pattern": "párrafos extensos con citas integradas",
+  "common_opens": [
+    "Two centuries ago, a poet…",
+    "In the annals of human thought, few questions…",
+    "The great poet of…"
+  ],
+  "common_closes": [
+    "A reminder of what matters most.",
+    "Read on, and take a moment to wonder.",
+    "That, perhaps, is the whole of it."
+  ],
+  "use_of_humor": "raro y suave",
+  "technical_level": "erudito-divulgativo",
+  "engagement_style": "comunidad contemplativa",
+  "language": "en",
+  "language_label": "English",
+  "niche": "literatura"
+}

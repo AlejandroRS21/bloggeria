@@ -318,5 +318,95 @@ class TestPhaseRefinement:
         assert "keywords" not in captured
 
 
+class TestStyleAnalysisPrebakedShortCircuit:
+    """REQ-BE-LOADER: registered presets skip scraping and StyleAnalyzer."""
+
+    @pytest.fixture
+    def preset_config(self):
+        return OrchestratorConfig(
+            openai_api_key="test-key",
+            max_retries=1,
+            verbose=False,
+            enable_critique=False,
+        )
+
+    def test_style_analysis_uses_prebaked_profile_without_network(self, preset_config, monkeypatch):
+        """Preset URL -> pre-baked profile; requests.get and analyze never called."""
+        orch = BloggerOrchestrator(config=preset_config, verbose=False)
+        state = WorkflowState(
+            workflow_id="preset-test",
+            topic="Receta de paella",
+            blogger_urls=["https://elcomidista.elpais.com"],
+        )
+        orch.state_manager = StateManager(state)
+
+        def boom(*args, **kwargs):
+            raise AssertionError("network/analyzer must not run for registered preset URLs")
+
+        monkeypatch.setattr("src.orchestrator.main.requests.get", boom)
+        monkeypatch.setattr(orch.style_analyzer, "analyze", boom)
+
+        orch._phase_style_analysis(["https://elcomidista.elpais.com"])
+
+        assert state.style_profile is not None
+        assert state.style_profile["alias"] == "El Comidista"
+        assert state.style_profile["language"] == "es"
+        assert state.phases["style_analysis"].status == PhaseStatus.COMPLETED
+
+    def test_style_analysis_preset_by_id(self, preset_config, monkeypatch):
+        """Preset passed as plain ID also resolves to pre-baked profile."""
+        orch = BloggerOrchestrator(config=preset_config, verbose=False)
+        state = WorkflowState(
+            workflow_id="preset-id",
+            topic="Inteligencia artificial",
+            blogger_urls=["javipas"],
+        )
+        orch.state_manager = StateManager(state)
+
+        def boom(*args, **kwargs):
+            raise AssertionError("network/analyzer must not run for registered preset IDs")
+
+        monkeypatch.setattr("src.orchestrator.main.requests.get", boom)
+        monkeypatch.setattr(orch.style_analyzer, "analyze", boom)
+
+        orch._phase_style_analysis(["javipas"])
+
+        assert state.style_profile["alias"] == "JaviPas"
+        assert state.style_profile["language"] == "es"
+        assert state.phases["style_analysis"].status == PhaseStatus.COMPLETED
+
+    def test_style_analysis_custom_url_keeps_live_scrape_fallback(self, preset_config, monkeypatch):
+        """Spec Scenario 4: unregistered URLs still reach the scraper path."""
+        orch = BloggerOrchestrator(config=preset_config, verbose=False)
+        state = WorkflowState(
+            workflow_id="custom-url",
+            topic="Tema cualquiera",
+            blogger_urls=["https://example.com"],
+        )
+        orch.state_manager = StateManager(state)
+
+        scraped = {"calls": 0}
+
+        class Resp:
+            status_code = 200
+            text = "<html><p>Un párrafo suficientemente largo para pasar el filtro.</p></html>"
+
+        def fake_get(*args, **kwargs):
+            scraped["calls"] += 1
+            return Resp()
+
+        monkeypatch.setattr("src.orchestrator.main.requests.get", fake_get)
+        orch.style_analyzer.analyze = lambda blogger_urls, sample_text=None: {
+            "alias": "Custom",
+            "language": "es",
+        }
+
+        orch._phase_style_analysis(["https://example.com"])
+
+        assert scraped["calls"] > 0, "custom URL must still hit the live scrape path"
+        assert state.style_profile["alias"] == "Custom"
+        assert state.phases["style_analysis"].status == PhaseStatus.COMPLETED
+
+
 if __name__ == '__main__':
     pytest.main([__file__, '-v'])
