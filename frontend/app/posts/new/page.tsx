@@ -209,12 +209,18 @@ export default function NewPostPage() {
       } catch {}
 
       if (!response.ok || !resData?.success) {
-        const errorMsg = resData?.error || `Error del servidor (HTTP ${response.status}). Inténtalo de nuevo.`;
+        const rawError = resData?.error || `Error del servidor (HTTP ${response.status}). Inténtalo de nuevo.`;
+        const isRateLimited =
+          response.status === 429 || (typeof rawError === "string" && rawError.includes("Límite de tasa"));
+        const errorMsg = isRateLimited
+          ? "Has alcanzado el límite de 5 generaciones por hora. Vuelve a intentarlo más tarde."
+          : rawError;
         dispatch({ type: 'SET_ERROR', payload: errorMsg });
         return;
       }
 
       // Webhook returned 200 with status: queued. Poll Supabase.
+      setInfoMessage("Tu post está en cola de generación. Puede tardar unos minutos.");
       const slug = await pollSupabaseForPost(jobId);
 
       if (slug) {
