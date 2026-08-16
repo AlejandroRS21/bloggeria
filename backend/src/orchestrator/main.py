@@ -21,6 +21,7 @@ from bs4 import BeautifulSoup
 
 from .config import OrchestratorConfig
 from .state import StateManager, WorkflowState, PhaseStatus
+from .bloggers_registry import get_prebaked_profile
 from aphra_blogger.agents.style_analyzer import StyleAnalyzer
 from aphra_blogger.agents.keyword_extractor import KeywordExtractor
 from aphra_blogger.agents.content_generator import ContentGenerator
@@ -308,10 +309,26 @@ class BloggerOrchestrator:
             return [base_url]
 
     def _phase_style_analysis(self, blogger_urls: List[str]) -> None:
-        """Phase 1: Analyze blogger style."""
+        """Phase 1: Analyze blogger style.
+
+        REQ-BE-LOADER: registered presets short-circuit to pre-baked style
+        profiles — no network, no StyleAnalyzer. Custom (unregistered) URLs
+        keep the live-scrape fallback.
+        """
         phase_name = "style_analysis"
         self.state_manager.start_phase(phase_name, "StyleAnalyzer")
-        
+
+        if blogger_urls:
+            prebaked = [get_prebaked_profile(url) for url in blogger_urls]
+            if all(profile is not None for profile in prebaked):
+                profile = prebaked[0]
+                self._log(
+                    f"Using pre-baked style profile ({len(prebaked)} URL(s) matched registry)"
+                )
+                self.state_manager.state.style_profile = profile
+                self.state_manager.complete_phase(phase_name, profile)
+                return
+
         def analyze():
             combined_sample_text = ""
             

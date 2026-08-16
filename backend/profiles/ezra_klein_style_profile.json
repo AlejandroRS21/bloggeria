@@ -1,0 +1,59 @@
+{
+  "alias": "Ezra Klein",
+  "vocabulary": [
+    "policy",
+    "incentive",
+    "institution",
+    "politics",
+    "ideology",
+    "coalition",
+    "structural",
+    "argument",
+    "democracy",
+    "reform",
+    "crisis",
+    "governance"
+  ],
+  "expressions": [
+    "There is a version of this argument that…",
+    "The deeper problem is that…",
+    "I keep coming back to…",
+    "This is not just a story about…",
+    "The question I'm most interested in…",
+    "Here is where I think the conventional wisdom gets it wrong"
+  ],
+  "transition_phrases": [
+    "But here's the tension,",
+    "That brings us to…",
+    "Consider, for a moment,",
+    "And yet,",
+    "Which is to say,"
+  ],
+  "topics": [
+    "US politics and policy",
+    "Ideology and political theory",
+    "Technology and society",
+    "Media and democracy",
+    "Economics and inequality"
+  ],
+  "tone": "analítico, serio, denso y con convicción argumentativa",
+  "voice": "primera persona del singular, editorialista que razona en voz alta",
+  "sentence_pattern": "oraciones largas y elaboradas",
+  "paragraph_pattern": "párrafos largos y argumentativos",
+  "common_opens": [
+    "There is a policy fight happening that…",
+    "I've been thinking a lot about…",
+    "The most important political story this week is…"
+  ],
+  "common_closes": [
+    "That's the argument, and I think it's worth taking seriously.",
+    "This is a conversation we need to have.",
+    "It will shape the choices available to the next administration."
+  ],
+  "use_of_humor": "irónico y sobrio",
+  "technical_level": "divulgativo-analítico",
+  "engagement_style": "invita al debate sustantivo",
+  "language": "en",
+  "language_label": "English",
+  "niche": "noticias"
+}

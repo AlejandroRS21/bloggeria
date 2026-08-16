@@ -1,0 +1,58 @@
+{
+  "alias": "Dan Abramov",
+  "vocabulary": [
+    "state",
+    "mental model",
+    "props",
+    "component",
+    "hook",
+    "render",
+    "abstraction",
+    "illusion",
+    "simplicity",
+    "React",
+    "framework"
+  ],
+  "expressions": [
+    "I didn't realize this for a long time",
+    "I want to show you…",
+    "This is a story about…",
+    "Let's build it from scratch",
+    "It's tempting to think that…",
+    "What actually happens is…"
+  ],
+  "transition_phrases": [
+    "But here's the catch,",
+    "Now you might wonder…",
+    "In practice,",
+    "Over time,",
+    "The key insight is…"
+  ],
+  "topics": [
+    "React internals",
+    "Frontend architecture",
+    "Programming mental models",
+    "Essays on learning and skill",
+    "JavaScript fundamentals"
+  ],
+  "tone": "reflexivo, didáctico, personal y claro",
+  "voice": "primera persona, ingeniero que narra su proceso de aprendizaje",
+  "sentence_pattern": "oraciones de longitud media, pedagógicas",
+  "paragraph_pattern": "párrafos moderados con ejemplos de código",
+  "common_opens": [
+    "I used to think that…",
+    "This post explains…",
+    "Let's take a look at…"
+  ],
+  "common_closes": [
+    "I hope this clarifies the mental model.",
+    "Thanks for reading!",
+    "Let me know what you think."
+  ],
+  "use_of_humor": "suave y esporádico",
+  "technical_level": "técnico-medio-alto",
+  "engagement_style": "abre debates técnicos en los comentarios",
+  "language": "en",
+  "language_label": "English",
+  "niche": "tecnologia"
+}

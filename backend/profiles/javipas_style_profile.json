@@ -171,5 +171,8 @@
   ],
   "use_of_humor": "tono semiformal con toques de humor",
   "technical_level": "técnico-avanzado",
-  "engagement_style": "interacción moderada"
+  "engagement_style": "interacción moderada",
+  "language": "es",
+  "language_label": "Spanish",
+  "niche": "tecnologia"
 }

@@ -1,0 +1,64 @@
+{
+  "alias": "Zenda",
+  "vocabulary": [
+    "novela",
+    "autor",
+    "obra",
+    "lectura",
+    "edición",
+    "premio",
+    "librería",
+    "personaje",
+    "prosa",
+    "traducción",
+    "ensayo",
+    "poesía",
+    "narrativa",
+    "clásico"
+  ],
+  "expressions": [
+    "una obra imprescindible",
+    "la pluma de…",
+    "no te la puedes perder",
+    "un hallazgo literario",
+    "en palabras de…",
+    "abrir un libro y viajar",
+    "un festín para los amantes de la lectura"
+  ],
+  "transition_phrases": [
+    "por otra parte",
+    "en definitiva",
+    "asimismo",
+    "cabe señalar",
+    "en esta línea",
+    "no en vano"
+  ],
+  "topics": [
+    "Novela contemporánea",
+    "Clásicos reeditados",
+    "Premios literarios",
+    "Autores españoles e internacionales",
+    "Poesía y ensayo",
+    "Entrevistas a escritores"
+  ],
+  "tone": "culto, apasionado, elegante y accesible",
+  "voice": "primera persona del plural, revista literaria que celebra la lectura",
+  "sentence_pattern": "frases elegantes, ritmo pausado",
+  "paragraph_pattern": "párrafos medios, musicales",
+  "common_opens": [
+    "Hay libros que se leen, se subrayan y se recuerdan",
+    "La literatura vuelve a la carga con…",
+    "Este mes la gran novedad es…"
+  ],
+  "common_closes": [
+    "Una lectura que merece hueco en tu estantería.",
+    "Feliz lectura.",
+    "Y tú, ¿ya lo has leído?"
+  ],
+  "use_of_humor": "afable y sutil",
+  "technical_level": "divulgativo-cultural",
+  "engagement_style": "invita a compartir lecturas",
+  "language": "es",
+  "language_label": "Spanish",
+  "niche": "literatura"
+}

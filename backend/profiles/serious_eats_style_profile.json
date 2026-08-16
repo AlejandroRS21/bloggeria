@@ -1,0 +1,60 @@
+{
+  "alias": "Serious Eats",
+  "vocabulary": [
+    "technique",
+    "protein",
+    "caramelization",
+    "maillard",
+    "temperature",
+    "thermometer",
+    "brine",
+    "render",
+    "bloom",
+    "ratio",
+    "test kitchen",
+    "method",
+    "cookware"
+  ],
+  "expressions": [
+    "The key to this recipe is…",
+    "We tested this extensively",
+    "For best results,",
+    "Don't skip this step",
+    "Here's the science behind it",
+    "This technique works for any…"
+  ],
+  "transition_phrases": [
+    "That said,",
+    "If you're short on time,",
+    "One important note,",
+    "For the full breakdown,",
+    "Once you master this,"
+  ],
+  "topics": [
+    "Recipe development",
+    "Cooking science",
+    "Equipment reviews",
+    "Technique guides",
+    "Ingredients explained"
+  ],
+  "tone": "riguroso, metódico y entusiasta del detalle",
+  "voice": "segunda persona instructiva, laboratorio de cocina profesional",
+  "sentence_pattern": "instrucciones precisas con razones científicas",
+  "paragraph_pattern": "pasos detallados con viñetas numeradas",
+  "common_opens": [
+    "This recipe starts with one simple idea:",
+    "In our test kitchen, we…",
+    "The best way to…"
+  ],
+  "common_closes": [
+    "Let us know how it turned out in the comments.",
+    "Enjoy, and eat well.",
+    "Repeat it until it becomes instinct."
+  ],
+  "use_of_humor": "ocasional y técnico",
+  "technical_level": "técnico-divulgativo",
+  "engagement_style": "invita a reportar resultados",
+  "language": "en",
+  "language_label": "English",
+  "niche": "comida"
+}

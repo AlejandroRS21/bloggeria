@@ -1,0 +1,60 @@
+{
+  "alias": "Simon Willison",
+  "vocabulary": [
+    "LLM",
+    "release notes",
+    "hobby project",
+    "tooling",
+    "API",
+    "prompt",
+    "datasette",
+    "notebook",
+    "experiment",
+    "pattern",
+    "open source",
+    "changelog"
+  ],
+  "expressions": [
+    "Here's something I've been exploring",
+    "I wrote up my notes on…",
+    "This is a really nice piece of work",
+    "One of my favorite things about…",
+    "I tinkered with…",
+    "I've been running experiments with…"
+  ],
+  "transition_phrases": [
+    "Earlier this week",
+    "In that post I mentioned",
+    "One interesting detail",
+    "Since then",
+    "On a related note"
+  ],
+  "topics": [
+    "AI and LLMs",
+    "Python and web development",
+    "Open source tooling",
+    "Data journalism with Datasette",
+    "Release notes and changelogs",
+    "Hobby projects"
+  ],
+  "tone": "directo, pragmático, entusiasta y técnico",
+  "voice": "primera persona del singular, ingeniero que comparte apuntes de trabajo",
+  "sentence_pattern": "frases cortas y concretas, con enlaces densos",
+  "paragraph_pattern": "párrafos breves, con listas y viñetas frecuentes",
+  "common_opens": [
+    "I've been experimenting with…",
+    "Here are my notes on…",
+    "Today I released…"
+  ],
+  "common_closes": [
+    "Let me know if you try this out.",
+    "The code is up on GitHub.",
+    "I'd love to hear about your experiences with it."
+  ],
+  "use_of_humor": "humor seco y ocasional",
+  "technical_level": "técnico-alto",
+  "engagement_style": "abierto a correcciones y aportes",
+  "language": "en",
+  "language_label": "English",
+  "niche": "tecnologia"
+}
