@@ -62,22 +62,43 @@ class KeywordExtractor:
         else:
             self.llm = None
     
-    def extract(self, blogger_urls: List[str], sample_text: str = None) -> Dict[str, Any]:
+    @staticmethod
+    def _resolve_language(language: str, style_profile: Optional[Dict[str, Any]]) -> str:
+        """Resolve effective language for keyword extraction."""
+        if language in ("es", "en"):
+            return language
+        if language == "auto":
+            profile_language = (style_profile or {}).get("language")
+            if profile_language in ("es", "en"):
+                return profile_language
+        return "es"
+
+    def extract(
+        self,
+        blogger_urls: List[str],
+        sample_text: str = None,
+        language: str = "auto",
+        style_profile: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
         """
         Extract keywords and phrases from the blogger's content.
-        
+
         Args:
             blogger_urls: List of blog URLs
             sample_text: Optional sample text
-            
+            language: "auto", "es", or "en"
+            style_profile: Optional style profile to resolve language if auto
+
         Returns:
             Dictionary with keywords and expressions
         """
+        effective_language = self._resolve_language(language, style_profile)
+
         if not self.llm or not self.llm.is_available():
-            return self._fallback_extraction()
-        
+            return self._fallback_extraction(effective_language)
+
         url_text = blogger_urls[0] if blogger_urls else (sample_text or "General Tech Blog")
-        
+
         prompt = f"""Extract keywords and characteristic expressions from the blog context: {url_text}
 
 Identify the most relevant keywords, recurrent expressions, technical terms, and main themes from the provided text to capture the author's specific focus and style.
@@ -97,19 +118,56 @@ Return ONLY valid JSON, no other text."""
                 system_prompt="You are an expert in keyword extraction and content analysis.",
                 user_prompt=prompt
             )
-            
+
             response = self.llm.chat_completion(messages)
-            
+
             import json
             result = json.loads(response.content)
             return result
-            
+
         except Exception as e:
             print(f"Warning: Keyword extraction failed: {e}. Using fallback.")
-            return self._fallback_extraction()
-    
-    def _fallback_extraction(self) -> Dict[str, Any]:
+            return self._fallback_extraction(effective_language)
+
+    def _fallback_extraction(self, language: str = "es") -> Dict[str, Any]:
         """Fallback keyword extraction based on generic patterns."""
+        if language == "en":
+            return {
+                "keywords": [
+                    "technology", "innovation", "development", "software", "hardware",
+                    "future", "analysis", "trends", "market", "digital",
+                    "data", "internet", "productivity", "tools", "system"
+                ],
+                "expressions": [
+                    "it is worth noting",
+                    "in summary",
+                    "on the other hand",
+                    "however",
+                    "in conclusion",
+                    "it's worth mentioning",
+                    "from this perspective",
+                    "the reality is that",
+                    "ultimately"
+                ],
+                "technical_terms": [
+                    "API",
+                    "algorithm",
+                    "backend",
+                    "frontend",
+                    "framework",
+                    "cloud computing",
+                    "deployment",
+                    "architecture"
+                ],
+                "themes": [
+                    "Software Development",
+                    "Tech Trends",
+                    "Digital Productivity",
+                    "Industry Analysis",
+                    "Innovation"
+                ]
+            }
+
         return {
             "keywords": [
                 "tecnología", "innovación", "desarrollo", "software", "hardware", 

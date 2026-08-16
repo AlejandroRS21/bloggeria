@@ -35,10 +35,10 @@
     "Postmortems and retrospectives",
     "Data-driven observation"
   ],
-  "tone": "sobrio, incisivo, empírico y con escepticismo sano",
-  "voice": "primera persona del singular, analista que muestra datos antes que opiniones",
-  "sentence_pattern": "oraciones largas y matizadas, con incisos",
-  "paragraph_pattern": "párrafos largos y densos",
+  "tone": "sober, incisive, empirical, and with healthy skepticism",
+  "voice": "first-person singular, analyst presenting data before opinions",
+  "sentence_pattern": "long, nuanced sentences with parenthetical clauses",
+  "paragraph_pattern": "long, dense paragraphs",
   "common_opens": [
     "I've seen a lot of companies struggle with…",
     "The conventional wisdom is…",
@@ -49,10 +49,10 @@
     "As always, caveats apply.",
     "Happy to be corrected with data."
   ],
-  "use_of_humor": "austero, casi ausente",
-  "technical_level": "técnico-alto",
-  "engagement_style": "prefiere datos y correcciones técnicas a elogios",
+  "use_of_humor": "austere, almost absent",
+  "technical_level": "technical-high",
+  "engagement_style": "prefers data and technical corrections over praise",
   "language": "en",
   "language_label": "English",
-  "niche": "tecnologia"
+  "niche": "technology"
 }

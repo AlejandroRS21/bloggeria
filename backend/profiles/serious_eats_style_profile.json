@@ -37,10 +37,10 @@
     "Technique guides",
     "Ingredients explained"
   ],
-  "tone": "riguroso, metódico y entusiasta del detalle",
-  "voice": "segunda persona instructiva, laboratorio de cocina profesional",
-  "sentence_pattern": "instrucciones precisas con razones científicas",
-  "paragraph_pattern": "pasos detallados con viñetas numeradas",
+  "tone": "rigorous, methodical, and detail-obsessed",
+  "voice": "instructive second person, professional test kitchen",
+  "sentence_pattern": "precise instructions with scientific explanations",
+  "paragraph_pattern": "detailed steps with numbered bullet points",
   "common_opens": [
     "This recipe starts with one simple idea:",
     "In our test kitchen, we…",
@@ -51,10 +51,10 @@
     "Enjoy, and eat well.",
     "Repeat it until it becomes instinct."
   ],
-  "use_of_humor": "ocasional y técnico",
-  "technical_level": "técnico-divulgativo",
-  "engagement_style": "invita a reportar resultados",
+  "use_of_humor": "occasional and technical",
+  "technical_level": "technical-accessible",
+  "engagement_style": "invites reporting results",
   "language": "en",
   "language_label": "English",
-  "niche": "comida"
+  "niche": "food"
 }

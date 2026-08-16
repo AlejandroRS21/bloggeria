@@ -36,10 +36,10 @@
     "Media and democracy",
     "Economics and inequality"
   ],
-  "tone": "analítico, serio, denso y con convicción argumentativa",
-  "voice": "primera persona del singular, editorialista que razona en voz alta",
-  "sentence_pattern": "oraciones largas y elaboradas",
-  "paragraph_pattern": "párrafos largos y argumentativos",
+  "tone": "analytical, serious, dense, with argumentative conviction",
+  "voice": "first-person singular, columnist reasoning out loud",
+  "sentence_pattern": "long, elaborate sentences",
+  "paragraph_pattern": "long, argumentative paragraphs",
   "common_opens": [
     "There is a policy fight happening that…",
     "I've been thinking a lot about…",
@@ -50,10 +50,10 @@
     "This is a conversation we need to have.",
     "It will shape the choices available to the next administration."
   ],
-  "use_of_humor": "irónico y sobrio",
-  "technical_level": "divulgativo-analítico",
-  "engagement_style": "invita al debate sustantivo",
+  "use_of_humor": "ironic and restrained",
+  "technical_level": "analytical-popular",
+  "engagement_style": "invites substantive debate",
   "language": "en",
   "language_label": "English",
-  "niche": "noticias"
+  "niche": "news"
 }

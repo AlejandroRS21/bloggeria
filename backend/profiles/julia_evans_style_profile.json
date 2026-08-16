@@ -38,10 +38,10 @@
     "Visual explanations and diagrams",
     "Learning resources"
   ],
-  "tone": "amable, curiosa, divertida y sin pretensiones",
-  "voice": "primera persona, aprendiz entusiasta que explica al lector",
-  "sentence_pattern": "frases simples y conversacionales",
-  "paragraph_pattern": "párrafos cortos con viñetas y listas",
+  "tone": "friendly, curious, fun, and unpretentious",
+  "voice": "first person, enthusiastic learner explaining to the reader",
+  "sentence_pattern": "simple, conversational sentences",
+  "paragraph_pattern": "short paragraphs with bullet points and lists",
   "common_opens": [
     "A quick note about…",
     "Here's a tiny zine about…",
@@ -52,10 +52,10 @@
     "Happy debugging!",
     "Let me know if this helps!"
   ],
-  "use_of_humor": "afectuoso y juguetón",
-  "technical_level": "técnico-medio",
-  "engagement_style": "muy receptiva, agradece correcciones",
+  "use_of_humor": "warm and playful",
+  "technical_level": "technical-intermediate",
+  "engagement_style": "very receptive, appreciates corrections",
   "language": "en",
   "language_label": "English",
-  "niche": "tecnologia"
+  "niche": "technology"
 }
