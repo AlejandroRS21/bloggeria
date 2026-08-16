@@ -397,7 +397,16 @@ class BloggerOrchestrator:
         
         def extract():
             sample_text = self.state_manager.state.metadata.get('sample_text', "")
-            extraction_result = self.keyword_extractor.extract(blogger_urls, sample_text=sample_text)
+            style = self.state_manager.state.style_profile
+            resolved_language = self._resolve_language(
+                self.state_manager.state.language, style
+            )
+            extraction_result = self.keyword_extractor.extract(
+                blogger_urls,
+                sample_text=sample_text,
+                language=resolved_language,
+                style_profile=style,
+            )
             # Return just the keywords list for backward compatibility
             return extraction_result.get("keywords", [])
         

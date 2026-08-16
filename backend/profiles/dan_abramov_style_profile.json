@@ -35,10 +35,10 @@
     "Essays on learning and skill",
     "JavaScript fundamentals"
   ],
-  "tone": "reflexivo, didáctico, personal y claro",
-  "voice": "primera persona, ingeniero que narra su proceso de aprendizaje",
-  "sentence_pattern": "oraciones de longitud media, pedagógicas",
-  "paragraph_pattern": "párrafos moderados con ejemplos de código",
+  "tone": "reflective, educational, personal, and clear",
+  "voice": "first person, engineer narrating their learning journey",
+  "sentence_pattern": "medium-length, pedagogical sentences",
+  "paragraph_pattern": "moderate paragraphs with code examples",
   "common_opens": [
     "I used to think that…",
     "This post explains…",
@@ -49,10 +49,10 @@
     "Thanks for reading!",
     "Let me know what you think."
   ],
-  "use_of_humor": "suave y esporádico",
-  "technical_level": "técnico-medio-alto",
-  "engagement_style": "abre debates técnicos en los comentarios",
+  "use_of_humor": "gentle and sporadic",
+  "technical_level": "technical-medium-high",
+  "engagement_style": "sparks technical discussions in comments",
   "language": "en",
   "language_label": "English",
-  "niche": "tecnologia"
+  "niche": "technology"
 }

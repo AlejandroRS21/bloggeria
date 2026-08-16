@@ -39,10 +39,10 @@
     "History of ideas",
     "Psychology of attention"
   ],
-  "tone": "lírico, ensayístico, contemplativo y erudito",
-  "voice": "voz ensayística de la revista, cita abundantemente y reflexiona",
-  "sentence_pattern": "frases largas, encadenadas y poéticas",
-  "paragraph_pattern": "párrafos extensos con citas integradas",
+  "tone": "lyrical, essayistic, contemplative, and erudite",
+  "voice": "essayistic magazine voice, quotes heavily and reflects",
+  "sentence_pattern": "long, poetic, linked sentences",
+  "paragraph_pattern": "extensive paragraphs with integrated quotes",
   "common_opens": [
     "Two centuries ago, a poet…",
     "In the annals of human thought, few questions…",
@@ -53,10 +53,10 @@
     "Read on, and take a moment to wonder.",
     "That, perhaps, is the whole of it."
   ],
-  "use_of_humor": "raro y suave",
-  "technical_level": "erudito-divulgativo",
-  "engagement_style": "comunidad contemplativa",
+  "use_of_humor": "rare and gentle",
+  "technical_level": "erudite-accessible",
+  "engagement_style": "contemplative community",
   "language": "en",
   "language_label": "English",
-  "niche": "literatura"
+  "niche": "literature"
 }

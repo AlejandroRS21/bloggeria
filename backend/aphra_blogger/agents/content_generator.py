@@ -173,12 +173,69 @@ class ContentGenerator:
         return _LANGUAGE_RULES_ES_SIMPLIFIED if simplified else _LANGUAGE_RULES_ES_MAIN
 
     @staticmethod
-    def _build_style_context(profile: Dict[str, Any], blogger_urls: Optional[List[str]]) -> str:
+    def _build_style_context(
+        profile: Dict[str, Any], blogger_urls: Optional[List[str]], language: str = "es"
+    ) -> str:
         """Build a rich style context block from the profile."""
         if not profile:
             return ""
 
         name = ContentGenerator._extract_blogger_name(blogger_urls)
+        if language == "en":
+            blocks = [f"━━━━━━ STYLE PROFILE ─────────────────────"]
+            blocks.append(f"Reference blogger: {name}")
+            if blogger_urls:
+                blocks.append(f"Reference blog: {blogger_urls[0].strip().rstrip('/')}")
+
+            tone = profile.get("tone", "")
+            voice = profile.get("voice", "")
+            if tone or voice:
+                blocks.append(f"\nTone and Voice:")
+                if tone:
+                    blocks.append(f"  Tone: {tone}")
+                if voice:
+                    blocks.append(f"  Voice: {voice}")
+
+            vocab = profile.get("vocabulary", [])
+            if vocab:
+                blocks.append(f"\nCharacteristic vocabulary (use these words):")
+                blocks.append(f"  {', '.join(vocab[:15])}")
+
+            expressions = profile.get("expressions", [])
+            if expressions:
+                blocks.append(f"\nTypical expressions (incorporate naturally):")
+                blocks.append(f"  {', '.join(expressions[:8])}")
+
+            transitions = profile.get("transition_phrases", [])
+            if transitions:
+                blocks.append(f"\nTransition phrases (use to connect ideas):")
+                blocks.append(f"  {', '.join(transitions[:6])}")
+
+            tech = profile.get("technical_level", "")
+            if tech:
+                blocks.append(f"\nTechnical level: {tech}")
+
+            humor = profile.get("use_of_humor", "")
+            if humor:
+                blocks.append(f"Use of humor: {humor}")
+
+            engagement = profile.get("engagement_style", "")
+            if engagement:
+                blocks.append(f"Reader engagement: {engagement}")
+
+            opens = profile.get("common_opens", [])
+            if opens:
+                blocks.append(f"\nCommon opening:")
+                blocks.append(f"  \"{opens[0]}\"")
+
+            closes = profile.get("common_closes", [])
+            if closes:
+                blocks.append(f"Common closing:")
+                blocks.append(f"  \"{closes[0]}\"")
+
+            blocks.append("━━━━━━ END OF PROFILE ─────────────────")
+            return "\n".join(blocks)
+
         blocks = [f"━━━━━━ PERFIL DE ESTILO ─────────────────────"]
         blocks.append(f"Blogger de referencia: {name}")
         if blogger_urls:
@@ -234,6 +291,25 @@ class ContentGenerator:
         return "\n".join(blocks)
 
     @staticmethod
+    def _build_research_block(research_context: Optional[str], language: str = "es") -> str:
+        """Build research context block formatted per language."""
+        if not research_context or len(research_context.strip()) <= 100:
+            return ""
+        if language == "en":
+            return f"""
+━━━━━━ REAL FACTUAL CONTEXT ABOUT THE TOPIC ━━━━━━━━
+Use this information as factual base for the post. Do not invent data, base yourself on this.
+{research_context}
+━━━━━━ END OF INFORMATION ━━━━━━━━━━━━━━━━━━━━━
+"""
+        return f"""
+━━━━━━ INFORMACIÓN REAL SOBRE EL TEMA ━━━━━━━━
+Usa esta información como base factual para el post. No inventes datos, básate en esto.
+{research_context}
+━━━━━━ FIN DE INFORMACIÓN ━━━━━━━━━━━━━━━━━━━━━
+"""
+
+    @staticmethod
     def _build_attribution(blogger_urls: Optional[List[str]], language: str = "es") -> str:
         """Build attribution footer for the post, localized per language."""
         if not blogger_urls or not blogger_urls[0]:
@@ -281,7 +357,7 @@ class ContentGenerator:
         keywords_str = ", ".join(keywords[:10]) if keywords else ""
 
         # Build a rich style context block from the full profile
-        style_context = self._build_style_context(profile, blogger_urls)
+        style_context = self._build_style_context(profile, blogger_urls, effective_language)
 
         # Build attribution footer
         attribution = self._build_attribution(blogger_urls, effective_language)
@@ -292,14 +368,7 @@ class ContentGenerator:
         )
 
         # Research context block (información factual real)
-        research_block = ""
-        if research_context and len(research_context.strip()) > 100:
-            research_block = f"""
-━━━━━━ INFORMACIÓN REAL SOBRE EL TEMA ━━━━━━━━
-Usa esta información como base factual para el post. No inventes datos, básate en esto.
-{research_context}
-━━━━━━ FIN DE INFORMACIÓN ━━━━━━━━━━━━━━━━━━━━━
-"""
+        research_block = self._build_research_block(research_context, effective_language)
 
         # Name for the instruction block
         blogger_name = self._extract_blogger_name(blogger_urls)
@@ -307,7 +376,44 @@ Usa esta información como base factual para el post. No inventes datos, básate
         if sample_text and len(sample_text.strip()) > 200:
             # ---- PROMPT CON EJEMPLOS REALES (modo principal) ----
             language_rules = self._language_rules(effective_language, simplified=False)
-            prompt = f"""Abajo tienes posts REALES escritos por {blogger_name}, cuyo estilo de escritura tienes que imitar fielmente, e información factual sobre el tema del post.
+            if effective_language == "en":
+                prompt = f"""Below are REAL blog posts written by {blogger_name}, whose writing style you must emulate faithfully, and factual information about the topic of the post.
+
+━━━━━━ ORIGINAL BLOGGER EXAMPLES ────────
+{sample_text[:20000]}
+━━━━━━ END OF EXAMPLES ──────────────────
+{research_block}
+Now write a NEW post about: {topic}
+
+{style_context}
+
+RULES:
+
+{language_rules}
+
+- ### CONTENT and structure
+  - BASE YOURSELF ON THE REAL INFORMATION provided above. Do not invent data.
+  - NEVER use academic citations in bracketed numeric format (e.g., [1], [2], [1, 2], [3]). Write fluidly and narratively (e.g., "as X explains...", "as noted in Y...").
+  - Filter and omit tragic details about wars, civilian casualties, or war crimes from research context unless the topic is military or geopolitical. Focus strictly on technology or opinion aspects suitable for the blogger.
+  - Use **bold text** (`**text**` markdown) to highlight key terms, main ideas, or important concepts to make the article visually scannable.
+  - Include AT LEAST 2 concrete data points or specific quotes from the research. Don't stay in generalities.
+  - DO NOT use template structure headers like "Context", "Introduction", "What I learned", "Final reflection", or "Conclusion" as section titles. Let structure flow naturally.
+  - Each section title must be SPECIFIC to the concrete content, not generic. If that title could appear in any other post, it is wrong.
+  - Think: "What is the most interesting part of this information?" and start there.
+  - Vary section lengths. Some ideas deserve one paragraph, others deserve several.
+  - If the blogger uses first person, personal anecdotes, humor, etc., do the same.
+  - Mention these topics if they fit naturally: {keywords_str}
+
+- ### STYLE — blogger emulation + no AI markers
+  - Emulate {blogger_name}'s style in EVERYTHING: vocabulary, expressions, tone, opening and closing. The style profile is above.
+  - DO NOT state that this is AI-generated content.
+  - DO NOT generate fake image URLs (invented src="https://...").
+  - Vary connectors. Do not use "However" more than once. Alternate with "But", "That said", "The problem is", "The truth is", etc.
+  - Write like a human being, not an assistant. No repetitive structures.
+
+Write the full post now:{attribution}"""
+            else:
+                prompt = f"""Abajo tienes posts REALES escritos por {blogger_name}, cuyo estilo de escritura tienes que imitar fielmente, e información factual sobre el tema del post.
 
 ━━━━━━ EJEMPLOS DEL BLOGGER ORIGINAL ────────
 {sample_text[:20000]}
@@ -345,7 +451,40 @@ Escribe el post completo ahora:{attribution}"""
         else:
             # ---- PROMPT SIMPLIFICADO (sin ejemplos del blogger) ----
             language_rules = self._language_rules(effective_language, simplified=True)
-            prompt = f"""{research_block}
+            if effective_language == "en":
+                prompt = f"""{research_block}
+Write a blog post emulating the style of {blogger_name}. Below is their style profile.
+
+Topic: {topic}
+
+{style_context}
+
+RULES:
+
+{language_rules}
+
+- ### CONTENT and quality
+  - BASE YOURSELF ON REAL INFORMATION. Do not invent data.
+  - NEVER use citations in bracketed numeric format (e.g., [1], [2], [1, 2], [3]). Write fluidly and narratively (e.g., "as X explains...", "as noted in Y...").
+  - Filter and omit tragic details about wars, civilian casualties, or war crimes from research context unless the topic is military or geopolitical. Focus strictly on technology or opinion aspects suitable for the blogger.
+  - Use **bold text** (`**text**` markdown) to highlight key terms, main ideas, or important concepts to make the article visually scannable.
+  - Include AT LEAST 2 concrete data points from research.
+  - DO NOT use generic titles like "Introduction" or "Conclusion".
+  - Each section title must be SPECIFIC to the concrete content.
+  - Vary section lengths.
+  - Mention these topics if they fit: {keywords_str}
+  - Length: between {min_words} and {max_words} words.
+
+- ### STYLE — blogger emulation + no AI markers
+  - Emulate {blogger_name}'s style: vocabulary, expressions, tone, and writing style. The profile is above.
+  - DO NOT state that it is AI-generated content.
+  - DO NOT generate fake image URLs.
+  - Vary connectors. Do not use "However" more than once. Alternate with "But", "That said", "The problem is", "The truth is", etc.
+  - Write like a human being, not an assistant.
+
+Write the post now:{attribution}"""
+            else:
+                prompt = f"""{research_block}
 Escribe un post de blog imitando el estilo de {blogger_name}. Abajo está su perfil de estilo.
 
 Tema: {topic}

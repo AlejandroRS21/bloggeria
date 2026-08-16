@@ -16,6 +16,7 @@ from aphra_blogger.agents.content_generator import (
     _SYSTEM_PROMPTS,
 )
 from aphra_blogger.agents.html_builder import HTMLBuilder
+from aphra_blogger.agents.keyword_extractor import KeywordExtractor
 from aphra_blogger.agents.style_analyzer import StyleAnalyzer
 from src.orchestrator.config import OrchestratorConfig
 from src.orchestrator.main import BloggerOrchestrator
@@ -288,6 +289,132 @@ class TestGoldenRegression:
         assert footer == expected
 
 
+class TestEnScaffoldPurity:
+    """EN draft prompts/contexts must be fully English (no Spanish scaffold)."""
+
+    ES_SCAFFOLD_MARKERS = [
+        "Abajo tienes", "REGLAS:", "BÁSATE", "Sin embargo", "PERFIL DE ESTILO",
+        "INFORMACIÓN REAL", "Escribe el post", "Ahora escribe", "Tono y Voz",
+        "Vocabulario característico", "Frases de transición", "Cómo suele",
+        "No generes", "no como un asistente",
+    ]
+
+    def _main_en_prompt(self):
+        gen = _fresh_generator()
+        gen.generate_draft(
+            topic=TOPIC, style_profile=PROFILE, sample_text=SAMPLE_MAIN,
+            research_context=RESEARCH, blogger_urls=URLS, language="en",
+        )
+        return gen.llm.calls[-1]["user"]
+
+    def _simplified_en_prompt(self):
+        gen = _fresh_generator()
+        gen.generate_draft(
+            topic=TOPIC, style_profile=PROFILE, sample_text="",
+            research_context=RESEARCH, blogger_urls=URLS, language="en",
+        )
+        return gen.llm.calls[-1]["user"]
+
+    def test_main_prompt_has_english_scaffold(self):
+        prompt = self._main_en_prompt()
+        assert "ORIGINAL BLOGGER EXAMPLES" in prompt
+        assert "Now write a NEW post about" in prompt
+        assert "RULES:" in prompt
+        assert "CONTENT and structure" in prompt
+        assert "Write the full post now" in prompt
+
+    def test_main_prompt_has_no_spanish_scaffold(self):
+        prompt = self._main_en_prompt()
+        for marker in self.ES_SCAFFOLD_MARKERS:
+            assert marker not in prompt, f"Spanish scaffold leaked: {marker}"
+
+    def test_simplified_prompt_english_only(self):
+        prompt = self._simplified_en_prompt()
+        assert "Write a blog post emulating the style of" in prompt
+        assert "Topic:" in prompt
+        assert "RULES:" in prompt
+        assert "CONTENT and quality" in prompt
+        for marker in self.ES_SCAFFOLD_MARKERS:
+            assert marker not in prompt, f"Spanish scaffold leaked: {marker}"
+
+    def test_style_context_en_labels(self):
+        prompt = self._main_en_prompt()
+        assert "STYLE PROFILE" in prompt
+        assert "Reference blogger" in prompt
+        assert "Tone and Voice" in prompt
+        assert "END OF PROFILE" in prompt
+
+    def test_research_block_en(self):
+        prompt = self._main_en_prompt()
+        assert "REAL FACTUAL CONTEXT ABOUT THE TOPIC" in prompt
+        assert "END OF INFORMATION" in prompt
+
+    def test_research_block_es_still_spanish(self):
+        gen = _fresh_generator()
+        block = gen._build_research_block(RESEARCH, language="es")
+        assert "INFORMACIÓN REAL SOBRE EL TEMA" in block
+
+    def test_style_context_default_es_byte_identical(self):
+        gen = ContentGenerator(api_key=None)
+        es_context = gen._build_style_context(PROFILE, URLS, language="es")
+        default_context = gen._build_style_context(PROFILE, URLS)
+        assert es_context == default_context
+        assert "PERFIL DE ESTILO" in es_context
+
+
+class TestEnProfiles:
+    """REQ-4: EN prebaked profiles carry English metadata descriptors."""
+
+    EN_PROFILES = [
+        "simon_willison", "julia_evans", "dan_luu", "dan_abramov",
+        "ezra_klein", "marginalian", "serious_eats",
+    ]
+    SPANISH_MARKERS = [
+        "directo", "escritor", "primera persona", "párrafos", "técnico-alto",
+        "divulgativo", "frecuentes", "entusiasta", "ocasional", "acordes",
+        "tecnologia", "noticias", "literatura", "comida",
+    ]
+
+    def test_en_profiles_metadata_english(self):
+        import json
+        from pathlib import Path
+        base = Path(__file__).parent.parent / "profiles"
+        for slug in self.EN_PROFILES:
+            profile = json.loads((base / f"{slug}_style_profile.json").read_text(encoding="utf-8"))
+            assert profile.get("language") == "en"
+            fields = [
+                profile.get("tone", ""), profile.get("voice", ""),
+                profile.get("sentence_pattern", ""), profile.get("paragraph_pattern", ""),
+                profile.get("use_of_humor", ""), profile.get("technical_level", ""),
+                profile.get("engagement_style", ""), profile.get("niche", ""),
+            ]
+            blob = " ".join(fields).lower()
+            for marker in self.SPANISH_MARKERS:
+                assert marker not in blob, f"Spanish descriptor leaked in {slug}: {marker}"
+
+
+class TestKeywordExtractorLanguage:
+    """REQ-5: keyword fallback localized per language; orchestrator passes language."""
+
+    def test_fallback_en_english(self):
+        extractor = KeywordExtractor(api_key=None)
+        result = extractor.extract(["https://example.com"], language="en")
+        assert "technology" in result["keywords"]
+        assert "tecnología" not in " ".join(result["keywords"])
+        assert "on the other hand" in result["expressions"]
+        assert "sin embargo" not in " ".join(result["expressions"])
+
+    def test_fallback_es_default(self):
+        extractor = KeywordExtractor(api_key=None)
+        result = extractor.extract(["https://example.com"])
+        assert "tecnología" in result["keywords"]
+
+    def test_resolve_auto_from_profile(self):
+        assert KeywordExtractor._resolve_language("auto", {"language": "en"}) == "en"
+        assert KeywordExtractor._resolve_language("auto", {}) == "es"
+        assert KeywordExtractor._resolve_language("fr", {}) == "es"
+
+
 class TestHtmlLanguage:
     """REQ-3: <html lang>, UI strings es/en, neutral meta fallback."""
 
@@ -419,6 +546,20 @@ class TestOrchestratorLanguage:
         captured = self._draft_spy(orch)
         orch.run(topic="Test", blogger_urls=["https://example.com"], language="auto")
         assert captured["language"] == "es"
+
+    def test_keyword_phase_receives_resolved_language(self, config, offline):
+        orch = BloggerOrchestrator(config=config, verbose=False)
+        self._draft_spy(orch)
+        captured = {}
+
+        def fake_extract(*args, **kwargs):
+            captured["language"] = kwargs.get("language")
+            captured["style_profile"] = kwargs.get("style_profile")
+            return {"keywords": ["test"]}
+
+        orch.keyword_extractor.extract = fake_extract
+        orch.run(topic="Test", blogger_urls=["https://example.com"], language="en")
+        assert captured["language"] == "en"
 
     def test_html_phase_receives_resolved_language(self, config, offline):
         orch = BloggerOrchestrator(config=config, verbose=False)

@@ -37,10 +37,10 @@
     "Release notes and changelogs",
     "Hobby projects"
   ],
-  "tone": "directo, pragmático, entusiasta y técnico",
-  "voice": "primera persona del singular, ingeniero que comparte apuntes de trabajo",
-  "sentence_pattern": "frases cortas y concretas, con enlaces densos",
-  "paragraph_pattern": "párrafos breves, con listas y viñetas frecuentes",
+  "tone": "direct, pragmatic, enthusiastic, and technical",
+  "voice": "first-person singular, engineer sharing work notes",
+  "sentence_pattern": "short and concrete sentences with dense linking",
+  "paragraph_pattern": "brief paragraphs with frequent bullet points",
   "common_opens": [
     "I've been experimenting with…",
     "Here are my notes on…",
@@ -51,10 +51,10 @@
     "The code is up on GitHub.",
     "I'd love to hear about your experiences with it."
   ],
-  "use_of_humor": "humor seco y ocasional",
-  "technical_level": "técnico-alto",
-  "engagement_style": "abierto a correcciones y aportes",
+  "use_of_humor": "dry and occasional humor",
+  "technical_level": "technical-high",
+  "engagement_style": "open to corrections and contributions",
   "language": "en",
   "language_label": "English",
-  "niche": "tecnologia"
+  "niche": "technology"
 }
