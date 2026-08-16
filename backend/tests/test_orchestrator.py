@@ -407,6 +407,76 @@ class TestStyleAnalysisPrebakedShortCircuit:
         assert state.style_profile["alias"] == "Custom"
         assert state.phases["style_analysis"].status == PhaseStatus.COMPLETED
 
+    def test_style_analysis_with_explicit_preset_id(self, preset_config, monkeypatch):
+        """Explicit preset_id param resolves pre-baked profile without network."""
+        orch = BloggerOrchestrator(config=preset_config, verbose=False)
+        state = WorkflowState(
+            workflow_id="preset-id-explicit",
+            topic="Analítica electoral",
+            blogger_urls=["https://elpais.com/opinion/analytics/"],
+        )
+        orch.state_manager = StateManager(state)
+
+        def boom(*args, **kwargs):
+            raise AssertionError("network/analyzer must not run when preset_id is valid")
+
+        monkeypatch.setattr("src.orchestrator.main.requests.get", boom)
+        monkeypatch.setattr(orch.style_analyzer, "analyze", boom)
+
+        orch._phase_style_analysis(["https://elpais.com/opinion/analytics/"], preset_id="kiko-llaneras")
+
+        assert state.style_profile["alias"] == "Kiko Llaneras"
+        assert state.phases["style_analysis"].status == PhaseStatus.COMPLETED
+
+    def test_style_analysis_preset_id_with_custom_url(self, preset_config, monkeypatch):
+        """Preset ID combined with extra custom URL uses preset pre-baked profile, skipping live scrape."""
+        orch = BloggerOrchestrator(config=preset_config, verbose=False)
+        state = WorkflowState(
+            workflow_id="preset-plus-custom",
+            topic="Política y datos",
+            blogger_urls=["https://elpais.com/opinion/analytics/", "https://custom-unregistered-blog.com"],
+        )
+        orch.state_manager = StateManager(state)
+
+        def boom(*args, **kwargs):
+            raise AssertionError("network/analyzer must not run when preset_id is valid, even with extra custom URLs")
+
+        monkeypatch.setattr("src.orchestrator.main.requests.get", boom)
+        monkeypatch.setattr(orch.style_analyzer, "analyze", boom)
+
+        orch._phase_style_analysis(
+            ["https://elpais.com/opinion/analytics/", "https://custom-unregistered-blog.com"],
+            preset_id="kiko-llaneras",
+        )
+
+        assert state.style_profile["alias"] == "Kiko Llaneras"
+        assert state.phases["style_analysis"].status == PhaseStatus.COMPLETED
+
+    @pytest.mark.parametrize("preset_id, url", [
+        ("kiko-llaneras", "https://elpais.com/opinion/analytics/"),
+        ("ezra-klein", "https://www.nytimes.com/column/ezra-klein"),
+    ])
+    def test_kiko_and_ezra_resolve_by_url_without_network(self, preset_config, monkeypatch, preset_id, url):
+        """Kiko Llaneras and Ezra Klein full section URLs resolve pre-baked without network."""
+        orch = BloggerOrchestrator(config=preset_config, verbose=False)
+        state = WorkflowState(
+            workflow_id=f"url-resolve-{preset_id}",
+            topic="Opinión",
+            blogger_urls=[url],
+        )
+        orch.state_manager = StateManager(state)
+
+        def boom(*args, **kwargs):
+            raise AssertionError(f"network/analyzer must not run for preset URL {url}")
+
+        monkeypatch.setattr("src.orchestrator.main.requests.get", boom)
+        monkeypatch.setattr(orch.style_analyzer, "analyze", boom)
+
+        orch._phase_style_analysis([url])
+
+        assert state.style_profile is not None
+        assert state.phases["style_analysis"].status == PhaseStatus.COMPLETED
+
 
 if __name__ == '__main__':
     pytest.main([__file__, '-v'])

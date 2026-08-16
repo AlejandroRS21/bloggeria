@@ -128,6 +128,39 @@ class TestRegistryLookup:
         assert get_prebaked_profile("   ") is None
 
 
+FRONTEND_PRESETS = [
+    ("javipas", "https://javipas.com"),
+    ("microsiervos", "https://www.microsiervos.com"),
+    ("simonwillison", "https://simonwillison.net"),
+    ("jvns", "https://jvns.ca"),
+    ("danluu", "https://danluu.com"),
+    ("overreacted", "https://overreacted.io"),
+    ("kiko-llaneras", "https://elpais.com/opinion/analytics/"),
+    ("ezra-klein", "https://www.nytimes.com/column/ezra-klein"),
+    ("zenda-libros", "https://www.zendalibros.com"),
+    ("marginalian", "https://www.themarginalian.org"),
+    ("el-comidista", "https://elcomidista.elpais.com"),
+    ("serious-eats", "https://www.seriouseats.com"),
+    ("lecturas-cotilleos", "https://www.lecturas.com"),
+]
+
+
+class TestAll13PresetsResolution:
+    """Requirement: All 13 frontend presets MUST resolve pre-baked profiles by ID and by frontend URL."""
+
+    @pytest.mark.parametrize("preset_id, frontend_url", FRONTEND_PRESETS)
+    def test_preset_resolves_by_id(self, preset_id, frontend_url):
+        profile = get_prebaked_profile(preset_id)
+        assert profile is not None, f"Preset ID '{preset_id}' failed to resolve pre-baked profile"
+        assert "alias" in profile
+
+    @pytest.mark.parametrize("preset_id, frontend_url", FRONTEND_PRESETS)
+    def test_preset_resolves_by_frontend_url(self, preset_id, frontend_url):
+        profile = get_prebaked_profile(frontend_url)
+        assert profile is not None, f"Frontend URL '{frontend_url}' (preset '{preset_id}') failed to resolve pre-baked profile"
+        assert "alias" in profile
+
+
 class TestProfileSchema:
     """All 13 pre-baked profiles exist, parse, and match the design schema."""
 

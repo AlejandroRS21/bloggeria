@@ -159,7 +159,8 @@ class BloggerOrchestrator:
         topic: str,
         blogger_urls: List[str],
         language: str = "auto",
-        output_path: Optional[str] = None
+        output_path: Optional[str] = None,
+        preset_id: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
         Execute the complete orchestrated workflow.
@@ -169,6 +170,7 @@ class BloggerOrchestrator:
             blogger_urls: List of URLs to analyze for style
             language: "auto" (explicit > style_profile > "es"), "es" or "en"
             output_path: Optional path to save workflow state JSON
+            preset_id: Optional frontend blogger preset ID (slug)
             
         Returns:
             Dictionary with generated content and metadata
@@ -191,11 +193,13 @@ class BloggerOrchestrator:
         self._log(f"Blogger Orchestrator Started [ID: {workflow_id}]")
         self._log(f"Topic: {topic}")
         self._log(f"Blogger URLs: {len(blogger_urls)} URL(s)")
+        if preset_id:
+            self._log(f"Preset ID: {preset_id}")
         self._log("=" * 60)
         
         try:
             # Phase 1: Style Analysis
-            self._phase_style_analysis(blogger_urls)
+            self._phase_style_analysis(blogger_urls, preset_id=preset_id)
             
             # Phase 2: Keyword Extraction
             self._phase_keyword_extraction(blogger_urls)
@@ -308,7 +312,11 @@ class BloggerOrchestrator:
             self._log(f"Error discovering posts: {e}", "WARNING")
             return [base_url]
 
-    def _phase_style_analysis(self, blogger_urls: List[str]) -> None:
+    def _phase_style_analysis(
+        self,
+        blogger_urls: List[str],
+        preset_id: Optional[str] = None,
+    ) -> None:
         """Phase 1: Analyze blogger style.
 
         REQ-BE-LOADER: registered presets short-circuit to pre-baked style
@@ -318,16 +326,24 @@ class BloggerOrchestrator:
         phase_name = "style_analysis"
         self.state_manager.start_phase(phase_name, "StyleAnalyzer")
 
-        if blogger_urls:
-            prebaked = [get_prebaked_profile(url) for url in blogger_urls]
-            if all(profile is not None for profile in prebaked):
-                profile = prebaked[0]
-                self._log(
-                    f"Using pre-baked style profile ({len(prebaked)} URL(s) matched registry)"
-                )
+        # 1. Try explicit preset_id first
+        if preset_id:
+            profile = get_prebaked_profile(preset_id)
+            if profile is not None:
+                self._log(f"Using pre-baked style profile for preset_id '{preset_id}'")
                 self.state_manager.state.style_profile = profile
                 self.state_manager.complete_phase(phase_name, profile)
                 return
+
+        # 2. Try pre-baked profile resolution by URL
+        if blogger_urls:
+            for url in blogger_urls:
+                profile = get_prebaked_profile(url)
+                if profile is not None:
+                    self._log(f"Using pre-baked style profile matching URL '{url}'")
+                    self.state_manager.state.style_profile = profile
+                    self.state_manager.complete_phase(phase_name, profile)
+                    return
 
         def analyze():
             combined_sample_text = ""

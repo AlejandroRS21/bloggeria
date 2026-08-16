@@ -196,6 +196,7 @@ export default function NewPostPage() {
           topic: state.topic.trim(),
           blogger_urls: bloggerUrls,
           blogger_name: preset.name,
+          blogger_preset_id: preset.id,
           provider: "gemini",
           language: state.language,
           job_id: jobId,

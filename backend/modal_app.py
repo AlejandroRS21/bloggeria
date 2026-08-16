@@ -73,6 +73,8 @@ def generate_blog_post(
     language: str = "auto",
     job_id: Optional[str] = None,
     blogger_name: Optional[str] = None,
+    preset_id: Optional[str] = None,
+    blogger_preset_id: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
     Generate a blog post that mimics the style of the given blogger.
@@ -121,12 +123,15 @@ def generate_blog_post(
     # Create orchestrator
     orchestrator = BloggerOrchestrator(config=config, verbose=True)
     
+    resolved_preset_id = preset_id or blogger_preset_id
+
     # Run the workflow
     result = orchestrator.run(
         topic=topic,
         blogger_urls=blogger_urls,
         language=language,
         output_path=None,  # Don't save to file in serverless
+        preset_id=resolved_preset_id,
     )
     
     # ── Persist to Supabase ──────────────────────────────────────────
@@ -512,6 +517,14 @@ def webhook(data: Dict[str, Any]) -> Dict[str, Any]:
                 "data": None,
                 "error": "blogger_name must be a string"
             }
+
+        preset_id = data.get("blogger_preset_id") or data.get("preset_id")
+        if preset_id is not None and not isinstance(preset_id, str):
+            return {
+                "success": False,
+                "data": None,
+                "error": "blogger_preset_id must be a string"
+            }
         
         # ── Content Moderation ────────────────────────────────────────────
         moderation = moderate_topic(topic)
@@ -537,6 +550,7 @@ def webhook(data: Dict[str, Any]) -> Dict[str, Any]:
             language=language,
             job_id=job_id,
             blogger_name=blogger_name,
+            preset_id=preset_id,
         )
 
         return {
