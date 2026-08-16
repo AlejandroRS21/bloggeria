@@ -66,8 +66,25 @@ def _load_modal_app(monkeypatch, calls):
     return importlib.import_module("modal_app")
 
 
+@pytest.fixture
+def modal_app_reload_guard():
+    """Restore the real modal_app after a FakeModal reload.
+
+    _load_modal_app reloads modal_app in place against a stubbed `modal`,
+    which leaves the shared sys.modules["modal_app"] bound to plain
+    functions (no .spawn). Reload it against the real modal on teardown so
+    later tests (e.g. test_style_mapping) see the true Modal Function.
+    """
+    real_modal = sys.modules.get("modal")
+    yield
+    if real_modal is not None:
+        sys.modules["modal"] = real_modal
+    if "modal_app" in sys.modules:
+        importlib.reload(sys.modules["modal_app"])
+
+
 class TestModalProfilesMount:
-    def test_image_mounts_profiles_dir(self, monkeypatch):
+    def test_image_mounts_profiles_dir(self, monkeypatch, modal_app_reload_guard):
         calls = []
         _load_modal_app(monkeypatch, calls)
 
