@@ -62,6 +62,9 @@ REGISTRY: dict[str, str] = {
     "overreacted.io": "dan_abramov_style_profile.json",
     "kikollaneras.elpais.com": "kiko_llaneras_style_profile.json",
     "ezraklein.nytimes.com": "ezra_klein_style_profile.json",
+    # Real frontend section URLs for shared domains
+    "elpais.com/opinion/analytics": "kiko_llaneras_style_profile.json",
+    "nytimes.com/column/ezra-klein": "ezra_klein_style_profile.json",
     "zendalibros.com": "zenda_libros_style_profile.json",
     "themarginalian.org": "marginalian_style_profile.json",
     "elcomidista.elpais.com": "el_comidista_style_profile.json",
@@ -77,7 +80,7 @@ def _resolve_profiles_dir() -> Path:
     return _MODAL_PROFILES_DIR
 
 
-def _normalize_key(raw: str) -> str | None:
+def _normalize_key(raw: str, strip_path: bool = False) -> str | None:
     """Normalize a lookup input to a registry key, or None if unsafe/invalid.
 
     Accepts blogger IDs, slugs, and http(s) blog URLs (with or without
@@ -94,7 +97,7 @@ def _normalize_key(raw: str) -> str | None:
     value = value.rstrip("/")
     if value.startswith("www."):
         value = value[4:]
-    if "/" in value:
+    if strip_path and "/" in value:
         value = value.split("/", 1)[0]
     return value or None
 
@@ -106,8 +109,15 @@ def get_prebaked_profile(url_or_id: str) -> dict[str, Any] | None:
     registered preset and its JSON file exists and parses; otherwise None
     (callers fall back to live scraping).
     """
-    key = _normalize_key(url_or_id)
+    # 1. Try exact key (preserves path for section URLs on shared domains)
+    key = _normalize_key(url_or_id, strip_path=False)
     filename = REGISTRY.get(key or "")  # "" never keys the map
+
+    # 2. Fall back to netloc-only key if exact path missed (e.g. blog post URLs)
+    if filename is None and key and "/" in key:
+        domain_key = _normalize_key(url_or_id, strip_path=True)
+        filename = REGISTRY.get(domain_key or "")
+
     if filename is None:
         return None
 
