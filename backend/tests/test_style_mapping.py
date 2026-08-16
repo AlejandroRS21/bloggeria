@@ -57,7 +57,7 @@ class TestWebhookBloggerNameGuard:
 
     def test_non_string_job_id_rejected(self, monkeypatch):
         monkeypatch.setattr(
-            modal_app, "moderate_topic", lambda topic: {"approved": True}
+            modal_app, "moderate_topic", lambda topic, **kwargs: {"approved": True}
         )
         payload = {
             "blogger_urls": ["https://simonwillison.net"],
@@ -73,7 +73,7 @@ class TestWebhookBloggerNameGuard:
 
     def test_async_job_id_success(self, monkeypatch):
         monkeypatch.setattr(
-            modal_app, "moderate_topic", lambda topic: {"approved": True}
+            modal_app, "moderate_topic", lambda topic, **kwargs: {"approved": True}
         )
         spawn_called = {}
         def fake_spawn(**kwargs):
