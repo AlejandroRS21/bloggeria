@@ -15,12 +15,15 @@ Then call the webhook:
     }
 """
 
-import modal
 import os
 import re
+import uuid
+from collections import deque
 from datetime import datetime
-from typing import Dict, Any, List, Optional
+from typing import Any, Dict, List, Optional
 from urllib.parse import urlparse
+
+import modal
 
 from src.orchestrator.safety import (
     SafetyAgent,
@@ -35,6 +38,221 @@ app = modal.App("blogger-agent-tfg")
 # Supabase project the frontend reads from (REQ-2). Writes to any other
 # project are rejected, never silent.
 EXPECTED_SUPABASE_PROJECT_ID = "stqtpbdzqgcbaqdvrsij"
+
+# ── Queue, Concurrency, and Rate Limit Configuration ───────────────
+MAX_CONCURRENT_GENERATIONS = int(os.environ.get("MAX_CONCURRENT_GENERATIONS", "2"))
+RATE_LIMIT_MAX_PER_HOUR = int(os.environ.get("RATE_LIMIT_MAX_PER_HOUR", "5"))
+RATE_LIMIT_WINDOW_SECONDS = int(os.environ.get("RATE_LIMIT_WINDOW_SECONDS", "3600"))
+JOB_STALE_TIMEOUT_SECONDS = int(os.environ.get("JOB_STALE_TIMEOUT_SECONDS", "7200"))
+
+
+def _get_queue():
+    import modal
+    return modal.Queue.from_name("blogger-job-queue", create_if_missing=True)
+
+
+def _get_job_store():
+    import modal
+    return modal.Dict.from_name("blogger-jobs", create_if_missing=True)
+
+
+def _get_rate_store():
+    import modal
+    return modal.Dict.from_name("blogger-rate-limit", create_if_missing=True)
+
+
+# ── In-memory fallbacks for local/webhook.local() runs ─────────────
+# When no FastAPI Request is present (unit tests, local debugging) the
+# webhook MUST NOT touch Modal cloud state: queue/store are process-local
+# so tests stay deterministic and offline.
+class _MemoryQueue:
+    def __init__(self):
+        self._items = deque()
+
+    def put(self, item):
+        self._items.append(item)
+
+    def get(self, block=False):
+        if not self._items:
+            raise IndexError("empty")
+        return self._items.popleft()
+
+    def __len__(self):
+        return len(self._items)
+
+    def len(self):
+        return len(self._items)
+
+
+_MEMORY_QUEUE = None
+_MEMORY_STORE: Dict[str, Any] = {}
+
+
+def _memory_queue() -> Any:
+    global _MEMORY_QUEUE
+    if _MEMORY_QUEUE is None:
+        _MEMORY_QUEUE = _MemoryQueue()
+    return _MEMORY_QUEUE
+
+
+def _memory_store() -> Dict[str, Any]:
+    return _MEMORY_STORE
+
+
+def _client_ip(request: Any) -> Optional[str]:
+    """Extract client IP from FastAPI Request (supports X-Forwarded-For)."""
+    if not request:
+        return None
+    headers = getattr(request, "headers", {}) or {}
+    xff = headers.get("x-forwarded-for") or headers.get("X-Forwarded-For")
+    if xff and isinstance(xff, str):
+        return xff.split(",")[0].strip()
+    client = getattr(request, "client", None)
+    return getattr(client, "host", None) if client else None
+
+
+def _rate_limited(
+    ip: Optional[str],
+    store: Any = None,
+    max_reqs: Optional[int] = None,
+    window: Optional[int] = None,
+) -> bool:
+    """Check and update IP rate limit. Returns True if request exceeds threshold."""
+    if not ip:
+        return False
+    store = store if store is not None else _get_rate_store()
+    max_reqs = max_reqs if max_reqs is not None else RATE_LIMIT_MAX_PER_HOUR
+    window = window if window is not None else RATE_LIMIT_WINDOW_SECONDS
+    now = datetime.now().timestamp()
+    history = list(store.get(ip, []))
+    fresh = [t for t in history if now - t < window]
+    if len(fresh) >= max_reqs:
+        return True
+    fresh.append(now)
+    store[ip] = fresh
+    return False
+
+
+def _mark_job(
+    job_id: str,
+    status: str,
+    store: Any = None,
+    ip: Optional[str] = None,
+):
+    """Record job lifecycle state in Modal Dict."""
+    if not job_id:
+        return
+    store = store if store is not None else _get_job_store()
+    existing = store.get(job_id, {})
+    store[job_id] = {
+        "status": status,
+        "updated_at": datetime.now().timestamp(),
+        "ip": ip or existing.get("ip"),
+    }
+
+
+def _get_running_count(store: Any = None) -> int:
+    """Count non-stale running jobs in the job store."""
+    store = store if store is not None else _get_job_store()
+    now = datetime.now().timestamp()
+    count = 0
+    try:
+        keys = list(store.keys())
+    except Exception:
+        return 0
+    for k in keys:
+        item = store.get(k, {})
+        if item.get("status") == "running":
+            updated_at = item.get("updated_at", 0)
+            if now - updated_at <= JOB_STALE_TIMEOUT_SECONDS:
+                count += 1
+    return count
+
+
+def _is_job_active(job_id: str, store: Any = None) -> bool:
+    """Check if a job_id is currently queued or running to prevent duplicate jobs."""
+    if not job_id:
+        return False
+    store = store if store is not None else _get_job_store()
+    item = store.get(job_id)
+    if not item or not isinstance(item, dict):
+        return False
+    status = item.get("status")
+    if status in ("queued", "running"):
+        return True
+    if status == "done":
+        now = datetime.now().timestamp()
+        updated_at = item.get("updated_at", 0)
+        if now - updated_at < 60:
+            return True
+    return False
+
+
+def _use_memory_backend(request: Any) -> bool:
+    """Process-local state when no FastAPI Request OR running in local mode.
+
+    Unit tests and webhook.local() runs must never touch Modal cloud state;
+    only deployed (non-local) invocations use the real cloud queue/dicts.
+    """
+    if request is None:
+        return True
+    try:
+        import modal
+        return bool(modal.is_local())
+    except Exception:
+        return True
+
+
+def enqueue_job(
+    payload: Dict[str, Any],
+    ip: Optional[str] = None,
+    queue: Any = None,
+    store: Any = None,
+):
+    """Enqueues a generation payload into the Modal Queue and updates job status."""
+    queue = queue if queue is not None else _get_queue()
+    job_id = payload.get("job_id")
+    if job_id:
+        _mark_job(job_id, "queued", store=store, ip=ip)
+    queue.put(payload)
+
+
+def _drain_once(
+    queue: Any = None,
+    job_store: Any = None,
+    spawner: Any = None,
+    max_conc: Optional[int] = None,
+) -> int:
+    """Process up to available capacity from the FIFO queue."""
+    queue = queue if queue is not None else _get_queue()
+    job_store = job_store if job_store is not None else _get_job_store()
+    if spawner is None:
+        spawner = generate_blog_post.spawn
+    max_conc = max_conc if max_conc is not None else MAX_CONCURRENT_GENERATIONS
+
+    running = _get_running_count(job_store)
+    available_slots = max(0, max_conc - running)
+    drained = 0
+
+    for _ in range(available_slots):
+        try:
+            payload = queue.get(block=False)
+        except Exception:
+            break
+        if not payload or not isinstance(payload, dict):
+            continue
+        job_id = payload.get("job_id")
+        if job_id:
+            _mark_job(job_id, "running", store=job_store)
+        try:
+            spawner(**payload)
+            drained += 1
+        except Exception as spawn_err:
+            print(f"[_drain_once] Failed to spawn job {job_id}: {spawn_err}")
+            if job_id:
+                _mark_job(job_id, "done", store=job_store)
+
+    return drained
 
 backend_dir = os.path.dirname(__file__)
 
@@ -113,8 +331,8 @@ def generate_blog_post(
         sys.path.insert(0, "/root")
         
     # Import here to avoid loading during image build
-    from src.orchestrator.main import BloggerOrchestrator
     from src.orchestrator.config import OrchestratorConfig
+    from src.orchestrator.main import BloggerOrchestrator
     
     # Configure orchestrator
     config = OrchestratorConfig(
@@ -133,73 +351,83 @@ def generate_blog_post(
     
     resolved_preset_id = preset_id or blogger_preset_id
 
-    # Run the workflow
-    result = orchestrator.run(
-        topic=topic,
-        blogger_urls=blogger_urls,
-        language=language,
-        output_path=None,  # Don't save to file in serverless
-        preset_id=resolved_preset_id,
-    )
-    
-    # ── Content Moderation: validate the COMPLETE generated article ─────
-    # before persisting. If unsafe, the post is NOT published (REQ-MOD-1).
     try:
-        from src.orchestrator.safety import SafetyAgent, normalize_niche
-
-        niche_key = normalize_niche(niche)
-        # Reuse whichever LLM credentials the orchestrator already has.
-        llm_api_key = os.environ.get("GEMINI_API_KEY") or os.environ.get("OPENAI_API_KEY")
-        if llm_api_key:
-            llm_provider = "gemini" if os.environ.get("GEMINI_API_KEY") else "openai"
-            safety = SafetyAgent(api_key=llm_api_key, provider=llm_provider)
-            article_check = safety.validate_article(
-                {
-                    "title": result.get("title", ""),
-                    "description": result.get("html_structure", {}).get("metadata", {}).get("description", ""),
-                    "content": result.get("html_structure", {}).get("html", ""),
-                },
-                niche=niche_key,
-            )
-        else:
-            # No LLM available in this runtime: run the deterministic layer only.
-            from src.orchestrator.safety import check_deterministic
-            article_text = f"{result.get('title', '')} {result.get('html_structure', {}).get('html', '')[:4000]}"
-            article_check = check_deterministic(article_text, niche=niche_key) or {
-                "approved": True, "safe": True, "reason": None, "layer": "deterministic_only"
-            }
-
-        if not article_check.get("approved", True) and not article_check.get("safe", True):
-            reason = article_check.get("reason", "Artículo generado no apto")
-            layer = article_check.get("layer", "llm")
-            print(f"[generate_blog_post] Article REJECTED by moderator ({layer}): {reason}")
-            log_moderation_event("article", reason, layer, niche_key, result.get("title", "")[:120])
-            return {**result, "moderation": {"approved": False, "reason": reason}}
-    except Exception as mod_err:
-        # Moderation failure must NEVER block publishing a valid post.
-        print(f"[generate_blog_post] Article moderation skipped (non-blocking): {mod_err}")
-
-    # ── Persist to Supabase ──────────────────────────────────────────
-    supabase_url = os.environ.get("SUPABASE_URL", "")
-    resolved_project = supabase_project_id(supabase_url)
-    print(f"[generate_blog_post] supabase URL origin: {urlparse(supabase_url).netloc or '(empty)'}")
-    print(f"[generate_blog_post] supabase project: {resolved_project or 'UNKNOWN'}")
-    try:
-        from supabase import create_client
-        sb = create_client(
-            os.environ["SUPABASE_URL"],
-            os.environ["SUPABASE_SERVICE_KEY"],
+        if job_id:
+            _mark_job(job_id, "running")
+        # Run the workflow
+        result = orchestrator.run(
+            topic=topic,
+            blogger_urls=blogger_urls,
+            language=language,
+            output_path=None,  # Don't save to file in serverless
+            preset_id=resolved_preset_id,
         )
-        post_data = _map_to_supabase(result, blogger_name=blogger_name, job_id=job_id)
-        # ── Sanitize LLM-generated HTML before publishing (REQ-MOD-5) ──
-        post_data["content"] = sanitize_html(post_data.get("content", ""))
-        outcome = persist_post(sb, post_data, resolved_project)
-        if not outcome["success"]:
-            print(f"[generate_blog_post] Failed to persist post: {outcome.get('error')}")
-    except Exception as db_err:
-        print(f"[generate_blog_post] DB persistence failed: {db_err}")
+        
+        # ── Content Moderation: validate the COMPLETE generated article ─────
+        # before persisting. If unsafe, the post is NOT published (REQ-MOD-1).
+        try:
+            from src.orchestrator.safety import SafetyAgent, normalize_niche
 
-    return result
+            niche_key = normalize_niche(niche)
+            # Reuse whichever LLM credentials the orchestrator already has.
+            llm_api_key = os.environ.get("GEMINI_API_KEY") or os.environ.get("OPENAI_API_KEY")
+            if llm_api_key:
+                llm_provider = "gemini" if os.environ.get("GEMINI_API_KEY") else "openai"
+                safety = SafetyAgent(api_key=llm_api_key, provider=llm_provider)
+                article_check = safety.validate_article(
+                    {
+                        "title": result.get("title", ""),
+                        "description": result.get("html_structure", {}).get("metadata", {}).get("description", ""),
+                        "content": result.get("html_structure", {}).get("html", ""),
+                    },
+                    niche=niche_key,
+                )
+            else:
+                # No LLM available in this runtime: run the deterministic layer only.
+                from src.orchestrator.safety import check_deterministic
+                article_text = f"{result.get('title', '')} {result.get('html_structure', {}).get('html', '')[:4000]}"
+                article_check = check_deterministic(article_text, niche=niche_key) or {
+                    "approved": True, "safe": True, "reason": None, "layer": "deterministic_only"
+                }
+
+            if not article_check.get("approved", True) and not article_check.get("safe", True):
+                reason = article_check.get("reason", "Artículo generado no apto")
+                layer = article_check.get("layer", "llm")
+                print(f"[generate_blog_post] Article REJECTED by moderator ({layer}): {reason}")
+                log_moderation_event("article", reason, layer, niche_key, result.get("title", "")[:120])
+                return {**result, "moderation": {"approved": False, "reason": reason}}
+        except Exception as mod_err:
+            # Moderation failure must NEVER block publishing a valid post.
+            print(f"[generate_blog_post] Article moderation skipped (non-blocking): {mod_err}")
+
+        # ── Persist to Supabase ──────────────────────────────────────────
+        supabase_url = os.environ.get("SUPABASE_URL", "")
+        resolved_project = supabase_project_id(supabase_url)
+        print(f"[generate_blog_post] supabase URL origin: {urlparse(supabase_url).netloc or '(empty)'}")
+        print(f"[generate_blog_post] supabase project: {resolved_project or 'UNKNOWN'}")
+        try:
+            from supabase import create_client
+            sb = create_client(
+                os.environ["SUPABASE_URL"],
+                os.environ["SUPABASE_SERVICE_KEY"],
+            )
+            post_data = _map_to_supabase(result, blogger_name=blogger_name, job_id=job_id)
+            # ── Sanitize LLM-generated HTML before publishing (REQ-MOD-5) ──
+            post_data["content"] = sanitize_html(post_data.get("content", ""))
+            outcome = persist_post(sb, post_data, resolved_project)
+            if not outcome["success"]:
+                print(f"[generate_blog_post] Failed to persist post: {outcome.get('error')}")
+        except Exception as db_err:
+            print(f"[generate_blog_post] DB persistence failed: {db_err}")
+
+        return result
+    finally:
+        if job_id:
+            try:
+                _mark_job(job_id, "done")
+                _drain_once()
+            except Exception as drain_err:
+                print(f"[generate_blog_post] Job completion mark/drain error: {drain_err}")
 
 
 def _normalize_language(language: Any) -> str:
@@ -485,38 +713,11 @@ def _map_to_supabase(
     ],
 )
 @modal.fastapi_endpoint(method="POST")
-def webhook(data: Dict[str, Any]) -> Dict[str, Any]:
+def webhook(data: Dict[str, Any], request: Any = None) -> Dict[str, Any]:
     """
     Webhook endpoint for generating blog posts.
     
     This is the main entry point for external requests.
-    
-    Request body:
-    {
-        "blogger_urls": ["url1", "url2", ...],
-        "topic": "Topic to write about",
-        "blogger_name": "Author name", // optional (REQ-3)
-        "enable_critique": true,  // optional
-        "min_word_count": 800,    // optional
-        "max_word_count": 2500,   // optional
-        "provider": "huggingface" // optional
-    }
-    
-    Response:
-    {
-        "success": true,
-        "data": {
-            // Complete blog post data (see generate_blog_post return)
-        },
-        "error": null
-    }
-    
-    Or on error:
-    {
-        "success": false,
-        "data": null,
-        "error": "Error message"
-    }
     """
     try:
         # Validate required fields
@@ -583,6 +784,33 @@ def webhook(data: Dict[str, Any]) -> Dict[str, Any]:
                 "error": "blogger_preset_id must be a string"
             }
 
+        # ── Rate-limit check by client IP ─────────────────────────────────
+        ip = _client_ip(request)
+        # Local runs (webhook.local(), no FastAPI Request) use process-local
+        # state so tests are deterministic and never touch Modal cloud.
+        use_memory = _use_memory_backend(request)
+        queue = _memory_queue() if use_memory else None
+        job_store = _memory_store() if use_memory else None
+        rate_store = _memory_store() if use_memory else None
+
+        if _rate_limited(ip, store=rate_store):
+            print(f"[Webhook] Rate limit exceeded for IP: {ip}")
+            return {
+                "success": False,
+                "data": None,
+                "error": "⛔ Límite de tasa excedido (máximo 5 solicitudes/hora por IP). Inténtalo más tarde.",
+            }
+
+        # ── Deduplication / Job ID check ─────────────────────────────────
+        resolved_job_id = job_id or f"job-{str(uuid.uuid4())[:12]}"
+        if _is_job_active(resolved_job_id, store=job_store):
+            print(f"[Webhook] Duplicate job_id rejected: {resolved_job_id}")
+            return {
+                "success": False,
+                "data": None,
+                "error": f"El job '{resolved_job_id}' ya está en ejecución o completado recientemente.",
+            }
+
         # ── Niche-aware moderation ──────────────────────────────────────
         from src.orchestrator.safety import normalize_niche
         niche = "tech"
@@ -610,24 +838,31 @@ def webhook(data: Dict[str, Any]) -> Dict[str, Any]:
         print(f"[Webhook] Topic approved by moderator ✓")
         # ──────────────────────────────────────────────────────────────────
         
-        # Call the generator asynchronously
-        generate_blog_post.spawn(
-            blogger_urls=blogger_urls,
-            topic=topic,
-            enable_critique=enable_critique,
-            min_word_count=min_word_count,
-            max_word_count=max_word_count,
-            provider=provider,
-            language=language,
-            job_id=job_id,
-            blogger_name=blogger_name,
-            preset_id=preset_id,
-            niche=niche,
-        )
+        # Enqueue payload into FIFO queue
+        payload = {
+            "blogger_urls": blogger_urls,
+            "topic": topic,
+            "enable_critique": enable_critique,
+            "min_word_count": min_word_count,
+            "max_word_count": max_word_count,
+            "provider": provider,
+            "language": language,
+            "job_id": resolved_job_id,
+            "blogger_name": blogger_name,
+            "preset_id": preset_id,
+            "niche": niche,
+        }
+        enqueue_job(payload, ip=ip, queue=queue, store=job_store)
+
+        # Opportunistic drain: process immediately if under concurrency capacity
+        try:
+            _drain_once(queue=queue, job_store=job_store)
+        except Exception as drain_err:
+            print(f"[Webhook] Opportunistic drain failed (non-blocking): {drain_err}")
 
         return {
             "success": True,
-            "job_id": job_id,
+            "job_id": resolved_job_id,
             "status": "queued",
         }
         
@@ -637,6 +872,17 @@ def webhook(data: Dict[str, Any]) -> Dict[str, Any]:
             "data": None,
             "error": str(e)
         }
+
+
+@app.function(
+    image=image,
+    schedule=modal.Cron("*/1 * * * *"),  # Runs every minute to process queue
+)
+def drain_queue():
+    """Scheduled cron worker to consume FIFO job queue under max concurrency limit."""
+    dispatched = _drain_once()
+    if dispatched > 0:
+        print(f"[DrainQueue] Dispatched {dispatched} queued jobs.")
 
 
 @app.function(
