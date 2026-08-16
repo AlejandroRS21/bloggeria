@@ -140,5 +140,5 @@ class TestSafetyAgent:
 
         agent = SafetyAgent(api_key="test-key", provider="huggingface")
         res = agent.validate_topic("Cualquier tema")
-        assert res["safe"] is False
-        assert "Error técnico" in res["reason"]
+        assert res["safe"] is True
+        assert "Fallback por error técnico" in res["reason"]

@@ -22,6 +22,13 @@ from datetime import datetime
 from typing import Dict, Any, List, Optional
 from urllib.parse import urlparse
 
+from src.orchestrator.safety import (
+    SafetyAgent,
+    check_deterministic,
+    log_moderation_event,
+    sanitize_html,
+)
+
 # Create Modal app
 app = modal.App("blogger-agent-tfg")
 
@@ -75,6 +82,7 @@ def generate_blog_post(
     blogger_name: Optional[str] = None,
     preset_id: Optional[str] = None,
     blogger_preset_id: Optional[str] = None,
+    niche: str = "tech",
 ) -> Dict[str, Any]:
     """
     Generate a blog post that mimics the style of the given blogger.
@@ -134,6 +142,43 @@ def generate_blog_post(
         preset_id=resolved_preset_id,
     )
     
+    # ── Content Moderation: validate the COMPLETE generated article ─────
+    # before persisting. If unsafe, the post is NOT published (REQ-MOD-1).
+    try:
+        from src.orchestrator.safety import SafetyAgent, normalize_niche
+
+        niche_key = normalize_niche(niche)
+        # Reuse whichever LLM credentials the orchestrator already has.
+        llm_api_key = os.environ.get("GEMINI_API_KEY") or os.environ.get("OPENAI_API_KEY")
+        if llm_api_key:
+            llm_provider = "gemini" if os.environ.get("GEMINI_API_KEY") else "openai"
+            safety = SafetyAgent(api_key=llm_api_key, provider=llm_provider)
+            article_check = safety.validate_article(
+                {
+                    "title": result.get("title", ""),
+                    "description": result.get("html_structure", {}).get("metadata", {}).get("description", ""),
+                    "content": result.get("html_structure", {}).get("html", ""),
+                },
+                niche=niche_key,
+            )
+        else:
+            # No LLM available in this runtime: run the deterministic layer only.
+            from src.orchestrator.safety import check_deterministic
+            article_text = f"{result.get('title', '')} {result.get('html_structure', {}).get('html', '')[:4000]}"
+            article_check = check_deterministic(article_text, niche=niche_key) or {
+                "approved": True, "safe": True, "reason": None, "layer": "deterministic_only"
+            }
+
+        if not article_check.get("approved", True) and not article_check.get("safe", True):
+            reason = article_check.get("reason", "Artículo generado no apto")
+            layer = article_check.get("layer", "llm")
+            print(f"[generate_blog_post] Article REJECTED by moderator ({layer}): {reason}")
+            log_moderation_event("article", reason, layer, niche_key, result.get("title", "")[:120])
+            return {**result, "moderation": {"approved": False, "reason": reason}}
+    except Exception as mod_err:
+        # Moderation failure must NEVER block publishing a valid post.
+        print(f"[generate_blog_post] Article moderation skipped (non-blocking): {mod_err}")
+
     # ── Persist to Supabase ──────────────────────────────────────────
     supabase_url = os.environ.get("SUPABASE_URL", "")
     resolved_project = supabase_project_id(supabase_url)
@@ -146,6 +191,8 @@ def generate_blog_post(
             os.environ["SUPABASE_SERVICE_KEY"],
         )
         post_data = _map_to_supabase(result, blogger_name=blogger_name, job_id=job_id)
+        # ── Sanitize LLM-generated HTML before publishing (REQ-MOD-5) ──
+        post_data["content"] = sanitize_html(post_data.get("content", ""))
         outcome = persist_post(sb, post_data, resolved_project)
         if not outcome["success"]:
             print(f"[generate_blog_post] Failed to persist post: {outcome.get('error')}")
@@ -295,24 +342,34 @@ Responde ÚNICAMENTE con un JSON válido, sin texto adicional:
         return None
 
 
-def moderate_topic(topic: str) -> Dict[str, Any]:
+def moderate_topic(topic: str, niche: str = "tech") -> Dict[str, Any]:
     """
     Check if a topic is appropriate for content generation.
 
-    Uses the Modal-hosted LLM as the primary moderation engine.
+    FIRST: deterministic pre-filter (blacklist / PII / spam — free, no LLM).
+    Then: Modal-hosted LLM as the primary moderation engine.
     Falls back to Gemini if the Modal model is unavailable.
-    Topics containing explicit, violent, hateful, or degrading content are rejected.
 
     Args:
         topic: The topic string to moderate.
+        niche: Content niche ("tech", "news", "literature", "food", "gossip").
 
     Returns:
         Dict with:
             - approved (bool): True if topic is safe
+            - safe (bool): Same as approved (backward-compatible alias)
             - reason (str | None): Explanation if rejected, None if approved
     """
+    print(f"[Moderation] Checking topic: '{topic[:60]}{'...' if len(topic) > 60 else ''}' (niche={niche})")
+
+    # Strategy 0: Deterministic pre-filter (cheap, no LLM)
+    det_result = check_deterministic(topic, niche=niche)
+    if det_result is not None:
+        print(f"[Moderation] Deterministic REJECTED ({det_result['layer']}): {det_result['reason']}")
+        log_moderation_event("topic", det_result["reason"], det_result["layer"], niche, topic)
+        return det_result
+
     # Strategy 1: Modal-hosted model (primary, runs inside Modal infra)
-    print(f"[Moderation] Checking topic: '{topic[:60]}{'...' if len(topic) > 60 else ''}'")
     result = _moderate_with_modal(topic)
     if result is not None:
         return result
@@ -525,9 +582,23 @@ def webhook(data: Dict[str, Any]) -> Dict[str, Any]:
                 "data": None,
                 "error": "blogger_preset_id must be a string"
             }
-        
+
+        # ── Niche-aware moderation ──────────────────────────────────────
+        from src.orchestrator.safety import normalize_niche
+        niche = "tech"
+        if preset_id:
+            try:
+                from src.orchestrator.bloggers_registry import get_prebaked_profile
+                blogger = get_prebaked_profile(preset_id)
+                if blogger and blogger.get("niche"):
+                    niche = normalize_niche(blogger["niche"])
+            except Exception:
+                niche = normalize_niche(data.get("niche", "tech"))
+        else:
+            niche = normalize_niche(data.get("niche", "tech"))
+
         # ── Content Moderation ────────────────────────────────────────────
-        moderation = moderate_topic(topic)
+        moderation = moderate_topic(topic, niche=niche)
         if not moderation.get("approved", True):
             reason = moderation.get("reason", "Tema no apto para generación de contenido")
             print(f"[Webhook] Topic REJECTED by moderator: {reason}")
@@ -551,6 +622,7 @@ def webhook(data: Dict[str, Any]) -> Dict[str, Any]:
             job_id=job_id,
             blogger_name=blogger_name,
             preset_id=preset_id,
+            niche=niche,
         )
 
         return {
