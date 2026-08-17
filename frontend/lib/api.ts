@@ -9,7 +9,9 @@ export async function getAllPosts(): Promise<BlogPost[]> {
     const { data, error } = await supabase
       .from("posts")
       .select("*")
-      .neq("status", "failed") // exclude failed-job stubs from public feed (JD PR #26 BLOCKER)
+      // NULL-safe: .neq would drop pre-migration rows (status IS NULL),
+      // use explicit OR (JD PR #27 BLOCKER)
+      .or("status.neq.failed,status.is.null")
       .order("date", { ascending: false });
 
     if (error) {
