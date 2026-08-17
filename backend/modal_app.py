@@ -222,7 +222,9 @@ def _is_job_active(job_id: str, store: Any = None) -> bool:
     if not item or not isinstance(item, dict):
         return False
     status = item.get("status")
-    if status in ("queued", "running"):
+    if status in ("queued", "running", "failed"):
+        # failed stays blocked so a retry with the same job_id doesn't
+        # create duplicate rows (JD PR #26 W3)
         return True
     if status == "done":
         now = datetime.now().timestamp()
