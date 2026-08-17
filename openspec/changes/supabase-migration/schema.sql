@@ -8,6 +8,7 @@
 
 CREATE TABLE IF NOT EXISTS posts (
   id            text PRIMARY KEY,
+  job_id        text,
   slug          text UNIQUE NOT NULL,
   title         text NOT NULL,
   description   text,
@@ -21,12 +22,17 @@ CREATE TABLE IF NOT EXISTS posts (
   cover_image_url text,
   style_source      text,
   style_source_url  text,
+  status            text,
+  error_message     text,
   created_at    timestamptz DEFAULT now()
 );
 
 -- Migration note (existing databases; fresh installs get CREATE TABLE above):
 --   ALTER TABLE posts ADD COLUMN style_source text;
 --   ALTER TABLE posts ADD COLUMN style_source_url text;
+--   ALTER TABLE posts ADD COLUMN job_id text;
+--   ALTER TABLE posts ADD COLUMN status text;
+--   ALTER TABLE posts ADD COLUMN error_message text;
 
 -- Public read policy (TFG demo — no auth)
 ALTER TABLE posts ENABLE ROW LEVEL SECURITY;

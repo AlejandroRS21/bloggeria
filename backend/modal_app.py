@@ -142,7 +142,7 @@ def _mark_job(
     ip: Optional[str] = None,
     error: Optional[str] = None,
 ):
-    """Record job lifecycle state in Modal Dict."""
+    """Record job lifecycle state in Modal Dict and best-effort Supabase status entry."""
     if not job_id:
         return
     store = store if store is not None else _get_job_store()
@@ -153,6 +153,46 @@ def _mark_job(
         "ip": ip or existing.get("ip"),
         "error": error if error is not None else existing.get("error"),
     }
+    _mark_job_supabase(job_id, status, error=error or existing.get("error"))
+
+
+def _mark_job_supabase(job_id: str, status: str, error: Optional[str] = None):
+    """Sync job status to Supabase posts table if env credentials are set."""
+    supabase_url = os.environ.get("SUPABASE_URL", "")
+    supabase_key = os.environ.get("SUPABASE_SERVICE_KEY", "")
+    if not supabase_url or not supabase_key or not job_id:
+        return
+    try:
+        resolved_project = supabase_project_id(supabase_url)
+        if resolved_project != EXPECTED_SUPABASE_PROJECT_ID:
+            return
+        from supabase import create_client
+        sb = create_client(supabase_url, supabase_key)
+        # Check if record already exists for job_id
+        res = sb.table("posts").select("id, slug").eq("job_id", job_id).execute()
+        existing_rows = res.data if res else []
+        if existing_rows:
+            target_id = existing_rows[0]["id"]
+            update_data: Dict[str, Any] = {"status": status}
+            if error:
+                update_data["error_message"] = str(error)
+            sb.table("posts").update(update_data).eq("id", target_id).execute()
+        elif status == "failed":
+            # For failed jobs with no existing post row, insert a stub post row so frontend polling finds the failure
+            stub_data = {
+                "id": f"failed-{job_id}",
+                "job_id": job_id,
+                "slug": f"failed-{job_id}",
+                "title": "Generación fallida",
+                "content": "",
+                "author": "Blogger Agent",
+                "date": datetime.now().strftime("%Y-%m-%d"),
+                "status": "failed",
+                "error_message": str(error or "Error desconocido en el backend"),
+            }
+            sb.table("posts").upsert(stub_data).execute()
+    except Exception as db_err:
+        print(f"[_mark_job_supabase] Failed to update job status in Supabase: {db_err}")
 
 
 def _get_running_count(store: Any = None) -> int:
@@ -377,6 +417,8 @@ def generate_blog_post(
     
     resolved_preset_id = preset_id or blogger_preset_id
 
+    workflow_failed = False
+    workflow_error = None
     try:
         if job_id:
             _mark_job(job_id, "running")
@@ -421,6 +463,8 @@ def generate_blog_post(
                 layer = article_check.get("layer", "llm")
                 print(f"[generate_blog_post] Article REJECTED by moderator ({layer}): {reason}")
                 log_moderation_event("article", reason, layer, niche_key, result.get("title", "")[:120])
+                workflow_failed = True
+                workflow_error = reason
                 return {**result, "moderation": {"approved": False, "reason": reason}}
         except Exception as mod_err:
             # Moderation failure must NEVER block publishing a valid post.
@@ -438,19 +482,29 @@ def generate_blog_post(
                 os.environ["SUPABASE_SERVICE_KEY"],
             )
             post_data = _map_to_supabase(result, blogger_name=blogger_name, job_id=job_id)
+            post_data["status"] = "done"
             # ── Sanitize LLM-generated HTML before publishing (REQ-MOD-5) ──
             post_data["content"] = sanitize_html(post_data.get("content", ""))
             outcome = persist_post(sb, post_data, resolved_project)
             if not outcome["success"]:
                 print(f"[generate_blog_post] Failed to persist post: {outcome.get('error')}")
+                workflow_failed = True
+                workflow_error = outcome.get("error")
         except Exception as db_err:
             print(f"[generate_blog_post] DB persistence failed: {db_err}")
+            workflow_failed = True
+            workflow_error = str(db_err)
 
         return result
+    except Exception as pipe_err:
+        workflow_failed = True
+        workflow_error = str(pipe_err)
+        raise pipe_err
     finally:
         if job_id:
             try:
-                _mark_job(job_id, "done")
+                final_status = "failed" if workflow_failed else "done"
+                _mark_job(job_id, final_status, error=workflow_error)
                 _drain_once()
             except Exception as drain_err:
                 print(f"[generate_blog_post] Job completion mark/drain error: {drain_err}")
