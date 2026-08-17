@@ -326,12 +326,18 @@ class BloggerOrchestrator:
         phase_name = "style_analysis"
         self.state_manager.start_phase(phase_name, "StyleAnalyzer")
 
+        from .safety import check_niche_divergence
+
         # 1. Try explicit preset_id first
         if preset_id:
             profile = get_prebaked_profile(preset_id)
             if profile is not None:
                 self._log(f"Using pre-baked style profile for preset_id '{preset_id}'")
                 self.state_manager.state.style_profile = profile
+                div_warning = check_niche_divergence(self.state_manager.state.topic, profile)
+                if div_warning:
+                    self._log(f"[Niche Warning] {div_warning}", "WARNING")
+                    self.state_manager.state.metadata["niche_divergence_warning"] = div_warning
                 self.state_manager.complete_phase(phase_name, profile)
                 return
 
@@ -342,6 +348,10 @@ class BloggerOrchestrator:
                 if profile is not None:
                     self._log(f"Using pre-baked style profile matching URL '{url}'")
                     self.state_manager.state.style_profile = profile
+                    div_warning = check_niche_divergence(self.state_manager.state.topic, profile)
+                    if div_warning:
+                        self._log(f"[Niche Warning] {div_warning}", "WARNING")
+                        self.state_manager.state.metadata["niche_divergence_warning"] = div_warning
                     self.state_manager.complete_phase(phase_name, profile)
                     return
 
@@ -388,6 +398,10 @@ class BloggerOrchestrator:
         
         result = self._execute_with_retry(phase_name, "StyleAnalyzer", analyze)
         self.state_manager.state.style_profile = result
+        div_warning = check_niche_divergence(self.state_manager.state.topic, result)
+        if div_warning:
+            self._log(f"[Niche Warning] {div_warning}", "WARNING")
+            self.state_manager.state.metadata["niche_divergence_warning"] = div_warning
         self.state_manager.complete_phase(phase_name, result)
     
     def _phase_keyword_extraction(self, blogger_urls: List[str]) -> None:

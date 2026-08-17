@@ -709,7 +709,11 @@ def _map_to_supabase(
             style_source = blogger_name
         else:
             from aphra_blogger.agents.content_generator import ContentGenerator
-            style_source = ContentGenerator._extract_blogger_name(blogger_urls)
+            style_source = ContentGenerator._extract_blogger_name(
+                blogger_urls,
+                style_profile=result.get("style_profile"),
+                preset_id=result.get("preset_id"),
+            )
     
     return {
         "id": workflow_id,
@@ -839,17 +843,25 @@ def webhook(data: Dict[str, Any], request: Any = None) -> Dict[str, Any]:
 
         # ── Niche-aware moderation ──────────────────────────────────────
         from src.orchestrator.safety import normalize_niche
-        niche = "tech"
-        if preset_id:
+        from src.orchestrator.bloggers_registry import get_prebaked_profile
+
+        blogger_niche = None
+        lookup_target = preset_id or (blogger_urls[0] if isinstance(blogger_urls, list) and blogger_urls else None)
+        if lookup_target:
             try:
-                from src.orchestrator.bloggers_registry import get_prebaked_profile
-                blogger = get_prebaked_profile(preset_id)
+                blogger = get_prebaked_profile(lookup_target)
                 if blogger and blogger.get("niche"):
-                    niche = normalize_niche(blogger["niche"])
+                    blogger_niche = normalize_niche(blogger["niche"])
             except Exception:
-                niche = normalize_niche(data.get("niche", "tech"))
+                pass
+
+        request_niche = normalize_niche(data.get("niche", "tech"))
+        if blogger_niche:
+            niche = blogger_niche
+            if request_niche != blogger_niche:
+                print(f"[Niche Warning] Request niche '{request_niche}' diverges from blogger preset niche '{blogger_niche}'. Using blogger niche '{blogger_niche}'.")
         else:
-            niche = normalize_niche(data.get("niche", "tech"))
+            niche = request_niche
 
         # ── Content Moderation ────────────────────────────────────────────
         moderation = moderate_topic(topic, niche=niche)
