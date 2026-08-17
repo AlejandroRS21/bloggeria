@@ -27,6 +27,53 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
+_COMPREHENSIVE_STOPWORDS = {
+    # Spanish Stopwords
+    'el', 'la', 'los', 'las', 'un', 'una', 'unos', 'unas', 'de', 'del', 'a', 'ante',
+    'bajo', 'cabe', 'con', 'contra', 'desde', 'en', 'entre', 'hacia', 'hasta',
+    'para', 'por', 'según', 'segun', 'sin', 'so', 'sobre', 'tras', 'y', 'e', 'ni', 'que',
+    'pero', 'mas', 'más', 'o', 'u', 'como', 'cuando', 'donde', 'dónde', 'quien', 'quién',
+    'cual', 'cuál', 'cuanto', 'cuánto', 'porque', 'porqué', 'es', 'son', 'fue', 'fueron',
+    'ser', 'estar', 'ha', 'han', 'hay', 'había', 'habia', 'tiene', 'tienen', 'hacer',
+    'esta', 'está', 'este', 'esto', 'estos', 'estas', 'están', 'estan', 'estaba', 'estaban',
+    'otro', 'otra', 'otros', 'otras', 'mismo', 'misma', 'mismos', 'mismas', 'tan', 'tanto',
+    'tanta', 'tantos', 'tantas', 'mucho', 'mucha', 'muchos', 'muchas', 'poco', 'poca',
+    'pocos', 'pocas', 'cada', 'todo', 'toda', 'todos', 'todas', 'algo', 'nada', 'alguno',
+    'alguna', 'algunos', 'algunas', 'ninguno', 'ninguna', 'ningunos', 'ningunas', 'aquél',
+    'aquel', 'aquella', 'aquellos', 'aquellas', 'eso', 'esos', 'aquello',
+    'mi', 'mis', 'tu', 'tus', 'su', 'sus', 'nuestro', 'nuestra', 'nuestros',
+    'nuestras', 'vuestro', 'vuestra', 'vuestros', 'vuestras', 'suya', 'suyo', 'suyos',
+    'suyas', 'mía', 'mío', 'míos', 'mías', 'tuya', 'tuyo', 'tuyos', 'tuyas', 'ya', 'aún',
+    'aun', 'bien', 'siempre', 'nunca', 'jamás', 'jamas', 'quizá', 'quizas', 'quizás',
+    'también', 'tambien', 'tampoco', 'además', 'ademas', 'luego', 'entonces', 'así', 'asi',
+    'menos', 'muy', 'casi', 'solo', 'sólo', 'parece', 'parecen', 'decir',
+    'dicho', 'parte', 'partes', 'forma', 'formas', 'manera', 'maneras', 'lugar', 'lugares',
+    'cosa', 'cosas', 'caso', 'casos', 'tiempo', 'años', 'anos', 'vez', 'veces',
+    # English Stopwords
+    'a', 'about', 'above', 'after', 'again', 'against', 'all', 'almost', 'along',
+    'already', 'also', 'although', 'always', 'am', 'among', 'an', 'and', 'another',
+    'any', 'anyone', 'anything', 'anywhere', 'are', 'around', 'as', 'at', 'back', 'be',
+    'became', 'because', 'become', 'becomes', 'becoming', 'been', 'before', 'behind',
+    'being', 'below', 'beside', 'between', 'both', 'but', 'by', 'can', 'cannot', 'could',
+    'did', 'do', 'does', 'doing', 'done', 'down', 'during', 'each', 'either', 'else',
+    'even', 'ever', 'every', 'everyone', 'everything', 'few', 'for', 'from', 'further',
+    'had', 'has', 'have', 'having', 'he', 'her', 'here', 'hers', 'herself', 'him',
+    'himself', 'his', 'how', 'if', 'in', 'into', 'is', 'it', 'its', 'itself', 'just',
+    'know', 'like', 'likely', 'made', 'make', 'makes', 'many', 'may', 'me', 'might',
+    'more', 'most', 'much', 'must', 'my', 'myself', 'neither', 'no', 'nor', 'not',
+    'nothing', 'now', 'of', 'off', 'often', 'on', 'once', 'one', 'only', 'or', 'other',
+    'others', 'our', 'ours', 'ourselves', 'out', 'over', 'own', 'part', 'per', 'perhaps',
+    'please', 'same', 'see', 'seem', 'seemed', 'seeming', 'seems', 'several', 'shall',
+    'she', 'should', 'since', 'so', 'some', 'someone', 'something', 'somewhere', 'still',
+    'such', 'than', 'that', 'the', 'their', 'theirs', 'them', 'themselves', 'then',
+    'there', 'these', 'they', 'thing', 'things', 'think', 'this', 'those', 'though',
+    'through', 'throughout', 'thus', 'to', 'together', 'too', 'under', 'until', 'up',
+    'upon', 'us', 'use', 'used', 'uses', 'using', 'very', 'want', 'was', 'we', 'well',
+    'were', 'what', 'whatever', 'when', 'where', 'which', 'while', 'who', 'whom',
+    'whose', 'why', 'will', 'with', 'within', 'without', 'would', 'yes', 'yet', 'you',
+    'your', 'yours', 'yourself', 'yourselves'
+}
+
 # UI strings per language (REQ-3). Unknown languages default to es.
 _UI_STRINGS = {
     "es": {"back": "Volver al Blog", "reading_time": "min de lectura", "words": "palabras"},
@@ -518,30 +565,31 @@ class HTMLBuilder:
         language: str = "es"
     ) -> List[str]:
         """Extract keywords for meta tags."""
-        # If we have style profile with keywords, use those
-        if style_profile and 'keywords' in style_profile:
-            return style_profile['keywords'][:10]
-        
-        # Otherwise, extract from content
-        # Remove markdown symbols
-        clean_content = re.sub(r'[#*`_]', '', content)
-        
-        # Simple keyword extraction: find most common meaningful words
+        # 1. Prefer explicit keywords from style_profile if present and non-empty
+        if style_profile and isinstance(style_profile, dict):
+            if style_profile.get('keywords') and isinstance(style_profile['keywords'], list):
+                kw_list = [str(k).strip() for k in style_profile['keywords'] if str(k).strip()]
+                if kw_list:
+                    return kw_list[:10]
+            # 2. Prefer topics from style_profile if present
+            if style_profile.get('topics') and isinstance(style_profile['topics'], list):
+                topic_list = [str(t).strip() for t in style_profile['topics'] if str(t).strip()]
+                if topic_list:
+                    return topic_list[:10]
+
+        # 3. Extract from content using comprehensive ES+EN stop-word list
+        clean_content = re.sub(r'[#*`_~\[\]\(\)\{\}\<\>\\\/\|\:\;\,\.\?\!\'\"]', ' ', content)
         words = clean_content.lower().split()
-        
-        # Filter out common words (basic stopwords)
-        stopwords = {'el', 'la', 'de', 'en', 'y', 'a', 'que', 'es', 'por', 'un', 
-                    'una', 'con', 'para', 'como', 'del', 'los', 'las', 'se', 'su'}
-        
-        filtered_words = [w for w in words if len(w) > 4 and w not in stopwords]
-        
-        # Count frequency
+
+        filtered_words = [
+            w for w in words
+            if len(w) >= 3 and not w.isdigit() and w not in _COMPREHENSIVE_STOPWORDS
+        ]
+
         from collections import Counter
         word_freq = Counter(filtered_words)
-        
-        # Get top 10
         keywords = [word for word, _ in word_freq.most_common(10)]
-        
+
         # Language-neutral fallback (REQ-3): never force Spanish
         if language == "en":
             return keywords if keywords else ["blog", "technology", "innovation"]

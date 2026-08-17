@@ -370,3 +370,24 @@ class SafetyAgent:
             "gossip": "Prensa Rosa, Noticias de Celebridades y Entretenimiento (Se permiten rumores y noticias públicas de celebridades, sin incitar al odio o difamación ilegal)"
         }
         return niches.get(canonical, "Estilo de Vida y Cultura General")
+
+
+def check_niche_divergence(topic: str, profile: Optional[Dict[str, Any]]) -> Optional[str]:
+    """Check if the given topic diverges from the blogger profile's niche."""
+    if not profile or not isinstance(profile, dict) or not topic:
+        return None
+    raw_niche = profile.get("niche")
+    if not raw_niche:
+        return None
+
+    blogger_niche = normalize_niche(raw_niche)
+    topic_lower = topic.lower()
+
+    food_keywords = {"pumpkin", "purée", "puree", "recipe", "receta", "breakfast", "desayuno", "cooking", "cocina", "tarta", "cake"}
+    tech_keywords = {"python", "javascript", "code", "software", "hardware", "ai", "llm", "api", "framework", "kernel"}
+
+    if blogger_niche == "tech" and any(w in topic_lower for w in food_keywords):
+        return f"Topic '{topic}' (food/cooking) diverges from blogger niche '{blogger_niche}'."
+    if blogger_niche == "food" and any(w in topic_lower for w in tech_keywords):
+        return f"Topic '{topic}' (tech) diverges from blogger niche '{blogger_niche}'."
+    return None

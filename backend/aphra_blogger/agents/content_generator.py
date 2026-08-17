@@ -126,23 +126,114 @@ class ContentGenerator:
         return sample_trimmed, research_trimmed
 
     @staticmethod
-    def _extract_blogger_name(blogger_urls: Optional[List[str]]) -> str:
-        """Extract a human-readable blogger name from URLs."""
+    def _extract_blogger_name(
+        blogger_urls: Optional[List[str]],
+        style_profile: Optional[Dict[str, Any]] = None,
+        preset_id: Optional[str] = None,
+    ) -> str:
+        """Extract a human-readable blogger name from URLs, style_profile, or preset_id."""
+        # 1. Prefer explicit alias / name in style_profile if present
+        if style_profile and isinstance(style_profile, dict):
+            alias = style_profile.get("alias") or style_profile.get("name") or style_profile.get("blogger_name")
+            if alias and isinstance(alias, str) and alias.strip():
+                return alias.strip()
+
+        # 2. Known display name map for presets / domains
+        known_display_names = {
+            "simonwillison.net": "Simon Willison",
+            "simonwillison": "Simon Willison",
+            "simon_willison": "Simon Willison",
+            "simon-willison": "Simon Willison",
+            "danluu.com": "Dan Luu",
+            "danluu": "Dan Luu",
+            "dan_luu": "Dan Luu",
+            "dan-luu": "Dan Luu",
+            "jvns.ca": "Julia Evans",
+            "jvns": "Julia Evans",
+            "julia_evans": "Julia Evans",
+            "julia-evans": "Julia Evans",
+            "overreacted.io": "Dan Abramov",
+            "overreacted": "Dan Abramov",
+            "dan_abramov": "Dan Abramov",
+            "dan-abramov": "Dan Abramov",
+            "ezraklein.nytimes.com": "Ezra Klein",
+            "ezra_klein": "Ezra Klein",
+            "ezra-klein": "Ezra Klein",
+            "kikollaneras.elpais.com": "Kiko Llaneras",
+            "kiko_llaneras": "Kiko Llaneras",
+            "kiko-llaneras": "Kiko Llaneras",
+            "zendalibros.com": "Zenda",
+            "zenda_libros": "Zenda",
+            "zenda-libros": "Zenda",
+            "themarginalian.org": "The Marginalian",
+            "marginalian": "The Marginalian",
+            "elcomidista.elpais.com": "El Comidista",
+            "el_comidista": "El Comidista",
+            "el-comidista": "El Comidista",
+            "seriouseats.com": "Serious Eats",
+            "serious_eats": "Serious Eats",
+            "serious-eats": "Serious Eats",
+            "lecturas.com": "Lecturas",
+            "lecturas_cotilleos": "Lecturas",
+            "lecturas-cotilleos": "Lecturas",
+            "microsiervos.com": "Microsiervos",
+            "microsiervos": "Microsiervos",
+            "javipas.com": "Javipas",
+            "javipas": "Javipas",
+        }
+
+        if preset_id and preset_id.lower() in known_display_names:
+            return known_display_names[preset_id.lower()]
+
+        url = blogger_urls[0].strip().rstrip("/") if blogger_urls and blogger_urls[0] else ""
+        if url:
+            clean_url = url
+            for prefix in ("https://", "http://", "www."):
+                if clean_url.startswith(prefix):
+                    clean_url = clean_url[len(prefix):]
+            domain_full = clean_url.split("/")[0].lower()
+            if domain_full in known_display_names:
+                return known_display_names[domain_full]
+
+        # 3. Try pre-baked profile registry lookup if preset_id or url matches
+        try:
+            from src.orchestrator.bloggers_registry import get_prebaked_profile
+            lookup_key = preset_id or (blogger_urls[0] if blogger_urls and blogger_urls[0] else None)
+            if lookup_key:
+                profile = get_prebaked_profile(lookup_key)
+                if profile and isinstance(profile, dict) and profile.get("alias"):
+                    return profile["alias"].strip()
+        except Exception:
+            pass
+
         if not blogger_urls or not blogger_urls[0]:
             return "el blogger de referencia"
+
         url = blogger_urls[0].strip().rstrip("/")
         # Remove protocol
         for prefix in ("https://", "http://", "www."):
             if url.startswith(prefix):
                 url = url[len(prefix):]
+
         # Take the domain name part (before first / or .)
-        name = url.split("/")[0]
-        # If it's a subdomain like "blog.ejemplo.com", use the main domain
-        parts = name.split(".")
+        domain_full = url.split("/")[0].lower()
+        parts = domain_full.split(".")
+
         if len(parts) >= 3:
             name = parts[1]  # "ejemplo" from "blog.ejemplo.com"
         elif len(parts) >= 2:
             name = parts[0]  # "ejemplo" from "ejemplo.com"
+        else:
+            name = domain_full
+
+        if name in known_display_names:
+            return known_display_names[name]
+
+        # Multi-word slug heuristic (e.g. "simon-willison" or "simon_willison")
+        clean_name = name.replace("-", " ").replace("_", " ").strip()
+        if " " in clean_name:
+            return " ".join(word.capitalize() for word in clean_name.split())
+
         return name.capitalize()
 
     @staticmethod
@@ -180,7 +271,7 @@ class ContentGenerator:
         if not profile:
             return ""
 
-        name = ContentGenerator._extract_blogger_name(blogger_urls)
+        name = ContentGenerator._extract_blogger_name(blogger_urls, style_profile=profile)
         if language == "en":
             blocks = [f"━━━━━━ STYLE PROFILE ─────────────────────"]
             blocks.append(f"Reference blogger: {name}")
@@ -310,11 +401,15 @@ Usa esta información como base factual para el post. No inventes datos, básate
 """
 
     @staticmethod
-    def _build_attribution(blogger_urls: Optional[List[str]], language: str = "es") -> str:
+    def _build_attribution(
+        blogger_urls: Optional[List[str]],
+        language: str = "es",
+        style_profile: Optional[Dict[str, Any]] = None,
+    ) -> str:
         """Build attribution footer for the post, localized per language."""
         if not blogger_urls or not blogger_urls[0]:
             return ""
-        name = ContentGenerator._extract_blogger_name(blogger_urls)
+        name = ContentGenerator._extract_blogger_name(blogger_urls, style_profile=style_profile)
         url = blogger_urls[0].strip().rstrip("/")
         template = _ATTRIBUTION_TEMPLATES.get(language, _ATTRIBUTION_TEMPLATES["es"])
         return template.format(name=name, url=url)
@@ -371,7 +466,7 @@ Usa esta información como base factual para el post. No inventes datos, básate
         research_block = self._build_research_block(research_context, effective_language)
 
         # Name for the instruction block
-        blogger_name = self._extract_blogger_name(blogger_urls)
+        blogger_name = self._extract_blogger_name(blogger_urls, style_profile=style_profile)
 
         if sample_text and len(sample_text.strip()) > 200:
             # ---- PROMPT CON EJEMPLOS REALES (modo principal) ----
