@@ -9,6 +9,7 @@ export async function getAllPosts(): Promise<BlogPost[]> {
     const { data, error } = await supabase
       .from("posts")
       .select("*")
+      .neq("status", "failed") // exclude failed-job stubs from public feed (JD PR #26 BLOCKER)
       .order("date", { ascending: false });
 
     if (error) {
@@ -16,7 +17,9 @@ export async function getAllPosts(): Promise<BlogPost[]> {
       return [];
     }
 
-    return (data ?? []) as BlogPost[];
+    return ((data ?? []) as BlogPost[]).filter(
+      (p) => (p as any).status !== "failed"
+    );
   } catch (err) {
     console.warn("[API] Failed to fetch posts:", err);
     return [];
