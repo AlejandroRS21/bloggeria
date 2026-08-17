@@ -9,9 +9,6 @@ export async function getAllPosts(): Promise<BlogPost[]> {
     const { data, error } = await supabase
       .from("posts")
       .select("*")
-      // NULL-safe: .neq would drop pre-migration rows (status IS NULL),
-      // use explicit OR (JD PR #27 BLOCKER)
-      .or("status.neq.failed,status.is.null")
       .order("date", { ascending: false });
 
     if (error) {
@@ -19,6 +16,11 @@ export async function getAllPosts(): Promise<BlogPost[]> {
       return [];
     }
 
+    // Filter in memory: failed-job stubs (PR #26) never reach the feed.
+    // A DB-level .or() filter is avoided: the `status` column may not exist
+    // yet in some deployments (migration pending), which would 400 the whole
+    // query and empty the home page. In-memory filtering is NULL-safe by
+    // construction (missing status === null === not failed).
     return ((data ?? []) as BlogPost[]).filter(
       (p) => (p as any).status !== "failed"
     );
