@@ -9,6 +9,7 @@ import time
 from datetime import datetime
 from types import SimpleNamespace
 
+import pytest
 import modal_app
 from modal_app import (
     JOB_STALE_TIMEOUT_SECONDS,
@@ -128,6 +129,25 @@ class TestJobLifecycle:
         assert store["job-fail"]["status"] == "failed"
         assert "spawn failed" in store["job-fail"]["error"]
         assert queue.len() == 0
+
+    def test_generate_blog_post_marks_failed_on_exception(self, monkeypatch):
+        mock_orch = SimpleNamespace(
+            run=lambda **kw: (_ for _ in ()).throw(RuntimeError("pipeline exploded"))
+        )
+        monkeypatch.setattr("src.orchestrator.main.BloggerOrchestrator", lambda **kw: mock_orch)
+        store = {}
+        monkeypatch.setattr(modal_app, "_get_job_store", lambda: store)
+
+        raw_fn = modal_app.generate_blog_post.get_raw_f()
+        with pytest.raises(RuntimeError, match="pipeline exploded"):
+            raw_fn(
+                blogger_urls=["https://test.com"],
+                topic="test topic",
+                job_id="job-pipe-fail",
+            )
+
+        assert store["job-pipe-fail"]["status"] == "failed"
+        assert "pipeline exploded" in store["job-pipe-fail"]["error"]
 
 
 class TestJobDeduplication:

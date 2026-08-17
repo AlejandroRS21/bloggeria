@@ -137,16 +137,29 @@ export default function NewPostPage() {
     const startTime = Date.now();
     const timeoutMs = 300_000; // 300s
     const pollIntervalMs = 3000; // 3000ms
+    const coldStartNoticeMs = 60_000; // 60s
+    let coldStartNotified = false;
 
     while (Date.now() - startTime < timeoutMs) {
+      const elapsed = Date.now() - startTime;
+      if (elapsed >= coldStartNoticeMs && !coldStartNotified) {
+        coldStartNotified = true;
+        setInfoMessage("La GPU se está encendiendo, puede tardar unos minutos.");
+      }
+
       const { data } = await supabase
         .from("posts")
-        .select("slug")
+        .select("slug, status, error_message")
         .eq("job_id", jobId)
         .maybeSingle();
 
-      if (data?.slug) {
-        return data.slug;
+      if (data) {
+        if (data.status === "failed") {
+          throw new Error(data.error_message || "La generación del post ha fallado en el servidor.");
+        }
+        if (data.slug) {
+          return data.slug;
+        }
       }
       await new Promise((resolve) => setTimeout(resolve, pollIntervalMs));
     }
