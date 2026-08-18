@@ -126,6 +126,16 @@ Respond with ONLY the JSON, no other text."""
             return self._fallback_analysis(sample_text or "")
     
     @staticmethod
+    def is_usable_corpus(text: str, min_tokens: int = 150) -> bool:
+        """Heuristic: does the scraped sample contain enough real prose to
+        ground a style analysis? Short/empty corpora (landing pages, paywalls,
+        JS-rendered blogs) produce noisy generic profiles — callers should
+        fall back to a pre-baked profile instead."""
+        if not text:
+            return False
+        return len(text.split()) >= min_tokens
+
+    @staticmethod
     def _resolve_language_fields(profile: Dict[str, Any]) -> Dict[str, Any]:
         """Normalize the language fields of a parsed style profile.
 
@@ -171,4 +181,3 @@ Respond with ONLY the JSON, no other text."""
             ],
             "engagement_style": "Directly addresses the reader and asks open questions"
         }
-

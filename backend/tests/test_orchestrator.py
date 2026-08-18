@@ -388,8 +388,11 @@ class TestStyleAnalysisPrebakedShortCircuit:
         scraped = {"calls": 0}
 
         class Resp:
-            status_code = 200
-            text = "<html><p>Un párrafo suficientemente largo para pasar el filtro.</p></html>"
+                    status_code = 200
+                    text = "<html>" + "".join(
+                        f"<p>Párrafo {i} con contenido sustancial para el análisis de estilo del blogger, incluyendo varias frases y vocabulario característico que permiten extraer el perfil lingüístico completo del autor.</p>"
+                        for i in range(6)
+                    ) + "</html>"
 
         def fake_get(*args, **kwargs):
             scraped["calls"] += 1
@@ -405,6 +408,70 @@ class TestStyleAnalysisPrebakedShortCircuit:
 
         assert scraped["calls"] > 0, "custom URL must still hit the live scrape path"
         assert state.style_profile["alias"] == "Custom"
+        assert state.phases["style_analysis"].status == PhaseStatus.COMPLETED
+
+    def test_style_analysis_insufficient_corpus_uses_generic_fallback(self, preset_config, monkeypatch):
+        """REQ-FALLBACK: scraped corpus too short (landing page, paywall, JS
+        blog) degrades to the rule-based generic profile instead of analyzing
+        thin air — no LLM call, profile still usable."""
+        orch = BloggerOrchestrator(config=preset_config, verbose=False)
+        state = WorkflowState(
+            workflow_id="empty-corpus",
+            topic="Tema cualquiera",
+            blogger_urls=["https://empty-corp.us"],
+        )
+        orch.state_manager = StateManager(state)
+
+        class Resp:
+            status_code = 200
+            text = "<html><p>Solo un párrafo corto.</p><div>nav</div></html>"
+
+        def fake_get(*args, **kwargs):
+            return Resp()
+
+        monkeypatch.setattr("src.orchestrator.main.requests.get", fake_get)
+        # This must NOT be called: the gate short-circuits before any LLM analysis.
+        def boom(*args, **kwargs):
+            raise AssertionError("analyze() must not run on an insufficient corpus")
+
+        orch.style_analyzer.analyze = boom
+
+        orch._phase_style_analysis(["https://empty-corp.us"])
+
+        assert state.style_profile.get("tone") == "conversational, direct, informative"
+        assert state.style_profile.get("language") == "es"
+        assert state.metadata.get("style_source") == "fallback_generic"
+        assert state.metadata.get("sample_text") == ""
+        assert state.phases["style_analysis"].status == PhaseStatus.COMPLETED
+
+    def test_style_analysis_http_error_empty_corpus_gates(self, preset_config, monkeypatch):
+        """REQ-FALLBACK: 404/timeout corpora (empty sample) must ALSO gate to
+        the generic profile — previously the falsy check skipped the gate and
+        analyze(\"\") ran thin air. (JD WARNING fix)"""
+        orch = BloggerOrchestrator(config=preset_config, verbose=False)
+        state = WorkflowState(
+            workflow_id="http-error",
+            topic="Tema cualquiera",
+            blogger_urls=["https://dead.example"],
+        )
+        orch.state_manager = StateManager(state)
+
+        class Resp:
+            status_code = 404
+            text = ""
+
+        monkeypatch.setattr("src.orchestrator.main.requests.get", lambda *a, **k: Resp())
+
+        def boom(*args, **kwargs):
+            raise AssertionError("analyze() must not run on an empty corpus")
+
+        orch.style_analyzer.analyze = boom
+
+        orch._phase_style_analysis(["https://dead.example"])
+
+        assert state.metadata.get("style_source") == "fallback_generic"
+        assert state.metadata.get("sample_text") == ""
+        assert state.style_profile.get("language") == "es"
         assert state.phases["style_analysis"].status == PhaseStatus.COMPLETED
 
     def test_style_analysis_with_explicit_preset_id(self, preset_config, monkeypatch):

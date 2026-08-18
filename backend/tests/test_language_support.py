@@ -503,8 +503,11 @@ class TestOrchestratorLanguage:
         """Keep the pipeline offline/deterministic."""
 
         class Resp:
-            status_code = 400
-            text = ""
+            status_code = 200
+            text = "<html>" + "".join(
+                f"<p>Contenido de prueba con varias palabras para el análisis de estilo del blogger y la extracción del perfil lingüístico completo.</p>"
+                for _ in range(8)
+            ) + "</html>"
 
         monkeypatch.setattr("src.orchestrator.main.requests.get", lambda *a, **k: Resp())
         monkeypatch.setattr(

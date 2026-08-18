@@ -391,11 +391,25 @@ class BloggerOrchestrator:
                 combined_sample_text = combined_sample_text[:30000]  # Increase limit for multi-post context
                 self._log(f"Extracted total {len(combined_sample_text)} characters from {len(target_urls)} URL(s)")
             
-            # Save the extracted text to state so other phases can use it
             self.state_manager.state.metadata['sample_text'] = combined_sample_text
-            
+
+            # Corpus gate (REQ-FALLBACK): a scraped sample too short to ground
+            # a style analysis (landing page, paywall, JS-rendered blog) would
+            # produce a noisy generic profile. Degrade cleanly to the
+            # rule-based generic profile instead of analyzing thin air.
+            # (is_usable_corpus("") is False, so empty corpora 404/red also gate.)
+            if not StyleAnalyzer.is_usable_corpus(combined_sample_text):
+                self._log(
+                    f"Style corpus too short ({len(combined_sample_text.split())} tokens) — "
+                    "using rule-based generic profile",
+                    "WARNING",
+                )
+                self.state_manager.state.metadata['style_source'] = 'fallback_generic'
+                fallback = self.style_analyzer._fallback_analysis("")
+                self.state_manager.state.metadata['sample_text'] = ""
+                return fallback
+
             return self.style_analyzer.analyze(blogger_urls, sample_text=combined_sample_text)
-        
         result = self._execute_with_retry(phase_name, "StyleAnalyzer", analyze)
         self.state_manager.state.style_profile = result
         div_warning = check_niche_divergence(self.state_manager.state.topic, result)
