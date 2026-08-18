@@ -4,10 +4,12 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import PostCard from "@/components/PostCard";
 import type { BlogPost } from "@/types/post";
+import { useI18n } from "@/lib/i18n";
 
 const PER_PAGE = 12;
 
 export default function ArchivePage() {
+  const { t } = useI18n();
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -50,10 +52,10 @@ export default function ArchivePage() {
         <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16">
           <div className="mx-auto max-w-2xl">
             <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 sm:text-4xl dark:text-zinc-100">
-              Archivo
+              {t("archive.title")}
             </h1>
             <p className="mt-3 text-base leading-relaxed text-gray-600 dark:text-zinc-400">
-              Todos los posts generados, con búsqueda incluida.
+              {t("archive.subtitle")}
             </p>
           </div>
 
@@ -77,7 +79,7 @@ export default function ArchivePage() {
                 type="text"
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
-                placeholder="Buscar posts por título, descripción o tag..."
+                placeholder={t("archive.searchPh")}
                 className="w-full rounded-xl border border-gray-300 bg-white py-3 pl-12 pr-4 text-sm shadow-sm placeholder:text-gray-400 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-500 dark:focus:border-blue-500 dark:focus:ring-blue-950"
               />
             </div>
@@ -107,8 +109,8 @@ export default function ArchivePage() {
             <div className="py-20 text-center">
               <p className="text-gray-500 dark:text-zinc-400">
                 {search
-                  ? `No hay resultados para "${search}".`
-                  : "Todavía no hay posts."}
+                  ? t("archive.noResults", { q: search })
+                  : t("archive.empty")}
               </p>
               {search && (
                 <button
@@ -118,15 +120,17 @@ export default function ArchivePage() {
                   }}
                   className="mt-4 text-sm font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
                 >
-                  Limpiar búsqueda
+                  {t("archive.clear")}
                 </button>
               )}
             </div>
           ) : (
             <>
               <p className="mb-6 text-sm text-gray-500 dark:text-zinc-400">
-                {total} {total === 1 ? "post encontrado" : "posts encontrados"}
-                {search && <> para &ldquo;{search}&rdquo;</>}
+                {t(
+                  total === 1 ? "archive.found_one" : "archive.found_other",
+                  { count: total }
+                )}
               </p>
 
               <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -143,7 +147,7 @@ export default function ArchivePage() {
                     disabled={page <= 1}
                     className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
                   >
-                    ← Anterior
+                    {t("archive.prev")}
                   </button>
 
                   {Array.from({ length: totalPages }, (_, i) => i + 1)
@@ -176,7 +180,7 @@ export default function ArchivePage() {
                     disabled={page >= totalPages}
                     className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
                   >
-                    Siguiente →
+                    {t("archive.next")}
                   </button>
                 </nav>
               )}

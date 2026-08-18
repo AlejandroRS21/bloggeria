@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import ThemeProvider from "@/components/ThemeProvider";
+import Providers from "./providers";
+import { resolveLocale } from "@/lib/i18n-server";
 import "./globals.css";
 
 const inter = Inter({
@@ -13,31 +14,28 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: "Blogger Agent | Sistema multi-agente de IA",
+    default: "Blogger Agent | Multi-agent AI system",
     template: "%s | Blogger Agent",
   },
   description:
-    "Sistema multi-agente de IA para mimetizar estilos de escritura. Genera contenido de blog con el estilo de tu escritor favorito.",
+    "Multi-agent AI system for stylistic blog emulation. Generates blog content in the style of your favorite writer.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = await resolveLocale();
+
   return (
-    <html lang="es" suppressHydrationWarning className={inter.variable}>
+    <html lang={locale} suppressHydrationWarning className={inter.variable}>
       <body className="flex min-h-screen flex-col bg-white font-sans text-gray-900 antialiased dark:bg-slate-950 dark:text-gray-100">
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
+        <Providers locale={locale}>
           <Header />
           <main className="flex-1">{children}</main>
           <Footer />
-        </ThemeProvider>
+        </Providers>
       </body>
     </html>
   );

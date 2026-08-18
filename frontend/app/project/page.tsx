@@ -1,8 +1,7 @@
-import Link from "next/link";
+"use client";
 
-export const metadata = {
-  title: "Arquitectura del Proyecto",
-};
+import Link from "next/link";
+import { useI18n } from "@/lib/i18n";
 
 const steps = [
   {
@@ -75,6 +74,7 @@ const agentsList = [
 ];
 
 export default function ProjectPage() {
+  const { t } = useI18n();
   return (
     <>
       {/* Hero */}
@@ -82,20 +82,20 @@ export default function ProjectPage() {
         <div className="mx-auto max-w-6xl px-4 pt-32 pb-20 sm:px-6 sm:pt-40 sm:pb-28 lg:pt-48 lg:pb-32">
           <div className="mx-auto max-w-3xl text-center">
             <span className="inline-block rounded-full bg-blue-100 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-blue-700 dark:bg-blue-950/80 dark:text-blue-300">
-              Arquitectura de Sistemas Multiagente
+              {t("project.badge")}
             </span>
             <h1 className="mt-6 text-4xl font-extrabold tracking-tight text-gray-900 sm:text-5xl lg:text-6xl dark:text-zinc-100">
-              Arquitectura del Sistema
+              {t("project.heroTitle")}
             </h1>
             <p className="mt-6 text-lg leading-relaxed text-gray-600 sm:text-xl dark:text-zinc-400">
-              Detalle técnico y diseño de la infraestructura serverless para la mimetización y generación automatizada de blogs basada en procesamiento del lenguaje natural (NLP).
+              {t("project.heroSubtitle")}
             </p>
             <div className="mt-10 flex items-center justify-center gap-4">
               <Link
                 href="/posts/new"
                 className="rounded-lg bg-blue-600 px-8 py-3.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700"
               >
-                Generar Artículo
+                {t("project.generate")}
               </Link>
               <a
                 href="https://github.com/AlejandroRS21/blogger-agent-tfg"
@@ -103,7 +103,7 @@ export default function ProjectPage() {
                 rel="noopener noreferrer"
                 className="rounded-lg border border-gray-300 bg-white px-8 py-3.5 text-sm font-semibold text-gray-700 shadow-sm transition-colors hover:bg-gray-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"
               >
-                Código en GitHub
+                {t("project.github")}
               </a>
             </div>
           </div>
@@ -115,10 +115,10 @@ export default function ProjectPage() {
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <div className="mx-auto max-w-2xl text-center">
             <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl dark:text-zinc-100">
-              Ciclo de Procesamiento del Pipeline
+              {t("project.pipelineTitle")}
             </h2>
             <p className="mt-4 text-gray-600 dark:text-zinc-400">
-              El proceso de orquestación asíncrono se divide en cuatro fases principales que transforman una solicitud de entrada en un artículo optimizado para la web.
+              {t("project.pipelineDesc")}
             </p>
           </div>
 
@@ -151,10 +151,10 @@ export default function ProjectPage() {
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <div className="mx-auto max-w-3xl text-center">
             <h2 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-zinc-100">
-              Orquestación del Pipeline (8 Agentes)
+              {t("project.agentsTitle")}
             </h2>
             <p className="mt-4 text-gray-600 dark:text-zinc-400">
-              El orquestador (`BloggerOrchestrator`) gestiona un flujo de trabajo cíclico y asíncrono en el que cada agente de software independiente asume una función especializada de análisis, redacción o control de calidad.
+              {t("project.agentsDesc")}
             </p>
           </div>
 
@@ -231,17 +231,17 @@ export default function ProjectPage() {
       <section className="bg-gray-50 py-20 sm:py-28 dark:bg-zinc-900/40">
         <div className="mx-auto max-w-6xl px-4 text-center sm:px-6">
           <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl dark:text-zinc-100">
-            Prueba la Generación de Artículos
+          {t("project.ctaTitle")}
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-gray-600 dark:text-zinc-400">
-            Define un tema, apunta a un blog de WordPress de referencia y observa cómo trabaja el pipeline multiagente.
+            {t("project.ctaDesc")}
           </p>
           <div className="mt-10 flex items-center justify-center gap-4">
             <Link
               href="/posts/new"
               className="rounded-lg bg-blue-600 px-8 py-3.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700"
             >
-              Generar Post Ahora
+              {t("project.ctaButton")}
             </Link>
           </div>
         </div>

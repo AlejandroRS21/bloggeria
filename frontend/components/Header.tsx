@@ -3,9 +3,12 @@
 import Link from "next/link";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
+import { useI18n } from "@/lib/i18n";
+import LanguageSwitcher from "./LanguageSwitcher";
 
 export default function Header() {
   const { resolvedTheme, setTheme } = useTheme();
+  const { t } = useI18n();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => setMounted(true), []);
@@ -21,43 +24,44 @@ export default function Header() {
           </span>
         </Link>
 
-        <nav className="flex items-center gap-5">
+        <nav className="flex items-center gap-4 sm:gap-5">
           <Link
             href="/"
             className="text-sm font-medium text-gray-600 transition-colors hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400"
           >
-            Blog
+            {t("nav.blog")}
           </Link>
           <Link
             href="/tags"
-            className="text-sm font-medium text-gray-600 transition-colors hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400"
+            className="hidden text-sm font-medium text-gray-600 transition-colors hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400 sm:inline"
           >
-            Tags
+            {t("nav.tags")}
           </Link>
           <Link
             href="/archive"
-            className="text-sm font-medium text-gray-600 transition-colors hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400"
+            className="hidden text-sm font-medium text-gray-600 transition-colors hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400 sm:inline"
           >
-            Archivo
+            {t("nav.archive")}
           </Link>
           <Link
             href="/project"
-            className="hidden text-sm font-medium text-gray-600 transition-colors hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400 sm:inline"
+            className="hidden text-sm font-medium text-gray-600 transition-colors hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400 lg:inline"
           >
-            Proyecto
+            {t("nav.project")}
           </Link>
 
           <a
             href="https://github.com/AlejandroRS21/blogger-agent-tfg"
             target="_blank"
             rel="noopener noreferrer"
-            className="hidden text-sm font-medium text-gray-600 transition-colors hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400 sm:inline"
+            className="hidden text-sm font-medium text-gray-600 transition-colors hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400 lg:inline"
           >
             GitHub
           </a>
+          <LanguageSwitcher />
           <button
             type="button"
-            aria-label={isDark ? "Activar tema claro" : "Activar tema oscuro"}
+            aria-label={isDark ? t("theme.light") : t("theme.dark")}
             onClick={() => setTheme(isDark ? "light" : "dark")}
             className="text-lg leading-none text-gray-600 transition-colors hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400"
           >
@@ -67,7 +71,7 @@ export default function Header() {
             href="/posts/new"
             className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700"
           >
-            Generar
+            {t("nav.generate")}
           </Link>
         </nav>
       </div>

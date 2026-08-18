@@ -4,6 +4,7 @@ import { useReducer, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getBloggersByLanguage, getBloggerBySlug, normalizeUrl, NICHE_LABELS } from "@/lib/bloggers";
 import { supabase } from "@/lib/supabase";
+import { useI18n } from "@/lib/i18n";
 
 const DEFAULT_WEBHOOK_URL = "https://alejandrors21--blogger-agent-tfg-webhook.modal.run";
 
@@ -85,6 +86,7 @@ function reducer(state: State, action: Action): State {
 }
 
 export default function NewPostPage() {
+  const { t } = useI18n();
   const [state, dispatch] = useReducer(reducer, initialState);
   const [infoMessage, setInfoMessage] = useState<string | null>(null);
   const { push, refresh } = useRouter();
@@ -258,9 +260,9 @@ export default function NewPostPage() {
   return (
     <main className="mx-auto max-w-4xl px-6 py-12 text-zinc-900 dark:text-zinc-100">
       <div className="mb-12">
-        <h1 className="mb-4 text-4xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">Crear Nuevo Post</h1>
+        <h1 className="mb-4 text-4xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">{t("gen.title")}</h1>
         <p className="text-lg text-zinc-600 dark:text-zinc-400">
-          Configura el tema y la fuente de inspiración para que la IA haga su magia.
+          {t("gen.subtitle")}
         </p>
       </div>
 
@@ -268,7 +270,7 @@ export default function NewPostPage() {
         <form onSubmit={handleSubmit} className="space-y-8 rounded-2xl border border-zinc-200 bg-white p-8 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
           <div className="space-y-2">
             <label htmlFor="topic" className="block text-sm font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
-              Título del Artículo
+              {t("gen.topicLabel")}
             </label>
             <input
               id="topic"
@@ -276,15 +278,15 @@ export default function NewPostPage() {
               required
               value={state.topic}
               onChange={(e) => dispatch({ type: 'SET_TOPIC', payload: e.target.value })}
-              placeholder="Ej: El futuro de la IA en el desarrollo web"
+              placeholder={t("gen.topicPh")}
               className="w-full rounded-xl border border-zinc-300 bg-transparent px-4 py-3 outline-none transition-all focus:ring-2 focus:ring-blue-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
             />
-            <p className="text-xs italic text-zinc-500 dark:text-zinc-400">El moderador con IA validará que el tema sea profesional.</p>
+            <p className="text-xs italic text-zinc-500 dark:text-zinc-400">{t("gen.topicHint")}</p>
           </div>
 
           <div className="space-y-2">
             <label htmlFor="language" className="block text-sm font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
-              Idioma de Generación
+              {t("gen.langLabel")}
             </label>
             <select
               id="language"
@@ -295,12 +297,12 @@ export default function NewPostPage() {
               <option value="es">Español</option>
               <option value="en">English</option>
             </select>
-            <p className="text-xs italic text-zinc-500 dark:text-zinc-400">Los bloggers disponibles se filtran según el idioma elegido.</p>
+            <p className="text-xs italic text-zinc-500 dark:text-zinc-400">{t("gen.langHint")}</p>
           </div>
 
           <div className="space-y-2">
             <label className="block text-sm font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
-              Blogger de Inspiración {state.language === "en" ? "(English)" : "(Español)"}
+              {t("gen.inspirationLabel")}
             </label>
             <div className="space-y-4">
               {Object.entries(NICHE_LABELS)
@@ -349,14 +351,14 @@ export default function NewPostPage() {
 
           <div className="space-y-2">
             <label htmlFor="custom-url" className="block text-sm font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
-              URL de Inspiración (Opcional)
+              {t("gen.customUrlLabel")}
             </label>
             <input
               id="custom-url"
               type="text"
               value={state.customUrl}
               onChange={(e) => dispatch({ type: 'SET_CUSTOM_URL', payload: e.target.value })}
-              placeholder="Ej: https://miblog.com"
+              placeholder={t("gen.customUrlPh")}
               className="w-full rounded-xl border border-zinc-300 bg-transparent px-4 py-3 outline-none transition-all focus:ring-2 focus:ring-blue-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
             />
           </div>
@@ -366,12 +368,12 @@ export default function NewPostPage() {
             disabled={!canSubmit}
             className="w-full transform rounded-xl bg-blue-600 py-4 font-bold text-white transition-all hover:bg-blue-700 hover:opacity-90 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-blue-600"
           >
-            GENERAR POST AUTÓNOMO
+            {t("gen.submit")}
           </button>
 
           {state.error && (
             <div role="alert" className="rounded-xl border border-red-100 bg-red-50 p-4 text-sm text-red-600 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-400">
-              <strong>Error:</strong> {state.error}
+              <strong>{t("gen.errorLabel")}</strong> {state.error}
             </div>
           )}
         </form>
@@ -382,7 +384,7 @@ export default function NewPostPage() {
             <div className="mb-4 flex items-center justify-between">
               <div>
                 <span className="inline-block rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold uppercase text-blue-700 dark:bg-blue-950/60 dark:text-blue-300">
-                  Progreso de Generación
+                  {t("gen.progress")}
                 </span>
               </div>
               <div className="text-right">
@@ -418,7 +420,7 @@ export default function NewPostPage() {
                     {phase.label}
                   </h3>
                   <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                    {index === state.currentPhase ? "En proceso..." : index < state.currentPhase ? "Completado" : "Pendiente"}
+                    {index === state.currentPhase ? t("gen.running") : index < state.currentPhase ? t("gen.done") : t("gen.pending")}
                   </p>
                 </div>
                 {index === state.currentPhase && (
@@ -432,7 +434,7 @@ export default function NewPostPage() {
           </div>
 
           <p className="animate-pulse text-center italic text-zinc-500 dark:text-zinc-400">
-            Por favor, no cierres esta ventana. El proceso toma unos 2-3 minutos.
+            {t("gen.wait")}
           </p>
 
           {infoMessage && (
