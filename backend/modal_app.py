@@ -147,11 +147,16 @@ def _mark_job(
         return
     store = store if store is not None else _get_job_store()
     existing = store.get(job_id, {})
+    payload = existing.get("payload") or {}
+    if isinstance(payload, dict) and not payload:
+        # nothing to add; keep existing
+        pass
     store[job_id] = {
         "status": status,
         "updated_at": datetime.now().timestamp(),
         "ip": ip or existing.get("ip"),
         "error": error if error is not None else existing.get("error"),
+        "payload": payload,
     }
     _mark_job_supabase(job_id, status, error=error or existing.get("error"))
 
@@ -260,6 +265,11 @@ def enqueue_job(
     job_id = payload.get("job_id")
     if job_id:
         _mark_job(job_id, "queued", store=store, ip=ip)
+        # persist full payload so a stale-running recovery can rebuild it
+        store[job_id] = {
+            **store.get(job_id, {}),
+            "payload": payload,
+        }
     queue.put(payload)
 
 
@@ -294,6 +304,7 @@ def _drain_once(
     queue = queue if queue is not None else _get_queue()
     job_store = job_store if job_store is not None else _get_job_store()
     _prune_done_jobs(job_store, ttl=JOB_STALE_TIMEOUT_SECONDS)
+    _requeue_stale_running(job_store, queue)
     if spawner is None:
         spawner = generate_blog_post.spawn
     max_conc = max_conc if max_conc is not None else MAX_CONCURRENT_GENERATIONS
@@ -310,6 +321,8 @@ def _drain_once(
         if not payload or not isinstance(payload, dict):
             continue
         job_id = payload.get("job_id")
+        # Mark running BEFORE spawn so a crashed cron between get and spawn
+        # leaves a visible stale-running job instead of a silently lost one.
         if job_id:
             _mark_job(job_id, "running", store=job_store)
         try:
@@ -321,6 +334,43 @@ def _drain_once(
                 _mark_job(job_id, "failed", store=job_store, error=str(spawn_err))
 
     return drained
+
+
+def _requeue_stale_running(store: Any, queue: Any, stale_after: float = 600) -> int:
+    """Re-enqueue jobs stuck in 'running' longer than stale_after seconds.
+
+    A cron that dies between queue.get() and spawn() loses the job silently
+    (the item is already out of the queue). Those jobs stay 'running' in the
+    store forever; this recovers them by putting them back on the queue.
+    """
+    now = datetime.now().timestamp()
+    requeued = 0
+    try:
+        keys = list(store.keys())
+    except Exception:
+        return 0
+    for k in keys:
+        item = store.get(k, {})
+        if not isinstance(item, dict) or item.get("status") != "running":
+            continue
+        updated = item.get("updated_at", 0)
+        if updated and now - updated > stale_after:
+            # Rebuild payload from the stored job info (best effort).
+            payload = dict(item.get("payload") or {})
+            for f in ("blogger_urls", "topic", "enable_critique", "min_word_count",
+                      "max_word_count", "provider", "language", "job_id",
+                      "blogger_name", "preset_id", "niche"):
+                if f in item and f not in payload:
+                    payload[f] = item[f]
+            payload["job_id"] = k
+            try:
+                queue.put(payload)
+                _mark_job(k, "queued", store=store)
+                requeued += 1
+                print(f"[_drain_once] Requeued stale running job {k}")
+            except Exception as e:
+                print(f"[_drain_once] Failed to requeue {k}: {e}")
+    return requeued
 
 backend_dir = os.path.dirname(__file__)
 
