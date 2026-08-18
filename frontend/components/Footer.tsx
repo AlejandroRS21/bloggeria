@@ -1,4 +1,10 @@
+"use client";
+
+import { useI18n } from "@/lib/i18n";
+
 export default function Footer() {
+  const { t } = useI18n();
+
   return (
     <footer className="border-t border-gray-200 bg-gray-50 dark:border-gray-800 dark:bg-slate-900">
       <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
@@ -8,10 +14,12 @@ export default function Footer() {
               Blogger Agent
             </p>
             <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              Desarrollado por <strong>Alejandro Ramírez Salado</strong> como Proyecto Académico
+              {t("footer.tagline")}
             </p>
           </div>
-
+          <p className="text-xs text-gray-500 dark:text-gray-400">
+            {t("footer.tfg")}
+          </p>
           <div className="flex items-center gap-4">
             <a
               href="https://github.com/AlejandroRS21/blogger-agent-tfg"
@@ -26,7 +34,8 @@ export default function Footer() {
 
         <div className="mt-6 border-t border-gray-200 pt-4 text-center dark:border-gray-800">
           <p className="text-xs text-gray-400 dark:text-gray-500">
-            &copy; {new Date().getFullYear()} Blogger Agent. Creado por Alejandro Ramírez Salado (@AlejandroRS21).
+            &copy; {new Date().getFullYear()} Blogger Agent. Alejandro Ramírez
+            Salado (@AlejandroRS21). {t("footer.rights")}
           </p>
         </div>
       </div>

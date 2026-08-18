@@ -295,10 +295,10 @@ graph LR
     %% Output and storage
     Img --> Output["HTML / JSX Articles + Metadata"]
     
-    %% Formal visual styles
-    classDef default fill:#ffffff,stroke:#333333,stroke-width:1px;
-    classDef agent fill:#f8fafc,stroke:#475569,stroke-width:2px;
-    classDef io fill:#f1f5f9,stroke:#64748b,stroke-width:1px;
+    %% High-contrast visual styles (legible in light & dark mode)
+    classDef default fill:#1e293b,stroke:#0f172a,stroke-width:1px,color:#ffffff;
+    classDef agent fill:#2563eb,stroke:#1e3a8a,stroke-width:2px,color:#ffffff;
+    classDef io fill:#0d9488,stroke:#134e4a,stroke-width:2px,color:#ffffff;
     
     class Style,Key,Gen,Critic,Ref,HTML,Img agent;
     class Tema,URL,Scraper,Corpus,Output io;
