@@ -349,6 +349,7 @@ image = (
         modal.Secret.from_name("openai-secret"),
         modal.Secret.from_name("huggingface-secret"),
         modal.Secret.from_name("gemini-secret"),
+        modal.Secret.from_name("openrouter-secret"),
         modal.Secret.from_name("brave-secret"),
         modal.Secret.from_name("unsplash-secret"),
         modal.Secret.from_name("supabase-secret"),
@@ -796,6 +797,7 @@ def _map_to_supabase(
         modal.Secret.from_name("openai-secret"),
         modal.Secret.from_name("supabase-secret"),
         modal.Secret.from_name("gemini-secret"),
+        modal.Secret.from_name("openrouter-secret"),
     ],
 )
 @modal.fastapi_endpoint(method="POST")

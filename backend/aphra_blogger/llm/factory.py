@@ -10,6 +10,56 @@ from .openai_provider import OpenAIProvider
 from .huggingface_provider import HuggingFaceProvider
 from .modal_provider import ModalProvider
 from .gemini_provider import GeminiProvider
+from .openrouter_provider import OpenRouterProvider
+from .fallback_provider import FallbackProvider
+
+# Default fallback chain: best free prose model first, reliable last resort last.
+OPENROUTER_PRIMARY_MODEL = "nvidia/nemotron-3-ultra-550b-a55b:free"
+OPENROUTER_SECONDARY_MODEL = "nvidia/nemotron-3-super-120b-a12b:free"
+GEMINI_FALLBACK_MODEL = "gemini-2.5-flash"
+
+
+def _build_fallback_chain(
+    temperature: float, max_tokens: int, **kwargs
+) -> Optional[LLMProvider]:
+    """Build OpenRouter->OpenRouter->Gemini chain if keys allow, else None.
+
+    Returns None when no OpenRouter key is set, so callers fall back to the
+    original single-provider behaviour (zero regression).
+    """
+    or_key = os.getenv("OPENROUTER_API_KEY")
+    gem_key = os.getenv("GEMINI_API_KEY")
+    if not or_key:
+        return None
+
+    providers: list = []
+    labels: list = []
+    for model in (OPENROUTER_PRIMARY_MODEL, OPENROUTER_SECONDARY_MODEL):
+        try:
+            p = OpenRouterProvider(
+                LLMConfig(api_key=or_key, model=model, temperature=temperature,
+                          max_tokens=max_tokens, **kwargs)
+            )
+            if p.is_available():
+                providers.append(p)
+                labels.append(f"openrouter:{model.split('/')[-1]}")
+        except Exception:
+            pass
+    if gem_key:
+        try:
+            g = GeminiProvider(
+                LLMConfig(api_key=gem_key, model=GEMINI_FALLBACK_MODEL,
+                          temperature=temperature, max_tokens=max_tokens, **kwargs)
+            )
+            if g.is_available():
+                providers.append(g)
+                labels.append("gemini:2.5-flash")
+        except Exception:
+            pass
+
+    if not providers:
+        return None
+    return FallbackProvider(providers, labels=labels)
 
 
 def create_llm_provider(
@@ -56,8 +106,12 @@ def create_llm_provider(
         api_key=api_key, model=model, temperature=temperature, max_tokens=max_tokens, **kwargs
     )
 
-    # Auto mode: try Modal first if configured, then Gemini, then HuggingFace, then OpenAI
+    # Auto mode: try fallback chain (OpenRouter->Gemini) first, then Modal, HF, OpenAI
     if provider == "auto":
+        chain = _build_fallback_chain(temperature, max_tokens, **kwargs)
+        if chain is not None and chain.is_available():
+            return chain
+
         # Check for Modal config
         modal_ready = (
             os.getenv("MODAL_TOKEN_ID") and os.getenv("MODAL_TOKEN_SECRET")
@@ -144,6 +198,11 @@ def create_llm_provider(
         return llm
 
     elif provider == "gemini":
+        # Prefer the OpenRouter->Gemini fallback chain when an OpenRouter key is
+        # present; otherwise use plain Gemini (original behaviour).
+        chain = _build_fallback_chain(temperature, max_tokens, **kwargs)
+        if chain is not None and chain.is_available():
+            return chain
         llm = GeminiProvider(config)
         if not llm.is_available():
             raise ValueError(

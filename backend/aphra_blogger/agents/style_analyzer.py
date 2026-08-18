@@ -116,9 +116,9 @@ Respond with ONLY the JSON, no other text."""
             )
             
             response = self.llm.chat_completion(messages)
-            
-            import json
-            result = json.loads(response.content)
+
+            from ..llm.json_utils import extract_json
+            result = extract_json(response.content)
             return self._resolve_language_fields(result)
             
         except Exception as e:

@@ -118,11 +118,11 @@ Return ONLY valid JSON array."""
             )
             
             response = self.llm.chat_completion(messages)
-            
-            import json
-            result = json.loads(response.content)
+
+            from ..llm.json_utils import extract_json
+            result = extract_json(response.content)
             return result
-            
+
         except Exception as e:
             print(f"Warning: Image selection failed: {e}. Using fallback.")
             return self._fallback_selection(content, topic, num_images)
