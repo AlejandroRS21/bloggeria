@@ -91,11 +91,14 @@ blogger-agent-tfg/
 │   ├── aphra_blogger/
 │   │   ├── llm/                     # Multi-provider LLM abstraction
 │   │   │   ├── base.py              # Abstract classes
-│   │   │   ├── factory.py           # Factory with auto-fallback
-│   │   │   ├── huggingface_provider.py  # HuggingFace (primary, free)
-│   │   │   ├── openai_provider.py       # OpenAI (fallback)
-│   │   │   ├── gemini_provider.py       # Gemini (alternative)
-│   │   │   └── modal_provider.py        # Modal with GPU (production)
+│   │   │   ├── factory.py           # Factory with auto-fallback chain
+│   │   │   ├── openrouter_provider.py   # OpenRouter (primary: Nemotron, free)
+│   │   │   ├── gemini_provider.py       # Gemini (fallback)
+│   │   │   ├── fallback_provider.py     # Fallback chain with backoff
+│   │   │   ├── json_utils.py            # Robust JSON extraction
+│   │   │   ├── huggingface_provider.py  # HuggingFace (legacy)
+│   │   │   ├── openai_provider.py       # OpenAI (legacy)
+│   │   │   └── modal_provider.py        # Modal with GPU (legacy)
 │   │   ├── agents/                  # Specialized agents
 │   │   │   ├── style_analyzer.py        # Style analysis
 │   │   │   ├── keyword_extractor.py     # Keyword extraction
@@ -117,14 +120,19 @@ blogger-agent-tfg/
 │   │       ├── state.py
 │   │       └── runner.py            # CLI
 │   ├── tools/
-│   │   └── scraper.py               # WordPress web scraper
-│   ├── tests/                       # ~80 tests
+│   │   ├── scraper.py               # WordPress web scraper
+│   │   └── style_analysis.py        # Morphological style adherence analysis
+│   ├── tests/                       # ~384 tests
 │   │   ├── test_agents.py
 │   │   ├── test_orchestrator.py
 │   │   ├── test_html_builder.py
 │   │   ├── test_scraper.py
 │   │   ├── test_workflow.py
-│   │   └── test_anonymous_blogger.py
+│   │   ├── test_anonymous_blogger.py
+│   │   ├── test_fallback_provider.py
+│   │   ├── test_json_utils.py
+│   │   ├── test_drain_recovery.py
+│   │   └── test_unsplash.py
 │   ├── daggr_blogger_workflow.py    # Visual workflow with Daggr
 │   ├── modal_app.py                 # Modal deployment (serverless)
 │   ├── llm_modal_host.py            # Self-hosted LLM on Modal GPU
@@ -180,10 +188,11 @@ cd blogger-agent-tfg/backend
 .\setup.ps1  # Windows
 
 # 3. Configure the API keys (free)
-export HF_TOKEN="hf_..."           # HuggingFace (primary model, free)
-# Alternative providers:
-export GEMINI_API_KEY="..."        # Gemini (free with quota limits)
-export OPENAI_API_KEY="sk-..."     # OpenAI (paid, contingency/fallback)
+export OPENROUTER_API_KEY="sk-or-..."    # OpenRouter (primary: Nemotron, free)
+export GEMINI_API_KEY="..."              # Gemini (fallback, free with quota limits)
+# Alternative providers (legacy):
+export HF_TOKEN="hf_..."                 # HuggingFace
+export OPENAI_API_KEY="sk-..."           # OpenAI (paid, contingency/fallback)
 
 # 4. Run the orchestrator (7-phase process)
 python -m src.orchestrator.runner \
@@ -242,13 +251,17 @@ cd frontend && npx vercel --prod
 
 ```bash
 cd backend
-# Run the full test suite (about 80 tests)
+# Run the full test suite (about 384 tests)
 pytest tests/ -v
 
 # Component-specific tests
 pytest tests/test_orchestrator.py -v
 pytest tests/test_html_builder.py -v
 pytest tests/test_agents.py -v
+pytest tests/test_fallback_provider.py -v
+pytest tests/test_json_utils.py -v
+pytest tests/test_drain_recovery.py -v
+pytest tests/test_unsplash.py -v
 
 # End-to-end integration test (E2E)
 python test_full_pipeline.py
@@ -325,20 +338,27 @@ modal deploy backend/llm_modal_host.py
 ## Project Status
 
 ### Completed Milestones
-- **LLM abstraction**: Multi-provider support (HuggingFace, OpenAI, Gemini, Modal GPU).
+- **LLM abstraction**: Multi-provider support with **automatic fallback chain** (OpenRouter Nemotron → Gemini → legacy providers).
+- **Primary model — OpenRouter Nemotron (`nvidia/nemotron-3-ultra-550b-a55b:free`)**: free tier, best Spanish prose quality (benchmarked vs Gemini, Nemotron 120B, Gemma, GPT-OSS).
+- **Fallback resilience**: automatic retry with backoff on 429/timeout/empty output; robust JSON extraction (`json_utils`) tolerant to code fences and prose.
 - **Agent architecture**: Full implementation of StyleAnalyzer, KeywordExtractor, ContentGenerator, Critic, ImageSelector, HTMLBuilder and AnonymousBloggerEmulator.
 - **Orchestrator**: 7-phase flow with retry management, logging and state control.
 - **Scraper**: Optimized for WordPress sites (fully compatible with javipas.com).
-- **Test suite**: about 80 unit and integration tests.
+- **Test suite**: about 384 unit and integration tests (fallback chain, JSON extraction, drain recovery, Unsplash dedupe).
+- **Job queue reliability**: drain process recovers jobs lost between queue.get and spawn (stale-running requeue with full payload persistence).
+- **Image selection**: Unsplash dedupe within batch + pseudo-random selection (was always returning the first result → repeated images).
+- **Morphological style analysis**: `style_analysis.py` scores generated articles against the assigned author profile (spaCy features + vocabulary overlap), mean 84/100 across 21 test articles.
 - **Daggr**: interactive and visual workflow interface built with Gradio.
 - **Next.js frontend**: using App Router, React 19, TypeScript and Tailwind CSS 4.
-- **Persistence and DB**: direct connection and insertion of publications into Supabase.
+- **Persistence and DB**: direct connection and insertion of publications into Supabase (with `status`/`error_message` columns for job tracking).
 - **Modal**: ready for serverless deployment of the backend components.
 
 ### Pending Tasks
 - **CI/CD**: GitHub Actions configuration to run tests and automatic deployment.
 - **End-to-end tests (E2E)**: cypress or Playwright implementation to validate the Next.js web application.
 - **Modal environment tests**: validation of the real deployment in production.
+- **Image regeneration**: re-run image selection on existing posts to benefit from the dedupe/variety fix.
+- **PII false positives**: refine the moderator's credit-card detection (currently flags innocent digit sequences).
 
 ---
 
@@ -362,14 +382,16 @@ modal deploy backend/llm_modal_host.py
 
 ### Backend
 - Python 3.11+
-- **HuggingFace Inference API** — primary LLM (free)
-- OpenAI API — optional fallback
-- Google Gemini — free inference alternative
+- **OpenRouter (Nemotron 550B free)** — primary LLM, best Spanish prose
+- **Google Gemini** — automatic fallback when OpenRouter hits rate limits
+- **Fallback chain** — automatic retry with backoff across providers
+- HuggingFace Inference API / OpenAI — legacy providers
 - **Modal** — serverless deployment with GPU (A10G)
 - **Daggr + Gradio** — interactive visual workflow with agents
 - **python-markdown + Pygments** — Markdown → HTML
 - **beautifulsoup4 + lxml** — WordPress blog web scraping
-- pytest — about 80 tests
+- **spaCy** — morphological style analysis (`style_analysis.py`)
+- **pytest** — about 384 tests
 
 ### Frontend
 - **Next.js 16.1** (App Router)
@@ -388,7 +410,7 @@ modal deploy backend/llm_modal_host.py
 
 ## Documentation Consistency
 
-This document reflects the current state of the project as of May 2026.
+This document reflects the current state of the project as of August 2026.
 
 > **Note**: The original frontend built with Next.js was discarded in February 2026. In May 2026 a complete rebuild was carried out using Next.js 16, React 19 and Tailwind CSS 4. The primary development specs are preserved in `project_docs/FRONTEND_IMPLEMENTATION.md` for historical reference.
 
