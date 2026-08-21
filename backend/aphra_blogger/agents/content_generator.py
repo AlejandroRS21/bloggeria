@@ -272,113 +272,59 @@ class ContentGenerator:
             return ""
 
         name = ContentGenerator._extract_blogger_name(blogger_urls, style_profile=profile)
-        if language == "en":
-            blocks = [f"━━━━━━ STYLE PROFILE ─────────────────────"]
-            blocks.append(f"Reference blogger: {name}")
-            if blogger_urls:
-                blocks.append(f"Reference blog: {blogger_urls[0].strip().rstrip('/')}")
-
-            tone = profile.get("tone", "")
-            voice = profile.get("voice", "")
-            if tone or voice:
-                blocks.append(f"\nTone and Voice:")
-                if tone:
-                    blocks.append(f"  Tone: {tone}")
-                if voice:
-                    blocks.append(f"  Voice: {voice}")
-
-            vocab = profile.get("vocabulary", [])
-            if vocab:
-                blocks.append(f"\nCharacteristic vocabulary (use these words):")
-                blocks.append(f"  {', '.join(vocab[:15])}")
-
-            expressions = profile.get("expressions", [])
-            if expressions:
-                blocks.append(f"\nTypical expressions (incorporate naturally):")
-                blocks.append(f"  {', '.join(expressions[:8])}")
-
-            transitions = profile.get("transition_phrases", [])
-            if transitions:
-                blocks.append(f"\nTransition phrases (use to connect ideas):")
-                blocks.append(f"  {', '.join(transitions[:6])}")
-
-            tech = profile.get("technical_level", "")
-            if tech:
-                blocks.append(f"\nTechnical level: {tech}")
-
-            humor = profile.get("use_of_humor", "")
-            if humor:
-                blocks.append(f"Use of humor: {humor}")
-
-            engagement = profile.get("engagement_style", "")
-            if engagement:
-                blocks.append(f"Reader engagement: {engagement}")
-
-            opens = profile.get("common_opens", [])
-            if opens:
-                blocks.append(f"\nCommon opening:")
-                blocks.append(f"  \"{opens[0]}\"")
-
-            closes = profile.get("common_closes", [])
-            if closes:
-                blocks.append(f"Common closing:")
-                blocks.append(f"  \"{closes[0]}\"")
-
-            blocks.append("━━━━━━ END OF PROFILE ─────────────────")
-            return "\n".join(blocks)
-
-        blocks = [f"━━━━━━ PERFIL DE ESTILO ─────────────────────"]
-        blocks.append(f"Blogger de referencia: {name}")
+        is_en = language == "en"
+        blocks = ["━━━━━━ STYLE PROFILE ─────────────────────" if is_en else "━━━━━━ PERFIL DE ESTILO ─────────────────────"]
+        blocks.append(f"{'Reference blogger:' if is_en else 'Blogger de referencia:'} {name}")
         if blogger_urls:
-            blocks.append(f"Blog de referencia: {blogger_urls[0].strip().rstrip('/')}")
+            blocks.append(f"{'Reference blog:' if is_en else 'Blog de referencia:'} {blogger_urls[0].strip().rstrip('/')}")
 
         tone = profile.get("tone", "")
         voice = profile.get("voice", "")
         if tone or voice:
-            blocks.append(f"\nTono y Voz:")
+            blocks.append("\nTone and Voice:" if is_en else "\nTono y Voz:")
             if tone:
-                blocks.append(f"  Tono: {tone}")
+                blocks.append(f"  Tone: {tone}" if is_en else f"  Tono: {tone}")
             if voice:
-                blocks.append(f"  Voz: {voice}")
+                blocks.append(f"  Voice: {voice}" if is_en else f"  Voz: {voice}")
 
         vocab = profile.get("vocabulary", [])
         if vocab:
-            blocks.append(f"\nVocabulario característico (usa estas palabras):")
+            blocks.append("\nCharacteristic vocabulary (use these words):" if is_en else "\nVocabulario característico (usa estas palabras):")
             blocks.append(f"  {', '.join(vocab[:15])}")
 
         expressions = profile.get("expressions", [])
         if expressions:
-            blocks.append(f"\nExpresiones típicas (incorpóralas naturalmente):")
+            blocks.append("\nTypical expressions (incorporate naturally):" if is_en else "\nExpresiones típicas (incorpóralas naturalmente):")
             blocks.append(f"  {', '.join(expressions[:8])}")
 
         transitions = profile.get("transition_phrases", [])
         if transitions:
-            blocks.append(f"\nFrases de transición (úsalas para conectar ideas):")
+            blocks.append("\nTransition phrases (use to connect ideas):" if is_en else "\nFrases de transición (úsalas para conectar ideas):")
             blocks.append(f"  {', '.join(transitions[:6])}")
 
         tech = profile.get("technical_level", "")
         if tech:
-            blocks.append(f"\nNivel técnico: {tech}")
+            blocks.append(f"\nTechnical level: {tech}" if is_en else f"\nNivel técnico: {tech}")
 
         humor = profile.get("use_of_humor", "")
         if humor:
-            blocks.append(f"Uso de humor: {humor}")
+            blocks.append(f"Use of humor: {humor}" if is_en else f"Uso de humor: {humor}")
 
         engagement = profile.get("engagement_style", "")
         if engagement:
-            blocks.append(f"Interacción con lectores: {engagement}")
+            blocks.append(f"Reader engagement: {engagement}" if is_en else f"Interacción con lectores: {engagement}")
 
         opens = profile.get("common_opens", [])
         if opens:
-            blocks.append(f"\nCómo suele empezar:")
+            blocks.append("\nCommon opening:" if is_en else "\nCómo suele empezar:")
             blocks.append(f"  \"{opens[0]}\"")
 
         closes = profile.get("common_closes", [])
         if closes:
-            blocks.append(f"Cómo suele terminar:")
+            blocks.append("Common closing:" if is_en else "Cómo suele terminar:")
             blocks.append(f"  \"{closes[0]}\"")
 
-        blocks.append("━━━━━━ FIN DEL PERFIL ─────────────────")
+        blocks.append("━━━━━━ END OF PROFILE ─────────────────" if is_en else "━━━━━━ FIN DEL PERFIL ─────────────────")
         return "\n".join(blocks)
 
     @staticmethod
@@ -387,18 +333,10 @@ class ContentGenerator:
         if not research_context or len(research_context.strip()) <= 100:
             return ""
         if language == "en":
-            return f"""
-━━━━━━ REAL FACTUAL CONTEXT ABOUT THE TOPIC ━━━━━━━━
-Use this information as factual base for the post. Do not invent data, base yourself on this.
-{research_context}
-━━━━━━ END OF INFORMATION ━━━━━━━━━━━━━━━━━━━━━
-"""
-        return f"""
-━━━━━━ INFORMACIÓN REAL SOBRE EL TEMA ━━━━━━━━
-Usa esta información como base factual para el post. No inventes datos, básate en esto.
-{research_context}
-━━━━━━ FIN DE INFORMACIÓN ━━━━━━━━━━━━━━━━━━━━━
-"""
+            header, intro, footer = "REAL FACTUAL CONTEXT ABOUT THE TOPIC", "Use this information as factual base for the post. Do not invent data, base yourself on this.", "END OF INFORMATION"
+        else:
+            header, intro, footer = "INFORMACIÓN REAL SOBRE EL TEMA", "Usa esta información como base factual para el post. No inventes datos, básate en esto.", "FIN DE INFORMACIÓN"
+        return f"\n━━━━━━ {header} ━━━━━━━━\n{intro}\n{research_context}\n━━━━━━ {footer} ━━━━━━━━━━━━━━━━━━━━━\n"
 
     @staticmethod
     def _build_attribution(
@@ -472,21 +410,14 @@ Usa esta información como base factual para el post. No inventes datos, básate
             # ---- PROMPT CON EJEMPLOS REALES (modo principal) ----
             language_rules = self._language_rules(effective_language, simplified=False)
             if effective_language == "en":
-                prompt = f"""Below are REAL blog posts written by {blogger_name}, whose writing style you must emulate faithfully, and factual information about the topic of the post.
+                header = f"""Below are REAL blog posts written by {blogger_name}, whose writing style you must emulate faithfully, and factual information about the topic of the post.
 
 ━━━━━━ ORIGINAL BLOGGER EXAMPLES ────────
 {sample_text[:20000]}
 ━━━━━━ END OF EXAMPLES ──────────────────
 {research_block}
-Now write a NEW post about: {topic}
-
-{style_context}
-
-RULES:
-
-{language_rules}
-
-- ### CONTENT and structure
+Now write a NEW post about: {topic}"""
+                rules_block = f"""- ### CONTENT and structure
   - BASE YOURSELF ON THE REAL INFORMATION provided above. Do not invent data.
   - NEVER use academic citations in bracketed numeric format (e.g., [1], [2], [1, 2], [3]). Write fluidly and narratively (e.g., "as X explains...", "as noted in Y...").
   - Filter and omit tragic details about wars, civilian casualties, or war crimes from research context unless the topic is military or geopolitical. Focus strictly on technology or opinion aspects suitable for the blogger.
@@ -506,23 +437,16 @@ RULES:
   - Vary connectors. Do not use "However" more than once. Alternate with "But", "That said", "The problem is", "The truth is", etc.
   - Write like a human being, not an assistant. No repetitive structures.
 
-Write the full post now:{attribution}"""
+Write the full post now:"""
             else:
-                prompt = f"""Abajo tienes posts REALES escritos por {blogger_name}, cuyo estilo de escritura tienes que imitar fielmente, e información factual sobre el tema del post.
+                header = f"""Abajo tienes posts REALES escritos por {blogger_name}, cuyo estilo de escritura tienes que imitar fielmente, e información factual sobre el tema del post.
 
 ━━━━━━ EJEMPLOS DEL BLOGGER ORIGINAL ────────
 {sample_text[:20000]}
 ━━━━━━ FIN DE LOS EJEMPLOS ──────────────────
 {research_block}
-Ahora escribe un NUEVO post sobre: {topic}
-
-{style_context}
-
-REGLAS:
-
-{language_rules}
-
-- ### CONTENIDO y estructura
+Ahora escribe un NUEVO post sobre: {topic}"""
+                rules_block = f"""- ### CONTENIDO y estructura
   - BÁSATE EN LA INFORMACIÓN REAL proporcionada arriba. No inventes datos.
   - NUNCA uses citas académicas en formato numérico entre corchetes (ej: [1], [2], [1, 2], [3]). Escribe de forma fluida y narrativa (ej: "según explica X...", "como se comenta en Y...").
   - Filtra y omite detalles trágicos sobre guerras, víctimas civiles o crímenes de guerra del contexto de investigación, a menos que el tema sea militar o geopolítico. Enfócate estrictamente en los aspectos tecnológicos o de opinión general acordes al blogger.
@@ -542,23 +466,18 @@ REGLAS:
   - Varía los conectores. No uses "Sin embargo" más de una vez. Alterna con "Pero", "No obstante", "Ahora bien", "Eso sí", "El problema", "Lo cierto es que", etc.
   - Escribe como un ser humano, no como un asistente. Sin estructuras repetitivas.
 
-Escribe el post completo ahora:{attribution}"""
+Escribe el post completo ahora:"""
+            rules_label = "RULES:" if effective_language == "en" else "REGLAS:"
+            prompt = f"{header}\n\n{style_context}\n\n{rules_label}\n\n{language_rules}\n\n{rules_block}{attribution}"
         else:
             # ---- PROMPT SIMPLIFICADO (sin ejemplos del blogger) ----
             language_rules = self._language_rules(effective_language, simplified=True)
             if effective_language == "en":
-                prompt = f"""{research_block}
+                header = f"""{research_block}
 Write a blog post emulating the style of {blogger_name}. Below is their style profile.
 
-Topic: {topic}
-
-{style_context}
-
-RULES:
-
-{language_rules}
-
-- ### CONTENT and quality
+Topic: {topic}"""
+                rules_block = f"""- ### CONTENT and quality
   - BASE YOURSELF ON REAL INFORMATION. Do not invent data.
   - NEVER use citations in bracketed numeric format (e.g., [1], [2], [1, 2], [3]). Write fluidly and narratively (e.g., "as X explains...", "as noted in Y...").
   - Filter and omit tragic details about wars, civilian casualties, or war crimes from research context unless the topic is military or geopolitical. Focus strictly on technology or opinion aspects suitable for the blogger.
@@ -577,20 +496,13 @@ RULES:
   - Vary connectors. Do not use "However" more than once. Alternate with "But", "That said", "The problem is", "The truth is", etc.
   - Write like a human being, not an assistant.
 
-Write the post now:{attribution}"""
+Write the post now:"""
             else:
-                prompt = f"""{research_block}
+                header = f"""{research_block}
 Escribe un post de blog imitando el estilo de {blogger_name}. Abajo está su perfil de estilo.
 
-Tema: {topic}
-
-{style_context}
-
-REGLAS:
-
-{language_rules}
-
-- ### CONTENIDO y calidad
+Tema: {topic}"""
+                rules_block = f"""- ### CONTENIDO y calidad
   - BÁSATE EN LA INFORMACIÓN REAL. No inventes datos.
   - NUNCA uses citas en formato numérico entre corchetes (ej: [1], [2], [1, 2], [3]). Escribe de forma fluida y narrativa (ej: "según explica X...", "como se comenta en Y...").
   - Filtra y omite detalles trágicos sobre guerras, víctimas civiles o crímenes de guerra del contexto de investigación, a menos que el tema sea militar o geopolítico. Enfócate estrictamente en los aspectos tecnológicos o de opinión general acordes al blogger.
@@ -609,7 +521,9 @@ REGLAS:
   - Varía los conectores. No uses "Sin embargo" más de una vez. Alterna con "Pero", "Eso sí", "El problema", "Lo cierto es que", etc.
   - Escribe como un ser humano, no como un asistente.
 
-Escribe el post ahora:{attribution}"""
+Escribe el post ahora:"""
+            rules_label = "RULES:" if effective_language == "en" else "REGLAS:"
+            prompt = f"{header}\n\n{style_context}\n\n{rules_label}\n\n{language_rules}\n\n{rules_block}{attribution}"
 
         try:
             messages = self.llm.create_messages(

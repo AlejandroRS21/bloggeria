@@ -240,52 +240,28 @@ class NewsResearchAgent:
         """Fallback: basic web search using requests and BeautifulSoup."""
         import requests
         from bs4 import BeautifulSoup
-        import urllib.parse
+        from urllib.parse import quote, urljoin
 
         try:
-            # Use DuckDuckGo news
-            query = urllib.parse.quote(topic)
-            url = f"https://news.google.com/search?q={query}&hl=es"
-
+            url = f"https://news.google.com/search?q={quote(topic)}&hl=es"
             headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
-
-            response = requests.get(url, headers=headers, timeout=10)
-
-            if response.status_code != 200:
-                # Fallback to a simple mock
+            res = requests.get(url, headers=headers, timeout=10)
+            if res.status_code != 200:
                 return self._mock_news(topic, max_articles)
 
-            soup = BeautifulSoup(response.text, "html.parser")
-
-            articles = []
-            # Try to find news articles (Google News structure)
-            for item in soup.select("article")[:max_articles]:
-                title_elem = item.select_one("h3")
-                if not title_elem:
-                    continue
-
-                title = title_elem.get_text(strip=True)
-                link = item.select_one("a")
-                url = link.get("href", "") if link else ""
-
-                if url and not url.startswith("http"):
-                    url = "https://news.google.com" + url
-
-                articles.append(
-                    NewsArticle(
-                        title=title,
-                        source="Google News",
-                        url=url,
-                        date=datetime.now().strftime("%Y-%m-%d"),
-                        summary=f"Noticia sobre {topic}",
-                    )
+            soup = BeautifulSoup(res.text, "html.parser")
+            articles = [
+                NewsArticle(
+                    title=item.select_one("h3").get_text(strip=True),
+                    source="Google News",
+                    url=urljoin("https://news.google.com", item.select_one("a").get("href", "")),
+                    date=datetime.now().strftime("%Y-%m-%d"),
+                    summary=f"Noticia sobre {topic}",
                 )
-
-            if not articles:
-                return self._mock_news(topic, max_articles)
-
-            return articles
-
+                for item in soup.select("article")[:max_articles]
+                if item.select_one("h3") and item.select_one("a")
+            ]
+            return articles or self._mock_news(topic, max_articles)
         except Exception as e:
             print(f"Search fallback error: {e}")
             return self._mock_news(topic, max_articles)

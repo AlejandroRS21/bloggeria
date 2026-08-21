@@ -46,19 +46,21 @@ RATE_LIMIT_WINDOW_SECONDS = int(os.environ.get("RATE_LIMIT_WINDOW_SECONDS", "360
 JOB_STALE_TIMEOUT_SECONDS = int(os.environ.get("JOB_STALE_TIMEOUT_SECONDS", "7200"))
 
 
-def _get_queue():
+def _modal_resource(kind: str, name: str):
     import modal
-    return modal.Queue.from_name("blogger-job-queue", create_if_missing=True)
+    return getattr(modal, kind).from_name(name, create_if_missing=True)
+
+
+def _get_queue():
+    return _modal_resource("Queue", "blogger-job-queue")
 
 
 def _get_job_store():
-    import modal
-    return modal.Dict.from_name("blogger-jobs", create_if_missing=True)
+    return _modal_resource("Dict", "blogger-jobs")
 
 
 def _get_rate_store():
-    import modal
-    return modal.Dict.from_name("blogger-rate-limit", create_if_missing=True)
+    return _modal_resource("Dict", "blogger-rate-limit")
 
 
 # ── In-memory fallbacks for local/webhook.local() runs ─────────────
@@ -581,19 +583,9 @@ def _extract_language(data: Dict[str, Any]) -> str:
 
 def _parse_moderation_response(text: str) -> Dict[str, Any]:
     """Parse JSON moderation response from LLM output."""
-    import json
-    import re
-    json_match = re.search(r'\{[^}]+\}', text.strip())
-    if json_match:
-        try:
-            result = json.loads(json_match.group())
-            return {
-                "approved": result.get("approved", True),
-                "reason": result.get("reason"),
-            }
-        except json.JSONDecodeError:
-            pass
-    return {"approved": True, "reason": None}
+    from src.orchestrator.safety import parse_moderation_json
+    res = parse_moderation_json(text)
+    return {"approved": res.get("approved", True), "reason": res.get("reason")}
 
 
 _MODERATION_SYSTEM_PROMPT = """Eres un moderador de contenido. Debes determinar si el siguiente TEMA es apropiado para generar un artículo de blog profesional.

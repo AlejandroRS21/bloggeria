@@ -3,31 +3,24 @@ huggingface-hub>=0.20.0  # Primary provider (free/cheaper)
 openai>=1.0.0            # Optional fallback provider
 
 # HTTP and API clients
-httpx>=0.24.0
 requests>=2.31.0
 beautifulsoup4>=4.12.0
 
 # Configuration management
 toml>=0.10.2
 Markdown>=3.5.0
-Pygments>=2.17.0  # For code highlighting in markdown
+spacy>=3.8.0  # ES/EN stopword lists used by html_builder
 
 # Utilities
 python-dotenv>=1.0.0
-pydantic>=2.0.0
 modal>=0.62.0
-gradio>=4.0.0
 
 # Testing
 pytest>=7.4.0
-pytest-asyncio>=0.21.0
 
 # Development
 black>=23.0.0
 ruff>=0.1.0
-
-# Daggr for visual workflow management and testing (includes Gradio as dependency)
-daggr>=0.7.0
 
 fastapi[standard]
 supabase>=2.0.0

@@ -20,19 +20,13 @@ dependencies = [
     # LLM providers
     "huggingface-hub>=0.20.0",
     # HTTP and API clients
-    "httpx>=0.28.1",
     "requests>=2.31.0",
     "beautifulsoup4>=4.14.3",
     # Configuration
     "toml>=0.10.2",
-    "pydantic>=2.6.1",
     "Markdown>=3.5.0",
-    "Pygments>=2.17.0",
     # Utilities
     "python-dotenv>=1.2.1",
-    # Visual workflow
-    "daggr>=0.7.0",
-    "gradio>=6.5.1",
 ]
 
 [project.optional-dependencies]

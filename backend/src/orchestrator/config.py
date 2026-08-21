@@ -6,8 +6,8 @@ LLM settings, retry policies, and workflow parameters.
 """
 
 import os
-from dataclasses import dataclass, field
-from typing import Dict, Any, Optional, Tuple
+from dataclasses import dataclass
+from typing import Dict, Any, Optional
 import toml
 from pathlib import Path
 
@@ -30,18 +30,10 @@ class OrchestratorConfig:
     enable_critique: bool = True
     max_critique_iterations: int = 2
     verbose: bool = True
-    enable_continuous_publishing: bool = False
     
     # Content Settings
     min_word_count: int = 800
     max_word_count: int = 2500
-    publish_interval_hours: float = 12.0
-    redundancy_threshold: float = 0.8
-    redundancy_window_days: int = 14
-    critical_degradation_hours: float = 24.0
-    continuous_backoff_seconds: Tuple[float, ...] = (300.0, 900.0, 1800.0)
-    write_canonical_docs: bool = False
-    docs_output_dir: str = "docs"
     
     # Deep Research Settings
     enable_deep_research: bool = True
@@ -62,9 +54,6 @@ class OrchestratorConfig:
     # Timeouts
     agent_timeout: int = 300  # seconds per agent
     
-    # Additional settings
-    extra: Dict[str, Any] = field(factory=dict) if hasattr(field, 'factory') else field(default_factory=dict)
-    
     @classmethod
     def from_toml(cls, config_path: str) -> "OrchestratorConfig":
         """Load configuration from TOML file."""
@@ -83,21 +72,14 @@ class OrchestratorConfig:
             enable_critique=workflow.get('enable_critic', True),
             max_critique_iterations=workflow.get('max_iterations', 2),
             verbose=workflow.get('verbose', True),
-            enable_continuous_publishing=workflow.get('enable_continuous_publishing', False),
             min_word_count=content.get('min_word_count', 800),
             max_word_count=content.get('max_word_count', 2500),
-            publish_interval_hours=workflow.get('publish_interval_hours', 12.0),
-            redundancy_threshold=workflow.get('redundancy_threshold', 0.8),
-            redundancy_window_days=workflow.get('redundancy_window_days', 14),
-            critical_degradation_hours=workflow.get('critical_degradation_hours', 24.0),
             gemini_api_key=os.getenv('GEMINI_API_KEY') or os.getenv('GOOGLE_API_KEY'),
             openai_api_key=os.getenv('OPENAI_API_KEY'),
             anthropic_api_key=os.getenv('ANTHROPIC_API_KEY'),
             huggingface_token=os.getenv('HF_TOKEN') or os.getenv('HUGGINGFACE_TOKEN'),
             modal_api_key=os.getenv('MODAL_API_KEY'),
             provider=models.get('provider', 'auto'),
-            write_canonical_docs=workflow.get('write_canonical_docs', False),
-            docs_output_dir=workflow.get('docs_output_dir', 'docs'),
         )
     
     @classmethod
@@ -145,11 +127,4 @@ class OrchestratorConfig:
             'max_retries': self.max_retries,
             'enable_critique': self.enable_critique,
             'verbose': self.verbose,
-            'enable_continuous_publishing': self.enable_continuous_publishing,
-            'publish_interval_hours': self.publish_interval_hours,
-            'redundancy_threshold': self.redundancy_threshold,
-            'redundancy_window_days': self.redundancy_window_days,
-            'critical_degradation_hours': self.critical_degradation_hours,
-            'write_canonical_docs': self.write_canonical_docs,
-            'docs_output_dir': self.docs_output_dir,
         }

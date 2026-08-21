@@ -11,12 +11,8 @@ from typing import Dict, List, Optional
 from dataclasses import dataclass
 import logging
 
-try:
-    import markdown
-    from markdown.extensions import fenced_code, tables, toc, codehilite
-    MARKDOWN_AVAILABLE = True
-except ImportError:
-    MARKDOWN_AVAILABLE = False
+import markdown
+from markdown.extensions import fenced_code, tables, toc, codehilite
 
 try:
     from ..llm import create_llm_provider, LLMProvider
@@ -27,52 +23,10 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
-_COMPREHENSIVE_STOPWORDS = {
-    # Spanish Stopwords
-    'el', 'la', 'los', 'las', 'un', 'una', 'unos', 'unas', 'de', 'del', 'a', 'ante',
-    'bajo', 'cabe', 'con', 'contra', 'desde', 'en', 'entre', 'hacia', 'hasta',
-    'para', 'por', 'según', 'segun', 'sin', 'so', 'sobre', 'tras', 'y', 'e', 'ni', 'que',
-    'pero', 'mas', 'más', 'o', 'u', 'como', 'cuando', 'donde', 'dónde', 'quien', 'quién',
-    'cual', 'cuál', 'cuanto', 'cuánto', 'porque', 'porqué', 'es', 'son', 'fue', 'fueron',
-    'ser', 'estar', 'ha', 'han', 'hay', 'había', 'habia', 'tiene', 'tienen', 'hacer',
-    'esta', 'está', 'este', 'esto', 'estos', 'estas', 'están', 'estan', 'estaba', 'estaban',
-    'otro', 'otra', 'otros', 'otras', 'mismo', 'misma', 'mismos', 'mismas', 'tan', 'tanto',
-    'tanta', 'tantos', 'tantas', 'mucho', 'mucha', 'muchos', 'muchas', 'poco', 'poca',
-    'pocos', 'pocas', 'cada', 'todo', 'toda', 'todos', 'todas', 'algo', 'nada', 'alguno',
-    'alguna', 'algunos', 'algunas', 'ninguno', 'ninguna', 'ningunos', 'ningunas', 'aquél',
-    'aquel', 'aquella', 'aquellos', 'aquellas', 'eso', 'esos', 'aquello',
-    'mi', 'mis', 'tu', 'tus', 'su', 'sus', 'nuestro', 'nuestra', 'nuestros',
-    'nuestras', 'vuestro', 'vuestra', 'vuestros', 'vuestras', 'suya', 'suyo', 'suyos',
-    'suyas', 'mía', 'mío', 'míos', 'mías', 'tuya', 'tuyo', 'tuyos', 'tuyas', 'ya', 'aún',
-    'aun', 'bien', 'siempre', 'nunca', 'jamás', 'jamas', 'quizá', 'quizas', 'quizás',
-    'también', 'tambien', 'tampoco', 'además', 'ademas', 'luego', 'entonces', 'así', 'asi',
-    'menos', 'muy', 'casi', 'solo', 'sólo', 'parece', 'parecen', 'decir',
-    'dicho', 'parte', 'partes', 'forma', 'formas', 'manera', 'maneras', 'lugar', 'lugares',
-    'cosa', 'cosas', 'caso', 'casos', 'tiempo', 'años', 'anos', 'vez', 'veces',
-    # English Stopwords
-    'a', 'about', 'above', 'after', 'again', 'against', 'all', 'almost', 'along',
-    'already', 'also', 'although', 'always', 'am', 'among', 'an', 'and', 'another',
-    'any', 'anyone', 'anything', 'anywhere', 'are', 'around', 'as', 'at', 'back', 'be',
-    'became', 'because', 'become', 'becomes', 'becoming', 'been', 'before', 'behind',
-    'being', 'below', 'beside', 'between', 'both', 'but', 'by', 'can', 'cannot', 'could',
-    'did', 'do', 'does', 'doing', 'done', 'down', 'during', 'each', 'either', 'else',
-    'even', 'ever', 'every', 'everyone', 'everything', 'few', 'for', 'from', 'further',
-    'had', 'has', 'have', 'having', 'he', 'her', 'here', 'hers', 'herself', 'him',
-    'himself', 'his', 'how', 'if', 'in', 'into', 'is', 'it', 'its', 'itself', 'just',
-    'know', 'like', 'likely', 'made', 'make', 'makes', 'many', 'may', 'me', 'might',
-    'more', 'most', 'much', 'must', 'my', 'myself', 'neither', 'no', 'nor', 'not',
-    'nothing', 'now', 'of', 'off', 'often', 'on', 'once', 'one', 'only', 'or', 'other',
-    'others', 'our', 'ours', 'ourselves', 'out', 'over', 'own', 'part', 'per', 'perhaps',
-    'please', 'same', 'see', 'seem', 'seemed', 'seeming', 'seems', 'several', 'shall',
-    'she', 'should', 'since', 'so', 'some', 'someone', 'something', 'somewhere', 'still',
-    'such', 'than', 'that', 'the', 'their', 'theirs', 'them', 'themselves', 'then',
-    'there', 'these', 'they', 'thing', 'things', 'think', 'this', 'those', 'though',
-    'through', 'throughout', 'thus', 'to', 'together', 'too', 'under', 'until', 'up',
-    'upon', 'us', 'use', 'used', 'uses', 'using', 'very', 'want', 'was', 'we', 'well',
-    'were', 'what', 'whatever', 'when', 'where', 'which', 'while', 'who', 'whom',
-    'whose', 'why', 'will', 'with', 'within', 'without', 'would', 'yes', 'yet', 'you',
-    'your', 'yours', 'yourself', 'yourselves'
-}
+from spacy.lang.es.stop_words import STOP_WORDS as _ES_STOPWORDS
+from spacy.lang.en.stop_words import STOP_WORDS as _EN_STOPWORDS
+
+_STOPWORDS = _ES_STOPWORDS | _EN_STOPWORDS
 
 # UI strings per language (REQ-3). Unknown languages default to es.
 _UI_STRINGS = {
@@ -140,9 +94,6 @@ class HTMLBuilder:
         else:
             self.llm = None
             logger.info("HTMLBuilder initialized in fallback mode")
-        
-        if not MARKDOWN_AVAILABLE:
-            logger.warning("python-markdown not installed. Using basic conversion.")
     
     def _strip_title_from_content(self, content: str) -> tuple:
         """Strip the first Title from content, return (title, body).
@@ -285,86 +236,9 @@ class HTMLBuilder:
     
     def _markdown_to_html(self, markdown_content: str) -> str:
         """Convert Markdown to HTML."""
-        if MARKDOWN_AVAILABLE:
-            # Use python-markdown for proper conversion
-            md = markdown.Markdown(extensions=[
-                'fenced_code',
-                'tables',
-                'toc',
-                'codehilite',
-                'nl2br'
-            ])
-            html = md.convert(markdown_content)
-        else:
-            # Fallback: basic conversion
-            html = self._basic_markdown_to_html(markdown_content)
-        
-        # Wrap in article tag
-        html = f'<article class="blog-post">\n{html}\n</article>'
-        
-        return html
-    
-    def _basic_markdown_to_html(self, content: str) -> str:
-        """Basic Markdown to HTML conversion (fallback)."""
-        lines = content.split('\n')
-        html_lines = []
-        in_code_block = False
-        in_list = False
-        
-        for line in lines:
-            # Code blocks
-            if line.startswith('```'):
-                if in_code_block:
-                    html_lines.append('</code></pre>')
-                    in_code_block = False
-                else:
-                    lang = line[3:].strip() or 'text'
-                    html_lines.append(f'<pre><code class="language-{lang}">')
-                    in_code_block = True
-                continue
-            
-            if in_code_block:
-                html_lines.append(line)
-                continue
-            
-            # Headings
-            if line.startswith('# '):
-                html_lines.append(f'<h1>{line[2:]}</h1>')
-            elif line.startswith('## '):
-                html_lines.append(f'<h2>{line[3:]}</h2>')
-            elif line.startswith('### '):
-                html_lines.append(f'<h3>{line[4:]}</h3>')
-            elif line.startswith('#### '):
-                html_lines.append(f'<h4>{line[5:]}</h4>')
-            
-            # Lists
-            elif line.startswith('- ') or line.startswith('* '):
-                if not in_list:
-                    html_lines.append('<ul>')
-                    in_list = True
-                html_lines.append(f'<li>{line[2:]}</li>')
-            elif re.match(r'^\d+\. ', line) is not None:
-                if not in_list:
-                    html_lines.append('<ol>')
-                    in_list = True
-                html_lines.append(f'<li>{line[line.index(".")+2:]}</li>')
-            else:
-                if in_list:
-                    html_lines.append('</ul>')
-                    in_list = False
-                
-                # Paragraphs
-                if line.strip():
-                    # Bold and italic
-                    line = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', line)
-                    line = re.sub(r'\*(.+?)\*', r'<em>\1</em>', line)
-                    line = re.sub(r'`(.+?)`', r'<code>\1</code>', line)
-                    html_lines.append(f'<p>{line}</p>')
-        
-        if in_list:
-            html_lines.append('</ul>')
-        
-        return '\n'.join(html_lines)
+        md = markdown.Markdown(extensions=['fenced_code', 'tables', 'toc', 'codehilite', 'nl2br'])
+        html = md.convert(markdown_content)
+        return f'<article class="blog-post">\n{html}\n</article>'
     
     def _insert_image_placeholders(self, html: str, images: List[Dict]) -> str:
         """Insert image placeholders into HTML."""
@@ -583,7 +457,7 @@ class HTMLBuilder:
 
         filtered_words = [
             w for w in words
-            if len(w) >= 3 and not w.isdigit() and w not in _COMPREHENSIVE_STOPWORDS
+            if len(w) >= 3 and not w.isdigit() and w not in _STOPWORDS
         ]
 
         from collections import Counter
