@@ -33,7 +33,7 @@
 - Actualizado en todos los READMEs
 
 ### ✅ Unificado: URLs del repositorio
-- **URL canónica**: `https://github.com/AlejandroRS21/blogger-agent-tfg`
+- **URL canónica**: `https://github.com/AlejandroRS21/bloggeria`
 - Actualizado en: README.md, pyproject.toml, AGENTS_GUIDE.md
 
 ### ✅ Resuelto: estado de Modal

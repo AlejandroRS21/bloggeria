@@ -50,7 +50,7 @@ npm start
 | `USE_MOCK` | `true` (para demo) o `false` (con backend) |
 | `BACKEND_URL` | URL del webhook Modal (si `USE_MOCK=false`) |
 | `NEXT_PUBLIC_APP_NAME` | `Blogger Agent TFG` |
-| `NEXT_PUBLIC_GITHUB_URL` | `https://github.com/AlejandroRS21/blogger-agent-tfg` |
+| `NEXT_PUBLIC_GITHUB_URL` | `https://github.com/AlejandroRS21/bloggeria` |
 
 5. Clic **Deploy** 🚀
 

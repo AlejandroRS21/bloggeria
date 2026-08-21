@@ -51,7 +51,7 @@ export default function Header() {
           </Link>
 
           <a
-            href="https://github.com/AlejandroRS21/blogger-agent-tfg"
+            href="https://github.com/AlejandroRS21/bloggeria"
             target="_blank"
             rel="noopener noreferrer"
             className="hidden text-sm font-medium text-gray-600 transition-colors hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400 lg:inline"

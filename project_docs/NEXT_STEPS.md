@@ -449,7 +449,7 @@ ruff check .
 - [Plan de Orquestación](ORCHESTRATION_PLAN.md) - Plan detallado
 - [README Orquestador](../backend/src/orchestrator/README.md) - Docs del orquestador
 - [Vercel Deployment](VERCEL_DEPLOYMENT.md) - Guía de deployment (pendiente)
-- [Issues GitHub](https://github.com/AlejandroRS21/blogger-agent-tfg/issues) - Issues tracker
+- [Issues GitHub](https://github.com/AlejandroRS21/bloggeria/issues) - Issues tracker
 
 ---
 

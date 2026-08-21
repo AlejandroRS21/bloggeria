@@ -46,10 +46,10 @@ all-providers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/AlejandroRS21/blogger-agent-tfg"
-Documentation = "https://github.com/AlejandroRS21/blogger-agent-tfg/tree/main/project_docs"
-Repository = "https://github.com/AlejandroRS21/blogger-agent-tfg"
-Issues = "https://github.com/AlejandroRS21/blogger-agent-tfg/issues"
+Homepage = "https://github.com/AlejandroRS21/bloggeria"
+Documentation = "https://github.com/AlejandroRS21/bloggeria/tree/main/project_docs"
+Repository = "https://github.com/AlejandroRS21/bloggeria"
+Issues = "https://github.com/AlejandroRS21/bloggeria/issues"
 
 [project.scripts]
 blogger-orchestrator = "src.orchestrator.runner:main"

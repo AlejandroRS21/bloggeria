@@ -15,7 +15,7 @@ Esta guía te explica **cómo configurar el proyecto** para que el orquestador f
 ```bash
 # Abre una terminal en tu ordenador
 cd ~/Documents  # O donde quieras trabajar
-git clone https://github.com/IES-Rafael-Alberti/blogger-agent-tfg.git
+git clone https://github.com/AlejandroRS21/bloggeria.git
 cd blogger-agent-tfg
 ```
 
@@ -310,7 +310,7 @@ Cuando hagas `git push`:
 
 ## 🎯 Próximos Pasos
 
-1. **Clona el repo**: `git clone https://github.com/IES-Rafael-Alberti/blogger-agent-tfg.git`
+1. **Clona el repo**: `git clone https://github.com/AlejandroRS21/bloggeria.git`
 2. **Lee Issue #9**: Tiene el plan completo de implementación
 3. **Comienza con VSCode**: GitHub Copilot te ayudará mucho
 4. **Pregunta en el equipo**: Usa las issues para dudas

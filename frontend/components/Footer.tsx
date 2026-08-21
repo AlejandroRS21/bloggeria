@@ -22,7 +22,7 @@ export default function Footer() {
           </p>
           <div className="flex items-center gap-4">
             <a
-              href="https://github.com/AlejandroRS21/blogger-agent-tfg"
+              href="https://github.com/AlejandroRS21/bloggeria"
               target="_blank"
               rel="noopener noreferrer"
               className="text-xs text-gray-500 transition-colors hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400"

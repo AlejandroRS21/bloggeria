@@ -83,4 +83,4 @@ Archivos seguros para editar:
 ---
 
 **Última actualización**: 17 de febrero de 2026  
-**Repositorio**: [AlejandroRS21/blogger-agent-tfg](https://github.com/AlejandroRS21/blogger-agent-tfg)
+**Repositorio**: [AlejandroRS21/blogger-agent-tfg](https://github.com/AlejandroRS21/bloggeria)

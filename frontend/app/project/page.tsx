@@ -98,7 +98,7 @@ export default function ProjectPage() {
                 {t("project.generate")}
               </Link>
               <a
-                href="https://github.com/AlejandroRS21/blogger-agent-tfg"
+                href="https://github.com/AlejandroRS21/bloggeria"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="rounded-lg border border-gray-300 bg-white px-8 py-3.5 text-sm font-semibold text-gray-700 shadow-sm transition-colors hover:bg-gray-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"

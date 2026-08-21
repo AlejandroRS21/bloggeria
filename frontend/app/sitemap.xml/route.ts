@@ -2,7 +2,7 @@ export const dynamic = "force-static";
 
 import { getAllPosts } from "@/lib/api";
 
-const BASE_URL = "https://blogger-agent-tfg.vercel.app";
+const BASE_URL = "https://bloggeria.vercel.app";
 
 interface SitemapEntry {
   url: string;

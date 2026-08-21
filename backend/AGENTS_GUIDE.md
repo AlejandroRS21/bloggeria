@@ -211,7 +211,7 @@ result = orchestrator.run(
 
 ## 📞 Soporte
 
-- **Repo**: https://github.com/AlejandroRS21/blogger-agent-tfg
+- **Repo**: https://github.com/AlejandroRS21/bloggeria
 - **Frontend / Vercel**: (Despliegue dinámico en producción)
 - **Autor**: AlejandroRS21
 - **Proyecto**: TFG — IES Rafael Alberti
