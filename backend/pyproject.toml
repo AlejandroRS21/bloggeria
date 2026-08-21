@@ -23,7 +23,6 @@ dependencies = [
     "requests>=2.31.0",
     "beautifulsoup4>=4.14.3",
     # Configuration
-    "toml>=0.10.2",
     "Markdown>=3.5.0",
     # Utilities
     "python-dotenv>=1.2.1",

@@ -237,7 +237,6 @@ dependencies = [
     { name = "markdown" },
     { name = "python-dotenv" },
     { name = "requests" },
-    { name = "toml" },
 ]
 
 [package.optional-dependencies]
@@ -271,7 +270,6 @@ requires-dist = [
     { name = "python-dotenv", specifier = ">=1.2.1" },
     { name = "requests", specifier = ">=2.31.0" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.2.0" },
-    { name = "toml", specifier = ">=0.10.2" },
 ]
 provides-extras = ["dev", "modal", "openai", "all-providers"]
 

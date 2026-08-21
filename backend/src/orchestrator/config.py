@@ -6,9 +6,9 @@ LLM settings, retry policies, and workflow parameters.
 """
 
 import os
+import tomllib
 from dataclasses import dataclass
 from typing import Dict, Any, Optional
-import toml
 from pathlib import Path
 
 
@@ -57,8 +57,8 @@ class OrchestratorConfig:
     @classmethod
     def from_toml(cls, config_path: str) -> "OrchestratorConfig":
         """Load configuration from TOML file."""
-        with open(config_path, 'r') as f:
-            data = toml.load(f)
+        with open(config_path, 'rb') as f:
+            data = tomllib.load(f)
         
         # Extract relevant sections
         models = data.get('models', {})
