@@ -33,7 +33,7 @@ class OpenRouterProvider(LLMProvider):
                 api_key=api_key,
                 base_url=OPENROUTER_BASE_URL,
                 default_headers={
-                    "HTTP-Referer": "https://bloggeria-cf0iyl2bv-alejandrors21s-projects.vercel.app",
+                    "HTTP-Referer": "https://bloggeria.vercel.app",
                     "X-Title": "BloggerIA",
                 },
             )

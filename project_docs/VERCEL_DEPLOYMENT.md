@@ -69,7 +69,7 @@ Vercel es la plataforma oficial de Next.js y ofrece:
 4. **Deploy:**
    - Click "Deploy"
    - Espera 1-2 minutos
-   - ¡Listo! Tu app estará en `https://bloggeria-cf0iyl2bv-alejandrors21s-projects.vercel.app`
+   - ¡Listo! Tu app estará en `https://bloggeria.vercel.app`
 
 ### Método 2: Vercel CLI
 
@@ -160,7 +160,7 @@ jobs:
 
 ### Branches strategy:
 
-- **`main`** → Deploy a producción (`bloggeria-cf0iyl2bv-alejandrors21s-projects.vercel.app`)
+- **`main`** → Deploy a producción (`bloggeria.vercel.app`)
 - **`develop`** → Preview deployment (`blogger-agent-tfg-git-develop.vercel.app`)
 - **Feature branches** → Preview deployments únicos
 

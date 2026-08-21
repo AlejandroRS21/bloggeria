@@ -9,13 +9,13 @@
 *Multi-agent AI system that analyzes a blogger's style, generates new articles that faithfully mimic it and publishes them end to end.*
 
 <p align="center">
-  <a href="https://bloggeria-cf0iyl2bv-alejandrors21s-projects.vercel.app"><strong>Live Demo — bloggeria-cf0iyl2bv-alejandrors21s-projects.vercel.app</strong></a>
+  <a href="https://bloggeria.vercel.app"><strong>Live Demo — bloggeria.vercel.app</strong></a>
 </p>
 
 <div align="center">
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/static/v1?label=License&message=MIT&color=4caf50&labelColor=gray&style=flat&cacheSeconds=300"/></a>
   <a href="https://github.com/AlejandroRS21/bloggeria"><img alt="GitHub Stars" src="https://img.shields.io/static/v1?label=GitHub&message=Stars&color=181717&labelColor=gray&style=flat&cacheSeconds=300"/></a>
-  <a href="https://bloggeria-cf0iyl2bv-alejandrors21s-projects.vercel.app"><img alt="Live Demo" src="https://img.shields.io/static/v1?label=Live%20Demo&message=Vercel&color=10b981&labelColor=gray&style=flat&cacheSeconds=300"/></a>
+  <a href="https://bloggeria.vercel.app"><img alt="Live Demo" src="https://img.shields.io/static/v1?label=Live%20Demo&message=Vercel&color=10b981&labelColor=gray&style=flat&cacheSeconds=300"/></a>
   <a href="https://nextjs.org"><img alt="Next.js" src="https://img.shields.io/static/v1?label=Next.js&message=16&color=000000&labelColor=gray&style=flat&cacheSeconds=300"/></a>
   <a href="https://react.dev"><img alt="React" src="https://img.shields.io/static/v1?label=React&message=19&color=61dafb&labelColor=gray&style=flat&cacheSeconds=300"/></a>
   <a href="https://www.typescriptlang.org"><img alt="TypeScript" src="https://img.shields.io/static/v1?label=TypeScript&message=5&color=3178c6&labelColor=gray&style=flat&cacheSeconds=300"/></a>
