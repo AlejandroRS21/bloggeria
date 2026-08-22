@@ -46,6 +46,11 @@ const es = {
   "home.words": "palabras",
   "home.cta": "¿Quieres generar tu propio artículo con el estilo de tu escritor favorito?",
   "home.ctaButton": "Generar nuevo post",
+  "welcome.title": "¿Qué quieres escribir hoy?",
+  "welcome.body":
+    "Elige un autor y un tema, y el sistema multi-agente escribirá un artículo con su estilo en unos minutos.",
+  "welcome.start": "Empezar a escribir",
+  "welcome.later": "Ahora no",
   // posts
   "posts.minRead": "min de lectura",
   "posts.min": "min",
@@ -139,6 +144,11 @@ const en: Record<keyof typeof es, string> = {
   "home.words": "words",
   "home.cta": "Want to generate your own article in the style of your favorite writer?",
   "home.ctaButton": "Generate new post",
+  "welcome.title": "What do you want to write today?",
+  "welcome.body":
+    "Pick an author and a topic, and the multi-agent system will write an article in their style in a few minutes.",
+  "welcome.start": "Start writing",
+  "welcome.later": "Not now",
   "posts.minRead": "min read",
   "posts.min": "min",
   "posts.words": "words",
