@@ -133,7 +133,6 @@ python daggr_blogger_workflow.py
 | HuggingFace | `huggingface_provider.py` | 🆓 Gratis |
 | Google Gemini | `gemini_provider.py` | 🆓 Gratis (con límites) |
 | OpenAI | `openai_provider.py` | 💰 Pago |
-| Modal GPU | `modal_provider.py` | 💰 Pay-per-use |
 
 ---
 
@@ -165,7 +164,7 @@ python daggr_blogger_workflow.py
 2. **Con HuggingFace**: Artículos completos de 1500-2500 palabras
 3. **Persistencia**: Los artículos generados vía webhook se guardan de forma instantánea en la base de datos centralizada de Supabase
 4. **Estilo del blogger**: Configurado para imitar a Javi Pas (javipas.com)
-5. **Modal GPU**: Para producción, usar `modal_app.py` o `llm_modal_host.py`
+5. **Modal**: Para producción, usar `modal_app.py`
 
 ---
 

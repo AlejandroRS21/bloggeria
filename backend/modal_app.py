@@ -613,44 +613,6 @@ Un tema APROPIADO incluye (incluso si es polémico, siempre que el enfoque sea s
 IMPORTANTE: No rechaces un tema solo porque sea controvertido. Recházalo SOLO si su contenido intrínseco es denigrante, explícito, ilegal o promueve el odio."""
 
 
-def _moderate_with_modal(topic: str) -> Optional[Dict[str, Any]]:
-    """Try moderation using the Modal-hosted model. Returns None if unavailable."""
-    user_prompt = f"""TEMA A EVALUAR: "{topic}"
-
-Responde ÚNICAMENTE con un JSON válido, sin texto adicional:
-- Si es APROPIADO: {{"approved": true, "reason": null}}
-- Si es INAPROPIADO: {{"approved": false, "reason": "explicación clara y específica de por qué es inapropiado"}}"""
-
-    try:
-        # Call Modal-hosted model directly — works inside Modal's runtime
-        # without needing explicit tokens (Modal handles auth internally)
-        RemoteCls = modal.Cls.from_name("blogger-agent-models", "LlamaModel")
-        instance = RemoteCls()
-
-        response = instance.generate.remote(
-            messages=[
-                {"role": "system", "content": _MODERATION_SYSTEM_PROMPT},
-                {"role": "user", "content": user_prompt},
-            ],
-            temperature=0.1,
-            max_tokens=200,
-        )
-
-        text = ""
-        if isinstance(response, dict):
-            text = response.get("content", "")
-        else:
-            text = str(response)
-
-        result = _parse_moderation_response(text)
-        print(f"[Moderation] Modal verdict: approved={result.get('approved')}")
-        return result
-
-    except Exception as e:
-        print(f"[Moderation] Modal model unavailable: {e}")
-        return None
-
-
 def _moderate_with_gemini(topic: str) -> Optional[Dict[str, Any]]:
     """Fallback moderation using Gemini. Returns None if unavailable."""
     api_key = os.environ.get("GEMINI_API_KEY")
@@ -700,8 +662,7 @@ def moderate_topic(topic: str, niche: str = "tech") -> Dict[str, Any]:
     Check if a topic is appropriate for content generation.
 
     FIRST: deterministic pre-filter (blacklist / PII / spam — free, no LLM).
-    Then: Modal-hosted LLM as the primary moderation engine.
-    Falls back to Gemini if the Modal model is unavailable.
+    Then: Gemini API as the moderation engine.
 
     Args:
         topic: The topic string to moderate.
@@ -722,12 +683,7 @@ def moderate_topic(topic: str, niche: str = "tech") -> Dict[str, Any]:
         log_moderation_event("topic", det_result["reason"], det_result["layer"], niche, topic)
         return det_result
 
-    # Strategy 1: Modal-hosted model (primary, runs inside Modal infra)
-    result = _moderate_with_modal(topic)
-    if result is not None:
-        return result
-
-    # Strategy 2: Gemini API (fallback)
+    # Strategy 1: Gemini API
     result = _moderate_with_gemini(topic)
     if result is not None:
         return result

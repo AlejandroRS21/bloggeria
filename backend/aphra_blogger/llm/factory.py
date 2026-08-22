@@ -8,7 +8,6 @@ import os
 from .base import LLMProvider, LLMConfig
 from .openai_provider import OpenAIProvider
 from .huggingface_provider import HuggingFaceProvider
-from .modal_provider import ModalProvider
 from .gemini_provider import GeminiProvider
 from .openrouter_provider import OpenRouterProvider
 from .fallback_provider import FallbackProvider
@@ -96,9 +95,6 @@ def create_llm_provider(
             model = "mistralai/Mixtral-8x7B-Instruct-v0.1"
         elif provider == "gemini":
             model = "gemini-2.5-flash"
-        elif provider == "modal":
-            # Default Modal function name
-            model = "blogger-agent-models/LlamaModel.generate"
         else:  # auto
             model = "gpt-4-turbo-preview"  # Will be overridden per provider
 
@@ -106,30 +102,11 @@ def create_llm_provider(
         api_key=api_key, model=model, temperature=temperature, max_tokens=max_tokens, **kwargs
     )
 
-    # Auto mode: try fallback chain (OpenRouter->Gemini) first, then Modal, HF, OpenAI
+    # Auto mode: try fallback chain (OpenRouter->Gemini) first, then Gemini, HF
     if provider == "auto":
         chain = _build_fallback_chain(temperature, max_tokens, **kwargs)
         if chain is not None and chain.is_available():
             return chain
-
-        # Check for Modal config
-        modal_ready = (
-            os.getenv("MODAL_TOKEN_ID") and os.getenv("MODAL_TOKEN_SECRET")
-        ) or os.getenv("MODAL_API_KEY")
-        if modal_ready:
-            try:
-                modal_config = LLMConfig(
-                    api_key=api_key or os.getenv("MODAL_API_KEY"),
-                    model="blogger-agent-models/LlamaModel.generate",
-                    temperature=temperature,
-                    max_tokens=max_tokens,
-                    **kwargs,
-                )
-                llm = ModalProvider(modal_config)
-                if llm.is_available():
-                    return llm
-            except Exception:
-                pass
 
         # Check for Gemini API key
         gemini_key = api_key or os.getenv("GEMINI_API_KEY")
@@ -166,8 +143,8 @@ def create_llm_provider(
                 pass
 
         raise ValueError(
-            "No LLM provider available (Modal, Gemini, HuggingFace). "
-            "Set MODAL_TOKEN_ID/SECRET, GEMINI_API_KEY, or HF_TOKEN environment variable."
+            "No LLM provider available (Gemini, HuggingFace). "
+            "Set GEMINI_API_KEY or HF_TOKEN environment variable."
         )
 
     # Specific provider requested
@@ -177,15 +154,6 @@ def create_llm_provider(
             raise ValueError(
                 "HuggingFace provider not available. "
                 "Set HF_TOKEN or HUGGINGFACE_TOKEN environment variable."
-            )
-        return llm
-
-    elif provider == "modal":
-        llm = ModalProvider(config)
-        if not llm.is_available():
-            raise ValueError(
-                "Modal provider not available. "
-                "Set MODAL_TOKEN_ID and MODAL_TOKEN_SECRET environment variables."
             )
         return llm
 

@@ -46,10 +46,6 @@ export function getBloggerBySlug(slug: string): BloggerPreset | undefined {
   return PRESET_BLOGGERS.find((b) => b.id === slug);
 }
 
-export function getBloggersByNiche(niche: Niche): BloggerPreset[] {
-  return PRESET_BLOGGERS.filter((b) => b.niche === niche);
-}
-
 /**
  * Normalizes a user-supplied blog URL to an absolute http(s) URL.
  * - Bare domains (e.g. "miblog.com") get "https://" prepended.

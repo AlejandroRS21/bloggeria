@@ -41,10 +41,6 @@ modal = [
 openai = [
     "openai>=1.12.0",
 ]
-all-providers = [
-    "openai>=1.12.0",
-]
-
 [project.urls]
 Homepage = "https://github.com/AlejandroRS21/bloggeria"
 Documentation = "https://github.com/AlejandroRS21/bloggeria/tree/main/project_docs"

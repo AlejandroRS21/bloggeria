@@ -13,8 +13,7 @@ backend/
 │   │   ├── factory.py                # Factory para proveedores
 │   │   ├── huggingface_provider.py   # HuggingFace (primario, gratis)
 │   │   ├── openai_provider.py        # OpenAI (fallback)
-│   │   ├── gemini_provider.py        # Google Gemini (alternativo)
-│   │   └── modal_provider.py         # Modal GPU (producción)
+│   │   └── gemini_provider.py        # Google Gemini (alternativo)
 │   ├── agents/                       # Agentes especializados
 │   │   ├── __init__.py
 │   │   ├── style_analyzer.py         # Análisis de estilo
@@ -55,7 +54,6 @@ backend/
 │   └── test_anonymous_blogger.py
 ├── daggr_blogger_workflow.py         # ⭐ Workflow visual con Daggr
 ├── modal_app.py                      # Endpoint serverless de Modal
-├── llm_modal_host.py                 # Hosting LLM propio en Modal GPU
 ├── generate_and_deploy.py            # (Legacy) Script simplificado local
 ├── test_full_pipeline.py             # Test de integración local
 ├── requirements.txt                  # Dependencias del backend

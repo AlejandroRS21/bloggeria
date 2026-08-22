@@ -16,7 +16,6 @@ Example:
 import argparse
 import sys
 import json
-from datetime import datetime
 from pathlib import Path
 from typing import List
 
@@ -255,61 +254,6 @@ def main() -> int:
     # Print summary
     if not args.quiet:
         print_result_summary(result)
-        
-    # Guardar el HTML completo en docs/posts/ y actualizar posts.json
-    try:
-        from pathlib import Path
-        # asumiendo que el runner.py está en backend/src/orchestrator/
-        docs_dir = Path(__file__).resolve().parent.parent.parent.parent / "docs"
-        posts_dir = docs_dir / "posts"
-        posts_dir.mkdir(parents=True, exist_ok=True)
-        
-        slug = result["html_structure"]["metadata"]["slug"]
-        html_page_path = posts_dir / f"{slug}.html"
-        with open(html_page_path, "w", encoding="utf-8") as f:
-            f.write(result["html_structure"]["full_page"])
-            
-        if not args.quiet:
-            print(f"\\n✓ HTML estático guardado en: {html_page_path}")
-            
-        # Actualizar posts.json
-        posts_json_path = docs_dir / "posts.json"
-        posts_data = []
-        if posts_json_path.exists():
-            try:
-                with open(posts_json_path, "r", encoding="utf-8") as f:
-                    posts_data = json.load(f)
-            except Exception:
-                pass
-                
-        # Crear entrada
-        titulo = result["html_structure"]["metadata"]["title"] or result["topic"]
-        desc = result["html_structure"]["metadata"]["description"] or result["content"][:150] + "..."
-        tags = result["html_structure"]["metadata"]["keywords"] or ["IA"]
-        
-        new_post_meta = {
-            "id": slug,
-            "title": titulo,
-            "description": desc,
-            "date": datetime.now().strftime("%Y-%m-%d"),
-            "author": "Blogger Agent",
-            "word_count": result["html_structure"]["metadata"]["word_count"],
-            "reading_time": result["html_structure"]["metadata"]["reading_time"],
-            "tags": tags
-        }
-        
-        # Reemplazar si ya existe
-        posts_data = [p for p in posts_data if p.get("id") != slug]
-        posts_data.insert(0, new_post_meta)
-        
-        with open(posts_json_path, "w", encoding="utf-8") as f:
-            json.dump(posts_data, f, indent=2, ensure_ascii=False)
-            
-        if not args.quiet:
-            print(f"✓ Índice {posts_json_path.name} actualizado exitosamente.")
-            
-    except Exception as e:
-        print(f"\\nError actualizando el sitio estático (docs/): {e}", file=sys.stderr)
         
     # Save output if requested
     if args.output:

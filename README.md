@@ -97,8 +97,7 @@ blogger-agent-tfg/
 │   │   │   ├── fallback_provider.py     # Fallback chain with backoff
 │   │   │   ├── json_utils.py            # Robust JSON extraction
 │   │   │   ├── huggingface_provider.py  # HuggingFace (legacy)
-│   │   │   ├── openai_provider.py       # OpenAI (legacy)
-│   │   │   └── modal_provider.py        # Modal with GPU (legacy)
+│   │   │   └── openai_provider.py       # OpenAI (legacy)
 │   │   ├── agents/                  # Specialized agents
 │   │   │   ├── style_analyzer.py        # Style analysis
 │   │   │   ├── keyword_extractor.py     # Keyword extraction
@@ -135,7 +134,6 @@ blogger-agent-tfg/
 │   │   └── test_unsplash.py
 │   ├── daggr_blogger_workflow.py    # Visual workflow with Daggr
 │   ├── modal_app.py                 # Modal deployment (serverless)
-│   ├── llm_modal_host.py            # Self-hosted LLM on Modal GPU
 │   ├── generate_and_deploy.py       # Simplified pipeline
 │   ├── outputs/                     # Generated posts (JSON)
 │   ├── requirements.txt
@@ -323,14 +321,10 @@ graph LR
 The **Modal** platform is used to enable serverless deployments with GPU support:
 
 - **`modal_app.py`**: Deploys the orchestrator module as a serverless *webhook*.
-- **`llm_modal_host.py`**: Hosts the Qwen 2.5 7B model on an A10G GPU for local inference.
 
 ```bash
 # Deploy the orchestrator on the serverless infrastructure
 modal deploy backend/modal_app.py
-
-# Deploy the self-hosted language model (LLM) configured with GPU
-modal deploy backend/llm_modal_host.py
 ```
 
 ---
