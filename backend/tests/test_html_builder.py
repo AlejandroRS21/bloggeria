@@ -4,6 +4,72 @@ import pytest
 from aphra_blogger.agents.html_builder import HTMLBuilder, HTMLOutput
 
 
+from aphra_blogger.llm.base import LLMResponse
+
+
+class _EchoLLM:
+    """Stub LLM that echoes the meta-description instruction back."""
+
+    def __init__(self, text: str):
+        self._text = text
+
+    def is_available(self) -> bool:
+        return True
+
+    def create_messages(self, system_prompt, user_prompt):
+        return [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt},
+        ]
+
+    def chat_completion(self, messages, **kwargs):
+        return LLMResponse(
+            content=self._text,
+            model="stub",
+            provider="stub",
+            finish_reason="stop",
+        )
+
+
+class TestMetaDescriptionEchoGuard:
+    """Instruction-echo output must fall back to deterministic extraction."""
+
+    def test_echo_falls_back_to_first_paragraph(self):
+        echo = (
+            "The user wants a concise meta description (150-160 characters) "
+            "for SEO based on the blog content provided."
+        )
+        builder = HTMLBuilder(api_key=None)
+        builder.llm = _EchoLLM(echo)
+
+        markdown = (
+            "# Titulo\n\n"
+            "Este es un primer parrafo real que describe el articulo y es lo bastante largo como para servir de descripcion."
+        )
+        output = builder.build(content=markdown, topic="Test")
+
+        assert "The user wants" not in output.meta_description
+        assert "concise meta description" not in output.meta_description
+        assert "primer parrafo real" in output.meta_description
+
+    def test_valid_description_is_kept(self):
+        good = "Una descripcion SEO real y breve del articulo."
+        builder = HTMLBuilder(api_key=None)
+        builder.llm = _EchoLLM(good)
+
+        markdown = "# Titulo\n\nPrimer parrafo que no deberia usarse porque la salida es valida."
+        output = builder.build(content=markdown, topic="Test")
+
+        assert output.meta_description == good
+
+    def test_echo_markers_detected(self):
+        for echo in [
+            "The user wants a concise meta description",
+            "Meta description for SEO, between 150-160 characters",
+            "SEO based on the provided content",
+        ]:
+            assert HTMLBuilder._is_instruction_echo(echo) is True
+        assert HTMLBuilder._is_instruction_echo("Una descripcion normal.") is False
 class TestHTMLBuilder:
     """Tests for HTMLBuilder agent."""
     

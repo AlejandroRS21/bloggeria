@@ -452,7 +452,12 @@ class HTMLBuilder:
         return topic
     
     def _generate_meta_description(self, content: str, language: str = "es") -> str:
-        """Generate meta description from content."""
+        """Generate meta description from content.
+
+        Validates the LLM output to reject instruction echoes (the model
+        sometimes returns the prompt itself instead of a description) and
+        falls back to a deterministic first-paragraph extract in that case.
+        """
         if self.llm and self.llm.is_available():
             try:
                 messages = self.llm.create_messages(
@@ -465,17 +470,34 @@ class HTMLBuilder:
                     max_tokens=100
                 )
                 
-                description = response.content.strip()
-                # Ensure it's within character limit
-                if len(description) > 160:
-                    description = description[:157] + "..."
-                
-                return description
+                description = (response.content or "").strip()
+                if description and not self._is_instruction_echo(description):
+                    # Ensure it's within character limit
+                    if len(description) > 160:
+                        description = description[:157] + "..."
+                    return description
                 
             except Exception as e:
                 logger.error(f"Error generating meta description: {e}")
         
-        # Fallback: use first paragraph
+        return self._fallback_meta_description(content, language)
+
+    @staticmethod
+    def _is_instruction_echo(description: str) -> bool:
+        """True when the LLM echoed the generation instruction instead of a real description."""
+        lowered = description.lower()
+        markers = (
+            "the user wants",
+            "concise meta description",
+            "seo based on",
+            "meta description (150",
+            "meta description for seo",
+            "for seo from the following",
+        )
+        return any(m in lowered for m in markers)
+
+    def _fallback_meta_description(self, content: str, language: str) -> str:
+        """Deterministic fallback: first real paragraph, else neutral."""
         paragraphs = content.split('\n\n')
         for para in paragraphs:
             if not para.startswith('#') and len(para) > 50:
